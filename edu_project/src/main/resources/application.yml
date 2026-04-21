@@ -1,0 +1,86 @@
+# =============================================================================
+# 校园博客论坛系统 - 应用配置文件
+# =============================================================================
+# 说明：将 application.properties 重命名为 application.yml，
+#       YAML 格式更清晰易读，适合复杂配置。
+# =============================================================================
+
+# Spring 基础配置
+spring:
+  application:
+    name: campus-blog-forum  # 应用名称
+
+  # ==================== 数据源配置 ====================
+  datasource:
+    # 驱动类名：MySQL 8.x 使用 com.mysql.cj.jdbc.Driver
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    
+    # 数据库连接 URL：
+    #   jdbc:mysql://主机:端口/数据库名?参数
+    #   useUnicode=true&characterEncoding=utf-8：指定字符编码
+    #   serverTimezone=Asia/Shanghai：设置时区为上海（东八区）
+    #   useSSL=false：本地开发不使用 SSL 安全连接
+    url: jdbc:mysql://localhost:3306/campus_blog?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false
+    
+    # 数据库用户名（请根据你的 MySQL 配置修改）
+    username: root
+    
+    # 数据库密码（请根据你的 MySQL 配置修改）
+    password: root
+    
+    # HikariCP 连接池配置（Spring Boot 默认连接池，性能最优）
+    hikari:
+      minimum-idle: 5          # 最小空闲连接数
+      maximum-pool-size: 20     # 最大连接池大小
+      auto-commit: true         # 自动提交事务
+      idle-timeout: 30000      # 空闲连接超时时间（毫秒）
+      pool-name: CampusBlogHikariCP  # 连接池名称
+      max-lifetime: 1800000     # 连接最大生命周期（毫秒）
+      connection-timeout: 30000 # 连接超时时间（毫秒）
+
+  # ==================== Jackson 配置（JSON 序列化） ====================
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss  # 日期格式
+    time-zone: GMT+8                    # 时区设置
+    default-property-inclusion: non_null # 只序列化非空字段
+
+# ==================== MyBatis Plus 配置 ====================
+mybatis-plus:
+  # Mapper XML 文件位置（如果使用 XML 写 SQL 的话）
+  mapper-locations: classpath*:/mapper/**/*.xml
+  
+  # 实体类包路径（用于自动扫描）
+  type-aliases-package: com.example.edu_project.entity
+  
+  configuration:
+    map-underscore-to-camel-case: true  # 数据库下划线自动转驼峰命名
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # 控制台打印 SQL 语句（开发调试用）
+    
+  # MyBatis Plus 全局策略配置
+  global-config:
+    db-config:
+      id-type: auto                # 主键类型：自增
+      logic-delete-field: isDeleted # 逻辑删除字段名
+      logic-delete-value: 1       # 逻辑删除值
+      logic-not-delete-value: 0   # 逻辑未删除值
+
+# ==================== 服务器配置 ====================
+server:
+  port: 8080  # 应用启动端口号
+  servlet:
+    context-path: /api  # 应用访问路径前缀（所有接口以 /api 开头）
+
+# ==================== Knife4j (Swagger) API 文档配置 ====================
+springdoc:
+  api-docs:
+    enabled: true               # 开启 API 文档
+    path: /v3/api-docs          # API 文档路径
+  swagger-ui:
+    enabled: true               # 开启 Swagger UI
+    path: /swagger-ui.html      # Swagger UI 访问路径
+
+# Knife4j 增强配置
+knife4j:
+  enable: true                   # 开启 Knife4j
+  setting:
+    language: zh_CN              # 中文界面
