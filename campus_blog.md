@@ -673,6 +673,7 @@ edu_project/
 
 | 日期 | 版本 | 更新内容 |
 | :--- | :--- | :--- |
+| 2026-04-24 | v1.6 | 全面安全加固<br>密码字段添加@JsonIgnore防泄露<br>getById返回UserVO替代SysUser<br>敏感信息改为环境变量<br>添加防刷机制和权限校验<br>Entity联合主键和逻辑删除修复 |
 | 2026-04-24 | v1.5 | 安全与质量问题修复<br>添加@Valid参数校验<br>修复分层架构违规<br>添加密码复杂度校验<br>修复N+1查询问题<br>优化关联数据清理<br>完善异常处理机制 |
 | 2026-04-24 | v1.4 | 实现用户注册、登录功能<br>启用 Spring Security + JWT 认证<br>新增 JwtUtils 工具类<br>新增 DTO/VO 层<br>BCrypt 密码加密存储<br>JWT Token 身份认证 |
 | 2026-04-24 | v1.3 | 修复 Spring Boot 与 MyBatis Plus 兼容性问题<br>确定稳定版本组合：Spring Boot 3.0.12 + MyBatis Plus 3.5.5<br>暂时注释 Spring Security 和 JWT 依赖（开发阶段）<br>注释分页插件配置<br>项目成功启动并正常运行<br>完善所有文档 |
@@ -688,5 +689,5 @@ edu_project/
 
 ---
 
-**文档版本**：v1.5
+**文档版本**：v1.6
 **最后更新**：2026-04-24

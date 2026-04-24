@@ -187,6 +187,14 @@ edu_project/
 
 ## 更新日志
 
+### v1.6 (2026-04-24)
+- 全面安全加固与代码质量修复
+- SysUser添加@JsonIgnore防密码泄露
+- getById返回UserVO替代SysUser实体
+- 敏感信息（DB密码、JWT密钥）改为环境变量
+- 添加防刷机制和权限校验
+- Entity联合主键和逻辑删除修复
+
 ### v1.5 (2026-04-24)
 - 实现文章管理模块完整功能
 - 新增 BlogPostController（文章 CRUD 接口）
