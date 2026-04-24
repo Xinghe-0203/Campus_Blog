@@ -1,6 +1,7 @@
 package com.example.edu_project.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -32,6 +33,7 @@ public class SysUser implements Serializable {
     /**
      * 密码（加密存储）
      */
+    @JsonIgnore
     private String password;
 
     /**

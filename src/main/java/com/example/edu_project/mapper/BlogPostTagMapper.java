@@ -9,6 +9,11 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface BlogPostTagMapper extends BaseMapper<BlogPostTag> {
 
+    /**
+     * 批量插入文章标签关联
+     * @param postId 文章ID
+     * @param tagIds 标签ID列表
+     */
     @Insert("<script>" +
             "INSERT INTO blog_post_tag (post_id, tag_id) VALUES " +
             "<foreach collection='tagIds' item='tagId' separator=','>" +

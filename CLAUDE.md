@@ -49,10 +49,10 @@ mvn test
 ### Tech Stack
 
 | Component | Version |
-|-----------|---------|
+|-----------|--------|
 | Spring Boot | 3.0.12 |
 | Spring Security | (included, pending config) |
-| MyBatis Plus | 3.5.15 |
+| MyBatis Plus | 3.5.5 |
 | JWT | 0.12.3 |
 | Knife4j | 4.5.0 |
 | MySQL | 8.x |

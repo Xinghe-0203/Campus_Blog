@@ -313,6 +313,9 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
     }
 
     private void savePostTags(Long postId, List<Long> tagIds) {
+        if (tagIds == null || tagIds.isEmpty()) {
+            return;
+        }
         blogPostTagMapper.batchInsertPostTags(postId, tagIds);
     }
 
@@ -327,7 +330,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
     }
 
     private Map<Long, List<PostDetailResponse.TagVO>> getTagsMapByPostIds(List<Long> postIds) {
-        if (postIds.isEmpty()) {
+        if (postIds == null || postIds.isEmpty()) {
             return Collections.emptyMap();
         }
 
@@ -336,7 +339,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         postTagWrapper.in(BlogPostTag::getPostId, postIds);
         List<BlogPostTag> postTags = blogPostTagMapper.selectList(postTagWrapper);
 
-        if (postTags.isEmpty()) {
+        if (postTags == null || postTags.isEmpty()) {
             return Collections.emptyMap();
         }
 

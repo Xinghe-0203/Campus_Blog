@@ -67,6 +67,11 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
     @Override
     public UserLoginResponse login(UserLoginRequest request) {
+        // 参数校验
+        if (request.getUsername() == null || request.getUsername().trim().isEmpty()) {
+            throw new BusinessException(400, "用户名不能为空");
+        }
+
         // 查询用户
         LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(SysUser::getUsername, request.getUsername());

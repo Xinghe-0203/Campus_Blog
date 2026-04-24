@@ -27,7 +27,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(BusinessException.class)
     public Result<Void> handleBusinessException(BusinessException e) {
-        log.warn("业务异常：{}", e.getMessage());
+        log.warn("业务异常：[{}]", e.getClass().getSimpleName());
         return Result.error(e.getCode(), e.getMessage());
     }
 
@@ -66,7 +66,7 @@ public class GlobalExceptionHandler {
         } else if (cause instanceof MismatchedInputException) {
             message = "请求体格式错误";
         }
-        log.warn("请求体解析失败：{}", e.getMessage());
+        log.warn("请求体解析失败：[{}]", e.getClass().getSimpleName());
         return Result.error(400, message);
     }
 
@@ -108,7 +108,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(DuplicateKeyException.class)
     public Result<Void> handleDuplicateKeyException(DuplicateKeyException e) {
-        log.warn("数据重复：{}", e.getMessage());
+        log.warn("数据重复：[{}]", e.getClass().getSimpleName());
         return Result.error(500, "操作失败，请稍后重试");
     }
 
@@ -117,7 +117,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Throwable.class)
     public Result<Void> handleThrowable(Throwable e) {
-        log.error("系统异常：", e);
+        log.error("系统异常：[{}]", e.getClass().getSimpleName());
         return Result.error(500, "系统内部错误，请联系管理员");
     }
 }

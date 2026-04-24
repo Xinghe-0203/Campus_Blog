@@ -1,12 +1,15 @@
 package com.example.edu_project.controller;
 
+import com.example.edu_project.common.exception.BusinessException;
 import com.example.edu_project.common.result.Result;
 import com.example.edu_project.dto.UserLoginRequest;
 import com.example.edu_project.dto.UserRegisterRequest;
 import com.example.edu_project.dto.UserRegisterResponse;
 import com.example.edu_project.entity.SysUser;
 import com.example.edu_project.service.SysUserService;
+import com.example.edu_project.utils.SecurityUtils;
 import com.example.edu_project.vo.UserLoginResponse;
+import com.example.edu_project.vo.UserVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -52,8 +55,27 @@ public class SysUserController {
      */
     @Operation(summary = "根据ID查询用户")
     @GetMapping("/{id}")
-    public Result<SysUser> getById(@PathVariable Long id) {
+    public Result<UserVO> getById(@PathVariable Long id) {
+        Long currentUserId = SecurityUtils.getCurrentUserIdOrNull();
+        if (currentUserId == null) {
+            throw new BusinessException(401, "请先登录");
+        }
+        // 非管理员只能查看自己
+        SysUser currentUser = sysUserService.getUserById(currentUserId);
+        if (!"admin".equals(currentUser.getRole()) && !currentUserId.equals(id)) {
+            throw new BusinessException(403, "无权限查看其他用户信息");
+        }
         SysUser user = sysUserService.getUserById(id);
-        return Result.success(user);
+        UserVO userVO = new UserVO();
+        userVO.setId(user.getId());
+        userVO.setUsername(user.getUsername());
+        userVO.setNickname(user.getNickname());
+        userVO.setAvatar(user.getAvatar());
+        userVO.setEmail(user.getEmail());
+        userVO.setRole(user.getRole());
+        userVO.setStatus(user.getStatus());
+        userVO.setCreateTime(user.getCreateTime());
+        userVO.setUpdateTime(user.getUpdateTime());
+        return Result.success(userVO);
     }
 }

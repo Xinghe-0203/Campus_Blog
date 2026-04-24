@@ -9,6 +9,6 @@ import org.apache.ibatis.annotations.Update;
 @Mapper
 public interface BlogPostMapper extends BaseMapper<BlogPost> {
 
-    @Update("UPDATE blog_post SET view_count = view_count + 1 WHERE id = #{id}")
+    @Update("UPDATE blog_post SET view_count = view_count + 1 WHERE id = #{id} AND is_deleted = 0")
     void incrementViewCount(@Param("id") Long id);
 }
