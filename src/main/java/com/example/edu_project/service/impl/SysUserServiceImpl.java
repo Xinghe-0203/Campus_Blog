@@ -32,9 +32,18 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Override
     @Transactional(rollbackFor = Exception.class)
     public UserRegisterResponse register(UserRegisterRequest request) {
-        // 密码强度校验（至少6位）
-        if (request.getPassword() == null || request.getPassword().length() < 6) {
-            throw new BusinessException(400, "密码长度至少为6位");
+        // 密码复杂度校验：至少8位，包含大小写字母、数字或特殊字符中的3种
+        String password = request.getPassword();
+        if (password == null || password.length() < 8) {
+            throw new BusinessException(400, "密码长度至少为8位");
+        }
+        int categories = 0;
+        if (password.matches(".*[A-Z].*")) categories++;
+        if (password.matches(".*[a-z].*")) categories++;
+        if (password.matches(".*\\d.*")) categories++;
+        if (password.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?].*")) categories++;
+        if (categories < 3) {
+            throw new BusinessException(400, "密码必须包含大小写字母、数字或特殊字符中的至少3种");
         }
 
         // 创建用户
@@ -88,5 +97,10 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                 user.getRole(),
                 token
         );
+    }
+
+    @Override
+    public SysUser getUserById(Long id) {
+        return this.getById(id);
     }
 }

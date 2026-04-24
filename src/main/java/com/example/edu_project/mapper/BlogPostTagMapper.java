@@ -9,9 +9,6 @@ import org.apache.ibatis.annotations.Param;
 @Mapper
 public interface BlogPostTagMapper extends BaseMapper<BlogPostTag> {
 
-    @Insert("INSERT INTO blog_post_tag (post_id, tag_id) VALUES (#{postId}, #{tagId})")
-    void insertPostTag(@Param("postId") Long postId, @Param("tagId") Long tagId);
-
     @Insert("<script>" +
             "INSERT INTO blog_post_tag (post_id, tag_id) VALUES " +
             "<foreach collection='tagIds' item='tagId' separator=','>" +

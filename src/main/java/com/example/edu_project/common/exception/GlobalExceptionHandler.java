@@ -2,6 +2,7 @@ package com.example.edu_project.common.exception;
 
 import com.example.edu_project.common.result.Result;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
@@ -100,6 +101,15 @@ public class GlobalExceptionHandler {
                 : "参数绑定失败";
         log.warn("参数绑定异常：{}", message);
         return Result.error(400, message);
+    }
+
+    /**
+     * 处理数据库重复键异常
+     */
+    @ExceptionHandler(DuplicateKeyException.class)
+    public Result<Void> handleDuplicateKeyException(DuplicateKeyException e) {
+        log.warn("数据重复：{}", e.getMessage());
+        return Result.error(500, "操作失败，请稍后重试");
     }
 
     /**

@@ -25,4 +25,11 @@ public interface SysUserService extends IService<SysUser> {
      * @return 登录响应
      */
     UserLoginResponse login(UserLoginRequest request);
+
+    /**
+     * 根据ID获取用户信息
+     * @param id 用户ID
+     * @return 用户信息
+     */
+    SysUser getUserById(Long id);
 }

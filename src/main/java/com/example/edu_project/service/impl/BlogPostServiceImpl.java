@@ -7,10 +7,16 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.edu_project.common.exception.BusinessException;
 import com.example.edu_project.dto.PostCreateRequest;
 import com.example.edu_project.dto.PostQueryRequest;
+import com.example.edu_project.entity.BlogCollect;
+import com.example.edu_project.entity.BlogComment;
+import com.example.edu_project.entity.BlogLike;
 import com.example.edu_project.entity.BlogPost;
 import com.example.edu_project.entity.BlogPostTag;
 import com.example.edu_project.entity.BlogTag;
 import com.example.edu_project.entity.SysUser;
+import com.example.edu_project.mapper.BlogCollectMapper;
+import com.example.edu_project.mapper.BlogCommentMapper;
+import com.example.edu_project.mapper.BlogLikeMapper;
 import com.example.edu_project.mapper.BlogPostMapper;
 import com.example.edu_project.mapper.BlogPostTagMapper;
 import com.example.edu_project.mapper.BlogTagMapper;
@@ -42,6 +48,15 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
 
     @Autowired
     private SysUserMapper sysUserMapper;
+
+    @Autowired
+    private BlogCommentMapper blogCommentMapper;
+
+    @Autowired
+    private BlogLikeMapper blogLikeMapper;
+
+    @Autowired
+    private BlogCollectMapper blogCollectMapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -154,9 +169,25 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         LambdaQueryWrapper<BlogPostTag> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(BlogPostTag::getPostId, postId);
         blogPostTagMapper.delete(wrapper);
+
+        // 删除评论关联
+        LambdaQueryWrapper<BlogComment> commentWrapper = new LambdaQueryWrapper<>();
+        commentWrapper.eq(BlogComment::getPostId, postId);
+        blogCommentMapper.delete(commentWrapper);
+
+        // 删除点赞关联
+        LambdaQueryWrapper<BlogLike> likeWrapper = new LambdaQueryWrapper<>();
+        likeWrapper.eq(BlogLike::getPostId, postId);
+        blogLikeMapper.delete(likeWrapper);
+
+        // 删除收藏关联
+        LambdaQueryWrapper<BlogCollect> collectWrapper = new LambdaQueryWrapper<>();
+        collectWrapper.eq(BlogCollect::getPostId, postId);
+        blogCollectMapper.delete(collectWrapper);
     }
 
     @Override
+    @Transactional(readOnly = true)
     public PostDetailResponse getPostDetail(Long postId) {
         BlogPost post = this.getById(postId);
         if (post == null) {
@@ -169,7 +200,32 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         // 增加阅读量
         incrementViewCount(postId);
 
-        return convertToDetailResponse(post);
+        PostDetailResponse response = new PostDetailResponse();
+        response.setId(post.getId());
+        response.setUserId(post.getUserId());
+        response.setTitle(post.getTitle());
+        response.setSummary(post.getSummary());
+        response.setContent(post.getContent());
+        response.setCategory(post.getCategory());
+        response.setViewCount(post.getViewCount());
+        response.setLikeCount(post.getLikeCount());
+        response.setCommentCount(post.getCommentCount());
+        response.setStatus(post.getStatus());
+        response.setCreateTime(post.getCreateTime());
+        response.setUpdateTime(post.getUpdateTime());
+
+        // 获取作者信息
+        SysUser user = sysUserMapper.selectById(post.getUserId());
+        if (user != null) {
+            response.setUsername(user.getUsername());
+            response.setNickname(user.getNickname());
+            response.setAvatar(user.getAvatar());
+        }
+
+        // 获取标签列表
+        response.setTags(getTagsByPostId(post.getId()));
+
+        return response;
     }
 
     @Override
