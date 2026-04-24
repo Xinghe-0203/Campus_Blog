@@ -44,6 +44,20 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
     @Override
     @Transactional
     public Long createPost(PostCreateRequest request, Long userId) {
+        // 参数校验
+        if (request.getTitle() == null || request.getTitle().trim().isEmpty()) {
+            throw new BusinessException(400, "文章标题不能为空");
+        }
+        if (request.getContent() == null || request.getContent().trim().isEmpty()) {
+            throw new BusinessException(400, "文章内容不能为空");
+        }
+        if (request.getTitle().length() > 200) {
+            throw new BusinessException(400, "文章标题不能超过200字符");
+        }
+        if (request.getContent() != null && request.getContent().length() > 50000) {
+            throw new BusinessException(400, "文章内容不能超过50000字符");
+        }
+
         // 创建文章
         BlogPost post = new BlogPost();
         post.setUserId(userId);
@@ -69,6 +83,20 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
     @Override
     @Transactional
     public void updatePost(PostCreateRequest request, Long userId) {
+        // 参数校验
+        if (request.getId() == null) {
+            throw new BusinessException(400, "文章ID不能为空");
+        }
+        if (request.getTitle() == null || request.getTitle().trim().isEmpty()) {
+            throw new BusinessException(400, "文章标题不能为空");
+        }
+        if (request.getContent() == null || request.getContent().trim().isEmpty()) {
+            throw new BusinessException(400, "文章内容不能为空");
+        }
+        if (request.getTitle().length() > 200) {
+            throw new BusinessException(400, "文章标题不能超过200字符");
+        }
+
         BlogPost post = this.getById(request.getId());
         if (post == null) {
             throw new BusinessException(404, "文章不存在");
@@ -172,19 +200,13 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
 
     @Override
     public void incrementViewCount(Long postId) {
-        BlogPost post = this.getById(postId);
-        if (post != null) {
-            post.setViewCount(post.getViewCount() == null ? 1 : post.getViewCount() + 1);
-            this.updateById(post);
-        }
+        // 直接执行 SQL 实现原子增加
+        baseMapper.incrementViewCount(postId);
     }
 
     private void savePostTags(Long postId, List<Long> tagIds) {
         for (Long tagId : tagIds) {
-            BlogPostTag postTag = new BlogPostTag();
-            postTag.setPostId(postId);
-            postTag.setTagId(tagId);
-            blogPostTagMapper.insert(postTag);
+            blogPostTagMapper.insertPostTag(postId, tagId);
         }
     }
 
