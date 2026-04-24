@@ -24,6 +24,6 @@ public class BlogPostTag implements Serializable {
     /**
      * 标签ID
      */
-    @TableId(type = IdType.INPUT)
+    @TableField
     private Long tagId;
 }

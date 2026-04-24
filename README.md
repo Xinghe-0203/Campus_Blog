@@ -28,7 +28,8 @@ edu_project/
 │   │   ├── MyMetaObjectHandler.java           # 自动填充处理器
 │   │   └── SecurityConfig.java                # Spring Security 配置
 │   ├── controller/                              # Controller 层（API 接口）
-│   │   └── SysUserController.java              # 用户控制器
+│   │   ├── SysUserController.java              # 用户控制器
+│   │   └── BlogPostController.java             # 文章控制器
 │   ├── service/                                 # Service 层（业务逻辑）
 │   │   ├── SysUserService.java
 │   │   ├── BlogPostService.java
@@ -55,9 +56,13 @@ edu_project/
 │   │   └── BlogCollectMapper.java
 │   ├── dto/                                     # 数据传输对象
 │   │   ├── UserRegisterRequest.java
-│   │   └── UserLoginRequest.java
+│   │   ├── UserLoginRequest.java
+│   │   ├── PostCreateRequest.java
+│   │   └── PostQueryRequest.java
 │   ├── vo/                                      # 视图对象
-│   │   └── UserLoginResponse.java
+│   │   ├── UserLoginResponse.java
+│   │   ├── PostDetailResponse.java
+│   │   └── PostListResponse.java
 │   ├── utils/                                   # 工具类
 │   │   └── JwtUtils.java                       # JWT 工具类
 │   └── entity/                                  # Entity 实体类
@@ -133,6 +138,17 @@ edu_project/
 | GET | `/api/user/list` | 查询所有用户 |
 | GET | `/api/user/{id}` | 根据ID查询用户 |
 
+### 文章模块
+
+| 方法 | 路径 | 说明 |
+| :--- | :--- | :--- |
+| POST | `/api/post` | 发布文章 |
+| PUT | `/api/post/{id}` | 更新文章 |
+| DELETE | `/api/post/{id}` | 删除文章 |
+| GET | `/api/post/{id}` | 获取文章详情 |
+| GET | `/api/post/list` | 获取文章列表 |
+| PUT | `/api/post/{id}/view` | 增加阅读量 |
+
 ## 开发规范
 
 ### 1. 统一返回格式
@@ -164,12 +180,21 @@ edu_project/
 ## 下一步开发计划
 
 1. ~~实现用户注册、登录功能~~ ✅ 已完成
-2. 实现文章的增删改查接口
+2. ~~实现文章的增删改查接口~~ ✅ 已完成
 3. 实现评论、点赞、收藏功能
 4. ~~启用 Spring Security + JWT 认证~~ ✅ 已完成
 5. 对接前端页面
 
 ## 更新日志
+
+### v1.5 (2026-04-24)
+- 实现文章管理模块完整功能
+- 新增 BlogPostController（文章 CRUD 接口）
+- 新增 PostCreateRequest、PostQueryRequest DTO
+- 新增 PostDetailResponse、PostListResponse VO
+- 实现文章标签关联管理（BlogPostTag）
+- 实现文章分页查询
+- 实现阅读量统计
 
 ### v1.4 (2026-04-24)
 - 实现用户注册功能（用户名/邮箱唯一性校验、BCrypt 密码加密）
