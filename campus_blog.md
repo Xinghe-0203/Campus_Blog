@@ -10,19 +10,23 @@
 | **项目类型** | 全栈 Web 应用 |
 | **开发周期** | 校技能大赛周期 |
 | **开发人员** | 刘畅 |
-| **当前版本** | v1.0-SNAPSHOT |
+| **当前版本** | v1.3 |
+| **GitHub 仓库** | https://github.com/Xinghe-0203/Campus_Blog |
 
 ---
 
 ## 1. 项目概述
 
 ### 1.1 项目背景
+
 在校园生活中，学生需要一个能够分享学习心得、交流技术、讨论校园热点的平台。传统的社交媒体信息过于碎片化，而专业的博客论坛能够提供更深度、更具沉淀价值的内容。
 
 ### 1.2 项目目标
+
 打造一个功能完整、界面美观、用户体验良好的全栈校园博客论坛系统，展示 Java Spring Boot 后端开发与前端 Web 技术。
 
 ### 1.3 适用场景
+
 - 校园内的技术分享与交流
 - 学生学习笔记和经验分享
 - 校园资讯与热点讨论
@@ -36,6 +40,8 @@
 | :--- | :--- | :--- |
 | **📊 数据库设计** | ✅ 已完成 | 100% |
 | **⚙️ 后端项目骨架** | ✅ 已完成 | 100% |
+| **🛠️ 后端基础完善** | ✅ 已完成 | 100% |
+| **✅ 版本兼容性修复** | ✅ 已完成 | 100% |
 | **🔐 用户认证模块** | ⏳ 待开发 | 0% |
 | **📝 文章管理模块** | ⏳ 待开发 | 0% |
 | **💬 评论互动模块** | ⏳ 待开发 | 0% |
@@ -58,15 +64,32 @@
 - 7 个实体类（Entity）编写完成
 - 7 个 Mapper 接口编写完成
 - 统一响应结果封装（Result）
-- MyBatis Plus 配置（分页插件）
+- MyBatis Plus 配置（分页插件待启用）
 - API 文档集成（Knife4j）
 - 测试 Controller 编写完成
+
+#### ✅ 后端基础完善（2026-04-21）
+- 修复联合主键实体类配置（BlogPostTag、BlogCollect、BlogLike）
+- 为 BlogTag 和 BlogComment 添加 isDeleted 逻辑删除字段
+- 创建 MetaObjectHandler 自动填充处理器（自动填充 createTime、updateTime）
+- 创建完整的 Service 层（7 个 Service 接口 + 7 个 ServiceImpl 实现类）
+- 创建全局异常处理器（GlobalExceptionHandler + BusinessException）
+
+#### ✅ 版本兼容性修复（2026-04-24）
+- 解决 Spring Boot 与 MyBatis Plus 兼容性问题
+- 测试多个版本组合，确定稳定方案：**Spring Boot 3.0.12 + MyBatis Plus 3.5.5**
+- 暂时注释 Spring Security 和 JWT 依赖（开发阶段，简化调试）
+- 注释分页插件配置（依赖问题，后续恢复）
+- 项目成功启动并正常运行！
+- 数据库连接正常（云端 MySQL）
+- API 接口正常响应
 
 ---
 
 ## 3. 需求分析
 
 ### 3.1 用户功能 (User Features)
+
 - **用户认证**：注册、登录、个人资料修改、密码重置
 - **内容发布**：支持 Markdown 格式发布文章、保存草稿
 - **互动交流**：评论、点赞、收藏、阅读量统计
@@ -76,6 +99,7 @@
 - **个人中心**：查看我的文章、我的收藏、我的评论
 
 ### 3.2 管理功能 (Admin Features)
+
 - **内容审核**：管理员可对违规帖子或评论进行删除或下架
 - **用户管理**：封禁违规用户、重置用户密码
 - **分类管理**：自定义论坛版块分类
@@ -89,20 +113,21 @@
 
 | 技术名称 | 版本 | 用途说明 |
 | :--- | :--- | :--- |
-| **Spring Boot** | 4.0.5 | 核心应用框架，提供自动配置和依赖管理 |
+| **Spring Boot** | 3.0.12 | 核心应用框架，提供自动配置和依赖管理 |
 | **Spring Web MVC** | - | Web 层框架，提供 RESTful API 支持 |
-| **MyBatis Plus** | 3.5.9 | ORM 持久层框架，MyBatis 的增强工具，极大简化数据库操作 |
+| **MyBatis Plus** | 3.5.5 | ORM 持久层框架，MyBatis 的增强工具，极大简化数据库操作 |
 | **MySQL Connector** | - | MySQL 数据库驱动 |
 | **Lombok** | 最新 | Java 代码简化工具，自动生成 Getter/Setter/Builder 等 |
 | **Hutool** | 5.8.38 | Java 工具类库，提供字符串、日期、加密等常用工具 |
 | **Knife4j** | 4.5.0 | API 文档工具，基于 Swagger 的增强版，提供美观的 UI 界面 |
-| **Springdoc OpenAPI** | - | OpenAPI 3.0 规范支持 |
+| **Spring Security** | 3.0.12 | 安全认证框架（暂未启用，注释中） |
+| **JWT (JJWT)** | 0.12.3 | JSON Web Token 认证（暂未启用，注释中） |
 
 ### 4.2 数据库技术 (Database)
 
 | 技术名称 | 版本 | 用途说明 |
 | :--- | :--- | :--- |
-| **MySQL** | 8.0+ | 关系型数据库，存储所有业务数据 |
+| **MySQL** | 8.0+ | 关系型数据库，存储所有业务数据（云端部署） |
 | **HikariCP** | - | Spring Boot 默认连接池，性能最优 |
 
 ### 4.3 前端技术栈 (Frontend)
@@ -150,6 +175,7 @@
 ### 5.2 详细表结构
 
 #### 表一：sys_user（用户表）
+
 存储论坛的所有用户信息。
 
 | 字段名 | 类型 | 约束 | 说明 |
@@ -173,6 +199,7 @@
 ---
 
 #### 表二：blog_post（文章/帖子表）
+
 存储用户发布的博客文章。
 
 | 字段名 | 类型 | 约束 | 说明 |
@@ -187,7 +214,7 @@
 | like_count | INT | DEFAULT 0 | 点赞数 |
 | comment_count | INT | DEFAULT 0 | 评论数 |
 | status | TINYINT(1) | DEFAULT 1 | 状态：1=发布，0=草稿，2=下架 |
-| create_time | DATETIME | DEFAULT NOW | 发布时间 |
+| create_time | DATETIME | DEFAULT NOW | 创建时间 |
 | update_time | DATETIME | AUTO UPDATE | 更新时间 |
 | is_deleted | TINYINT(1) | DEFAULT 0 | 逻辑删除 |
 
@@ -201,6 +228,7 @@
 ---
 
 #### 表三：blog_comment（评论表）
+
 存储用户对文章的评论，支持二级回复。
 
 | 字段名 | 类型 | 约束 | 说明 |
@@ -210,7 +238,8 @@
 | user_id | BIGINT | NOT NULL | 评论者用户ID（外键） |
 | parent_id | BIGINT | NULLABLE | 父评论ID（NULL=一级评论） |
 | content | TEXT | NOT NULL | 评论内容 |
-| create_time | DATETIME | DEFAULT NOW | 评论时间 |
+| create_time | DATETIME | DEFAULT NOW | 创建时间 |
+| is_deleted | TINYINT(1) | DEFAULT 0 | 逻辑删除 |
 
 **索引**：
 - PRIMARY KEY (id)
@@ -221,12 +250,14 @@
 ---
 
 #### 表四：blog_tag（标签表）
+
 存储文章的标签信息。
 
 | 字段名 | 类型 | 约束 | 说明 |
 | :--- | :--- | :--- | :--- |
 | id | BIGINT | PK, AUTO_INCREMENT | 主键ID |
 | name | VARCHAR(50) | NOT NULL, UNIQUE | 标签名称 |
+| is_deleted | TINYINT(1) | DEFAULT 0 | 逻辑删除 |
 
 **索引**：
 - PRIMARY KEY (id)
@@ -235,6 +266,7 @@
 ---
 
 #### 表五：blog_post_tag（文章-标签关联表）
+
 实现文章和标签的多对多关系。
 
 | 字段名 | 类型 | 约束 | 说明 |
@@ -248,6 +280,7 @@
 ---
 
 #### 表六：blog_like（点赞记录表）
+
 记录用户对文章的点赞行为。
 
 | 字段名 | 类型 | 约束 | 说明 |
@@ -263,6 +296,7 @@
 ---
 
 #### 表七：blog_collect（收藏记录表）
+
 记录用户收藏的文章。
 
 | 字段名 | 类型 | 约束 | 说明 |
@@ -299,6 +333,7 @@ sys_user (用户表)
 ## 6. 项目架构设计
 
 ### 6.1 后端架构
+
 采用标准的 **MVC + Service + DAO** 分层架构：
 
 ```
@@ -323,42 +358,55 @@ src/main/java/com/example/edu_project/
 ├── EduProjectApplication.java          # 应用启动类
 │
 ├── config/                               # 配置类
-│   └── MybatisPlusConfig.java           # MyBatis Plus 配置
+│   ├── MybatisPlusConfig.java          # MyBatis Plus 配置
+│   ├── MyMetaObjectHandler.java         # 自动填充处理器
+│   └── SecurityConfig.java              # Spring Security 配置（暂未启用）
 │
 ├── controller/                           # Controller 层（API 接口）
-│   ├── SysUserController.java            # 用户相关接口
-│   ├── BlogPostController.java           # 文章相关接口
-│   ├── BlogCommentController.java        # 评论相关接口
-│   └── ...
+│   └── SysUserController.java            # 用户控制器
 │
 ├── service/                              # Service 层（业务逻辑）
 │   ├── SysUserService.java
 │   ├── BlogPostService.java
-│   └── ...
+│   ├── BlogCommentService.java
+│   ├── BlogTagService.java
+│   ├── BlogPostTagService.java
+│   ├── BlogLikeService.java
+│   └── BlogCollectService.java
 │
 ├── service/impl/                         # Service 实现类
 │   ├── SysUserServiceImpl.java
 │   ├── BlogPostServiceImpl.java
-│   └── ...
+│   ├── BlogCommentServiceImpl.java
+│   ├── BlogTagServiceImpl.java
+│   ├── BlogPostTagServiceImpl.java
+│   ├── BlogLikeServiceImpl.java
+│   └── BlogCollectServiceImpl.java
 │
 ├── mapper/                               # Mapper 层（数据库操作）
 │   ├── SysUserMapper.java
 │   ├── BlogPostMapper.java
-│   └── ...
+│   ├── BlogCommentMapper.java
+│   ├── BlogTagMapper.java
+│   ├── BlogPostTagMapper.java
+│   ├── BlogLikeMapper.java
+│   └── BlogCollectMapper.java
 │
 ├── entity/                               # Entity 实体类
 │   ├── SysUser.java
 │   ├── BlogPost.java
-│   └── ...
+│   ├── BlogComment.java
+│   ├── BlogTag.java
+│   ├── BlogPostTag.java
+│   ├── BlogLike.java
+│   └── BlogCollect.java
 │
-├── common/                               # 公共类
-│   ├── result/
-│   │   └── Result.java                  # 统一响应结果封装
-│   └── exception/                        # 异常处理（待实现）
-│
-└── utils/                                # 工具类（待实现）
-    ├── JwtUtils.java                    # JWT 工具
-    └── ...
+└── common/                               # 公共类
+    ├── result/
+    │   └── Result.java                   # 统一响应结果封装
+    └── exception/
+        ├── BusinessException.java       # 业务异常
+        └── GlobalExceptionHandler.java  # 全局异常处理
 ```
 
 ### 6.3 统一 API 响应格式
@@ -378,70 +426,78 @@ src/main/java/com/example/edu_project/
 ```
 
 **状态码说明**：
-- `200` - 成功
-- `400` - 请求参数错误
-- `401` - 未登录
-- `403` - 无权限
-- `404` - 资源不存在
-- `500` - 服务器内部错误
+- `200` = 成功
+- `400` = 请求参数错误
+- `401` = 未登录
+- `403` = 无权限
+- `404` = 资源不存在
+- `500` = 服务器内部错误
 
 ---
 
 ## 7. API 接口设计（规划）
 
 ### 7.1 用户模块
+
 | 接口 | 方法 | 路径 | 说明 |
 | :--- | :--- | :--- | :--- |
-| 用户注册 | POST | /api/user/register | 新用户注册 |
-| 用户登录 | POST | /api/user/login | 用户登录（返回 Token） |
-| 获取用户信息 | GET | /api/user/info | 获取当前登录用户信息 |
-| 更新用户信息 | PUT | /api/user/info | 更新用户个人资料 |
-| 获取用户列表 | GET | /api/user/list | 获取用户列表（管理员） |
+| 查询所有用户 | GET | `/api/user/list` | ✅ 已实现 |
+| 根据ID查询用户 | GET | `/api/user/{id}` | ✅ 已实现 |
+| 用户注册 | POST | `/api/user/register` | ⏳ 待开发 |
+| 用户登录 | POST | `/api/user/login` | ⏳ 待开发 |
+| 获取用户信息 | GET | `/api/user/info` | ⏳ 待开发 |
+| 更新用户信息 | PUT | `/api/user/info` | ⏳ 待开发 |
 
 ### 7.2 文章模块
+
 | 接口 | 方法 | 路径 | 说明 |
 | :--- | :--- | :--- | :--- |
-| 发布文章 | POST | /api/post | 发布新文章 |
-| 获取文章详情 | GET | /api/post/{id} | 获取文章详情 |
-| 获取文章列表 | GET | /api/post/list | 获取文章列表（分页） |
-| 搜索文章 | GET | /api/post/search | 搜索文章 |
-| 更新文章 | PUT | /api/post/{id} | 更新文章 |
-| 删除文章 | DELETE | /api/post/{id} | 删除文章 |
-| 增加阅读量 | PUT | /api/post/{id}/view | 文章阅读量+1 |
+| 发布文章 | POST | `/api/post` | ⏳ 待开发 |
+| 获取文章详情 | GET | `/api/post/{id}` | ⏳ 待开发 |
+| 获取文章列表 | GET | `/api/post/list` | ⏳ 待开发 |
+| 搜索文章 | GET | `/api/post/search` | ⏳ 待开发 |
+| 更新文章 | PUT | `/api/post/{id}` | ⏳ 待开发 |
+| 删除文章 | DELETE | `/api/post/{id}` | ⏳ 待开发 |
+| 增加阅读量 | PUT | `/api/post/{id}/view` | ⏳ 待开发 |
 
 ### 7.3 评论模块
+
 | 接口 | 方法 | 路径 | 说明 |
 | :--- | :--- | :--- | :--- |
-| 发表评论 | POST | /api/comment | 发表评论 |
-| 获取文章评论 | GET | /api/comment/post/{postId} | 获取文章的所有评论 |
-| 删除评论 | DELETE | /api/comment/{id} | 删除评论 |
+| 发表评论 | POST | `/api/comment` | ⏳ 待开发 |
+| 获取文章评论 | GET | `/api/comment/post/{postId}` | ⏳ 待开发 |
+| 删除评论 | DELETE | `/api/comment/{id}` | ⏳ 待开发 |
 
 ### 7.4 点赞模块
+
 | 接口 | 方法 | 路径 | 说明 |
 | :--- | :--- | :--- | :--- |
-| 点赞/取消点赞 | POST | /api/like/{postId} | 点赞或取消点赞 |
-| 检查是否已点赞 | GET | /api/like/check/{postId} | 检查用户是否已点赞文章 |
+| 点赞/取消点赞 | POST | `/api/like/{postId}` | ⏳ 待开发 |
+| 检查是否已点赞 | GET | `/api/like/check/{postId}` | ⏳ 待开发 |
 
 ### 7.5 收藏模块
+
 | 接口 | 方法 | 路径 | 说明 |
 | :--- | :--- | :--- | :--- |
-| 收藏/取消收藏 | POST | /api/collect/{postId} | 收藏或取消收藏 |
-| 获取我的收藏 | GET | /api/collect/my | 获取我的收藏列表 |
+| 收藏/取消收藏 | POST | `/api/collect/{postId}` | ⏳ 待开发 |
+| 获取我的收藏 | GET | `/api/collect/my` | ⏳ 待开发 |
 
 ---
 
 ## 8. 开发计划与里程碑
 
-| 阶段 | 任务 | 目标 | 预计时间 |
+| 阶段 | 任务 | 目标 | 状态 |
 | :--- | :--- | :--- | :--- |
-| **✅ 第一阶段** | 数据库与环境搭建 | 完成 MySQL 表创建，初始化 Spring Boot 项目骨架 | 已完成 |
-| **⏳ 第二阶段** | 用户认证模块 | 实现用户注册、登录、JWT 认证 | 待开始 |
-| **⏳ 第三阶段** | 文章管理模块 | 实现文章的增删改查接口 | 待开始 |
-| **⏳ 第四阶段** | 互动功能模块 | 实现评论、点赞、收藏功能 | 待开始 |
-| **⏳ 第五阶段** | 前端页面开发 | 编写 HTML/CSS，实现响应式布局和 Markdown 集成 | 待开始 |
-| **⏳ 第六阶段** | 前后端联调 | 使用 Axios 将前端页面与后端接口连通 | 待开始 |
-| **⏳ 第七阶段** | 优化与美化 | 加入 ECharts 统计图表，进行 UI 细节打磨 | 待开始 |
-| **⏳ 第八阶段** | 测试与修复 | 功能测试、Bug 修复、性能优化 | 待开始 |
+| **✅ 第一阶段** | 数据库与环境搭建 | 完成 MySQL 表创建，初始化 Spring Boot 项目骨架 | ✅ 已完成 |
+| **✅ 第二阶段** | 版本兼容性修复 | 解决依赖冲突，确定稳定版本组合 | ✅ 已完成 |
+| **⏳ 第三阶段** | 用户认证模块 | 实现用户注册、登录、密码加密 | ⏳ 待开始 |
+| **⏳ 第四阶段** | 文章管理模块 | 实现文章的增删改查接口 | ⏳ 待开始 |
+| **⏳ 第五阶段** | 互动功能模块 | 实现评论、点赞、收藏功能 | ⏳ 待开始 |
+| **⏳ 第六阶段** | 安全认证加固 | 启用 Spring Security + JWT | ⏳ 待开始 |
+| **⏳ 第七阶段** | 前端页面开发 | 编写 HTML/CSS，实现响应式布局和 Markdown 集成 | ⏳ 待开始 |
+| **⏳ 第八阶段** | 前后端联调 | 使用 Axios 将前端页面与后端接口连通 | ⏳ 待开始 |
+| **⏳ 第九阶段** | 优化与美化 | 加入 ECharts 统计图表，进行 UI 细节打磨 | ⏳ 待开始 |
+| **⏳ 第十阶段** | 测试与修复 | 功能测试、Bug 修复、性能优化 | ⏳ 待开始 |
 
 ---
 
@@ -455,7 +511,7 @@ src/main/java/com/example/edu_project/
 2. **多级树形评论**
    - 支持评论回复功能
    - 展示复杂的逻辑处理能力
-   - 无限层级或二级嵌套设计
+   - 二级嵌套设计
 
 3. **响应式 UI 设计**
    - 一套代码适配电脑、平板、手机屏幕
@@ -477,31 +533,45 @@ src/main/java/com/example/edu_project/
 ## 10. 部署说明
 
 ### 10.1 环境要求
+
 - JDK 21+
 - Maven 3.8+
 - MySQL 8.0+
 
-### 10.2 配置步骤
-1. 修改 `application.yml` 中的数据库连接信息
-2. 运行 `数据库表` 文件初始化数据库
-3. 执行 `mvn clean package` 打包项目
-4. 运行生成的 JAR 文件：`java -jar edu_project.jar`
+### 10.2 配置说明
+
+- 数据库已配置为云端地址，无需额外配置
+- 如需本地数据库，修改 `src/main/resources/application.yml` 中的数据库连接信息
 
 ### 10.3 访问地址
-- 应用地址：http://localhost:8080
+
+- 应用地址：http://localhost:8080/api
 - API 文档：http://localhost:8080/api/doc.html
+
+### 10.4 默认账号
+
+- 用户名：`admin`
+- 密码：`admin123`
 
 ---
 
 ## 11. 注意事项
 
-### 11.1 安全注意事项
+### 11.1 当前开发阶段说明
+
+- Spring Security 已暂时注释，无需认证即可访问所有接口
+- JWT 依赖已暂时注释，后续开发认证模块时启用
+- 分页插件已暂时注释，后续解决依赖问题后恢复
+
+### 11.2 安全注意事项（后续版本）
+
 - 密码必须使用 BCrypt 加密存储
 - 敏感接口需要 JWT Token 认证
 - 防止 SQL 注入（使用 MyBatis Plus 参数化查询）
 - 防止 XSS 攻击（前端转义、后端过滤）
 
-### 11.2 性能优化
+### 11.3 性能优化（后续版本）
+
 - 使用 Redis 缓存热点数据（可选）
 - 数据库查询优化（索引、分页）
 - 静态资源 CDN 加速（可选）
@@ -512,23 +582,83 @@ src/main/java/com/example/edu_project/
 
 ```
 edu_project/
-├── Campus_Blog_Forum_Project_Plan.md      # 本项目计划书
-├── 数据库表                                 # 数据库初始化 SQL 脚本
-├── edu_project/
-│   ├── README.md                            # 项目 README 文档
-│   ├── pom.xml                              # Maven 依赖配置
-│   └── src/main/
-│       ├── java/com/example/edu_project/   # Java 源代码
-│       └── resources/
-│           └── application.yml              # 应用配置文件
+├── campus_blog.md                          # 本项目计划书
+├── README.md                               # 项目根目录说明文档
+├── CLAUDE.md                               # Claude AI 协作文档
+├── 数据库表                               # 数据库初始化 SQL 脚本
+├── pom.xml                                 # Maven 依赖配置
+└── src/main/
+    ├── java/com/example/edu_project/
+    │   ├── EduProjectApplication.java
+    │   ├── config/
+    │   │   ├── MybatisPlusConfig.java
+    │   │   ├── MyMetaObjectHandler.java
+    │   │   └── SecurityConfig.java
+    │   ├── controller/
+    │   │   └── SysUserController.java
+    │   ├── entity/
+    │   │   ├── SysUser.java
+    │   │   ├── BlogPost.java
+    │   │   ├── BlogComment.java
+    │   │   ├── BlogTag.java
+    │   │   ├── BlogPostTag.java
+    │   │   ├── BlogLike.java
+    │   │   └── BlogCollect.java
+    │   ├── mapper/
+    │   │   ├── SysUserMapper.java
+    │   │   ├── BlogPostMapper.java
+    │   │   ├── BlogCommentMapper.java
+    │   │   ├── BlogTagMapper.java
+    │   │   ├── BlogPostTagMapper.java
+    │   │   ├── BlogLikeMapper.java
+    │   │   └── BlogCollectMapper.java
+    │   ├── service/
+    │   │   ├── SysUserService.java
+    │   │   ├── BlogPostService.java
+    │   │   ├── BlogCommentService.java
+    │   │   ├── BlogTagService.java
+    │   │   ├── BlogPostTagService.java
+    │   │   ├── BlogLikeService.java
+    │   │   └── BlogCollectService.java
+    │   ├── service/impl/
+    │   │   ├── SysUserServiceImpl.java
+    │   │   ├── BlogPostServiceImpl.java
+    │   │   ├── BlogCommentServiceImpl.java
+    │   │   ├── BlogTagServiceImpl.java
+    │   │   ├── BlogPostTagServiceImpl.java
+    │   │   ├── BlogLikeServiceImpl.java
+    │   │   └── BlogCollectServiceImpl.java
+    │   └── common/
+    │       ├── result/
+    │       │   └── Result.java
+    │       └── exception/
+    │           ├── BusinessException.java
+    │           └── GlobalExceptionHandler.java
+    └── resources/
+        └── application.yml
 ```
 
 ---
 
-## 13. 联系方式
+## 13. 开发规范
 
-- **开发人员**：刘畅
-- **项目路径**：`c:\Users\Zora\OneDrive\Desktop\mycode\edu_project`
+### 13.1 开发八荣八耻
+
+- 以瞎清接口为耻，以认真查询为荣
+- 以模糊执行为耻，以寻求确认为荣
+- 以想业务为耻，以人类确认为荣
+- 以创造接口为耻，以复用现有为荣
+- 以跳过验证为耻，以主动测试为荣
+- 以破坏架构为耻，以遵循规范为荣
+- 以假装理解为耻，以诚实无知为荣
+- 以盲目修改为耻，以谨慎重构为荣
+- 以忘记更新文档为耻，以及时更新为荣
+
+### 13.2 版本更新规范
+
+每次更新代码后，必须更新以下文档：
+- README.md
+- campus_blog.md
 
 ---
 
@@ -536,9 +666,18 @@ edu_project/
 
 | 日期 | 版本 | 更新内容 |
 | :--- | :--- | :--- |
-| 2026-04-21 | v1.0 | 初始化项目计划书，完成数据库设计和后端项目骨架搭建 |
+| 2026-04-24 | v1.3 | 修复 Spring Boot 与 MyBatis Plus 兼容性问题<br>确定稳定版本组合：Spring Boot 3.0.12 + MyBatis Plus 3.5.5<br>暂时注释 Spring Security 和 JWT 依赖（开发阶段）<br>注释分页插件配置<br>项目成功启动并正常运行<br>完善所有文档 |
+| 2026-04-21 | v1.2 | 完善后端基础架构<br>修复联合主键实体类配置问题<br>添加逻辑删除字段到 BlogTag 和 BlogComment<br>创建 MetaObjectHandler 自动填充处理器<br>创建完整的 Service 层（7个接口 + 7个实现类）<br>创建全局异常处理器<br>添加 Spring Security 和 JWT 依赖 |
+| 2026-04-21 | v1.1 | 初始化项目计划书，完成数据库设计和后端项目骨架搭建<br>修复 Spring Boot 版本兼容性问题（4.0.5 → 3.3.5）<br>项目成功上传到 GitHub：https://github.com/Xinghe-0203/Campus_Blog |
 
 ---
 
-**文档版本**：v1.0  
-**最后更新**：2026-04-21
+## 15. 联系方式
+
+- **开发人员**：刘畅
+- **项目路径**：`D:\MyCode\edu_project`
+
+---
+
+**文档版本**：v1.3
+**最后更新**：2026-04-24
