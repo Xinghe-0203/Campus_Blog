@@ -538,20 +538,50 @@ src/main/java/com/example/edu_project/
 - Maven 3.8+
 - MySQL 8.0+
 
-### 10.2 配置说明
+### 10.2 环境变量配置（必需）
 
-- 数据库已配置为云端地址，无需额外配置
-- 如需本地数据库，修改 `src/main/resources/application.yml` 中的数据库连接信息
+部署前必须设置以下环境变量，否则应用无法启动：
 
-### 10.3 访问地址
+| 环境变量 | 说明 | 示例 |
+| :--- | :--- | :--- |
+| `DB_PASSWORD` | 数据库密码 | `your_db_password` |
+| `JWT_SECRET` | JWT签名密钥（建议32位以上） | `your_jwt_secret_key_here` |
+
+**Linux/Mac 设置：**
+```bash
+export DB_PASSWORD=your_db_password
+export JWT_SECRET=your_jwt_secret_key_here
+```
+
+**Windows CMD 设置：**
+```cmd
+set DB_PASSWORD=your_db_password
+set JWT_SECRET=your_jwt_secret_key_here
+```
+
+**Windows PowerShell 设置：**
+```powershell
+$env:DB_PASSWORD="your_db_password"
+$env:JWT_SECRET="your_jwt_secret_key_here"
+```
+
+**IDE 环境变量配置：**
+在运行配置中添加上述环境变量。
+
+### 10.3 本地数据库配置
+
+如需本地数据库，修改 `src/main/resources/application.yml` 中的数据库连接信息（同时确保环境变量已设置）
+
+### 10.4 访问地址
 
 - 应用地址：http://localhost:8080/api
 - API 文档：http://localhost:8080/api/doc.html
 
-### 10.4 默认账号
+### 10.5 默认账号
 
 - 用户名：`admin`
 - 密码：`admin123`
+- 前提：数据库中已存在该用户
 
 ---
 
@@ -559,16 +589,18 @@ src/main/java/com/example/edu_project/
 
 ### 11.1 当前开发阶段说明
 
-- Spring Security 已暂时注释，无需认证即可访问所有接口
-- JWT 依赖已暂时注释，后续开发认证模块时启用
-- 分页插件已暂时注释，后续解决依赖问题后恢复
+- Spring Security + JWT 已启用，需正确配置环境变量
+- 分页插件已启用
+- 所有敏感接口需要 JWT Token 认证
 
-### 11.2 安全注意事项（后续版本）
+### 11.2 安全配置（必需）
 
-- 密码必须使用 BCrypt 加密存储
-- 敏感接口需要 JWT Token 认证
+- 密码使用 BCrypt 加密存储
+- JWT Token 身份认证
+- 敏感信息通过环境变量配置（禁止硬编码）
 - 防止 SQL 注入（使用 MyBatis Plus 参数化查询）
 - 防止 XSS 攻击（前端转义、后端过滤）
+- Entity 实体类密码字段添加 @JsonIgnore 防止序列化泄露
 
 ### 11.3 性能优化（后续版本）
 

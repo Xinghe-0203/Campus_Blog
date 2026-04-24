@@ -109,15 +109,29 @@ edu_project/
 
 在 MySQL 中执行项目根目录下的 `数据库表` SQL 脚本。
 
-### 3. 修改配置
+### 3. 环境变量配置（必需）
 
-查看 `src/main/resources/application.yml` 配置文件，数据库已配置为云端地址（默认使用配置）。
+部署前必须设置以下环境变量：
 
-### 4. 启动项目
+```bash
+# Linux/Mac
+export DB_PASSWORD=your_db_password
+export JWT_SECRET=your_jwt_secret_key_here
+
+# Windows PowerShell
+$env:DB_PASSWORD="your_db_password"
+$env:JWT_SECRET="your_jwt_secret_key_here"
+```
+
+### 4. 修改配置（可选）
+
+如需修改数据库地址等其他配置，编辑 `src/main/resources/application.yml`。
+
+### 5. 启动项目
 
 运行 `EduProjectApplication.java` 的 `main` 方法。
 
-### 5. 访问 API 文档
+### 6. 访问 API 文档
 
 项目启动成功后，访问：
 **http://localhost:8080/api/doc.html**
@@ -125,7 +139,7 @@ edu_project/
 ## 默认账号
 
 - 用户名：`admin`
-- 密码：`admin123`
+- 密码：`admin123`（需确保数据库中已初始化该用户）
 
 ## 当前已实现的API接口
 
