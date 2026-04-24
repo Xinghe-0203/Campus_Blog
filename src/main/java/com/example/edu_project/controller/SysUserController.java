@@ -50,16 +50,6 @@ public class SysUserController {
     }
 
     /**
-     * 查询所有用户列表
-     */
-    @Operation(summary = "查询所有用户")
-    @GetMapping("/list")
-    public Result<List<SysUser>> list() {
-        List<SysUser> list = sysUserMapper.selectList(null);
-        return Result.success(list);
-    }
-
-    /**
      * 根据ID查询用户
      */
     @Operation(summary = "根据ID查询用户")

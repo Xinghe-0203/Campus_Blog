@@ -23,7 +23,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Autowired
     private JwtUtils jwtUtils;
 
-    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+    @Autowired
+    private BCryptPasswordEncoder passwordEncoder;
 
     @Override
     public SysUser register(UserRegisterRequest request) {
@@ -41,6 +42,11 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             if (this.count(emailWrapper) > 0) {
                 throw new BusinessException(400, "邮箱已被使用");
             }
+        }
+
+        // 密码强度校验（至少6位）
+        if (request.getPassword() == null || request.getPassword().length() < 6) {
+            throw new BusinessException(400, "密码长度至少为6位");
         }
 
         // 创建用户

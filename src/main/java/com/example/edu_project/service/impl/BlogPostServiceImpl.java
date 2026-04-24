@@ -23,7 +23,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -42,7 +44,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
     private SysUserMapper sysUserMapper;
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public Long createPost(PostCreateRequest request, Long userId) {
         // 参数校验
         if (request.getTitle() == null || request.getTitle().trim().isEmpty()) {
@@ -56,6 +58,11 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         }
         if (request.getContent() != null && request.getContent().length() > 50000) {
             throw new BusinessException(400, "文章内容不能超过50000字符");
+        }
+
+        // 校验标签ID有效性
+        if (request.getTagIds() != null && !request.getTagIds().isEmpty()) {
+            validateTagIds(request.getTagIds());
         }
 
         // 创建文章
@@ -81,7 +88,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void updatePost(PostCreateRequest request, Long userId) {
         // 参数校验
         if (request.getId() == null) {
@@ -95,6 +102,11 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         }
         if (request.getTitle().length() > 200) {
             throw new BusinessException(400, "文章标题不能超过200字符");
+        }
+
+        // 校验标签ID有效性
+        if (request.getTagIds() != null && !request.getTagIds().isEmpty()) {
+            validateTagIds(request.getTagIds());
         }
 
         BlogPost post = this.getById(request.getId());
@@ -114,7 +126,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
 
         this.updateById(post);
 
-        // 更新标签关联
+        // 更新标签关联 - 先删后插，保证事务原子性
         LambdaQueryWrapper<BlogPostTag> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(BlogPostTag::getPostId, post.getId());
         blogPostTagMapper.delete(wrapper);
@@ -125,7 +137,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
     }
 
     @Override
-    @Transactional
+    @Transactional(rollbackFor = Exception.class)
     public void deletePost(Long postId, Long userId) {
         BlogPost post = this.getById(postId);
         if (post == null) {
@@ -189,10 +201,34 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
 
         IPage<BlogPost> postPage = this.page(page, wrapper);
 
+        // 批量获取用户信息和标签信息，避免 N+1 查询
+        List<BlogPost> posts = postPage.getRecords();
+        if (posts.isEmpty()) {
+            return new Page<>(postPage.getCurrent(), postPage.getSize(), postPage.getTotal());
+        }
+
+        // 收集所有需要的用户ID
+        List<Long> userIds = posts.stream()
+                .map(BlogPost::getUserId)
+                .distinct()
+                .collect(Collectors.toList());
+
+        // 收集所有文章ID
+        List<Long> postIds = posts.stream()
+                .map(BlogPost::getId)
+                .collect(Collectors.toList());
+
+        // 批量查询用户信息
+        Map<Long, SysUser> userMap = sysUserMapper.selectBatchIds(userIds).stream()
+                .collect(Collectors.toMap(SysUser::getId, u -> u));
+
+        // 批量查询标签信息
+        Map<Long, List<PostDetailResponse.TagVO>> postTagsMap = getTagsMapByPostIds(postIds);
+
         // 转换为列表响应
         IPage<PostListResponse> result = new Page<>(postPage.getCurrent(), postPage.getSize(), postPage.getTotal());
-        result.setRecords(postPage.getRecords().stream()
-                .map(this::convertToListResponse)
+        result.setRecords(posts.stream()
+                .map(post -> convertToListResponse(post, userMap.get(post.getUserId()), postTagsMap.get(post.getId())))
                 .collect(Collectors.toList()));
 
         return result;
@@ -205,9 +241,55 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
     }
 
     private void savePostTags(Long postId, List<Long> tagIds) {
-        for (Long tagId : tagIds) {
-            blogPostTagMapper.insertPostTag(postId, tagId);
+        blogPostTagMapper.batchInsertPostTags(postId, tagIds);
+    }
+
+    private void validateTagIds(List<Long> tagIds) {
+        if (tagIds == null || tagIds.isEmpty()) {
+            return;
         }
+        List<BlogTag> existingTags = blogTagMapper.selectBatchIds(tagIds);
+        if (existingTags.size() != tagIds.size()) {
+            throw new BusinessException(400, "部分标签ID不存在");
+        }
+    }
+
+    private Map<Long, List<PostDetailResponse.TagVO>> getTagsMapByPostIds(List<Long> postIds) {
+        if (postIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        // 查询所有相关的文章-标签关联
+        LambdaQueryWrapper<BlogPostTag> postTagWrapper = new LambdaQueryWrapper<>();
+        postTagWrapper.in(BlogPostTag::getPostId, postIds);
+        List<BlogPostTag> postTags = blogPostTagMapper.selectList(postTagWrapper);
+
+        if (postTags.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        // 收集所有标签ID
+        List<Long> tagIds = postTags.stream()
+                .map(BlogPostTag::getTagId)
+                .distinct()
+                .collect(Collectors.toList());
+
+        // 批量查询标签信息
+        List<BlogTag> tags = blogTagMapper.selectBatchIds(tagIds);
+        Map<Long, String> tagNameMap = tags.stream()
+                .collect(Collectors.toMap(BlogTag::getId, BlogTag::getName));
+
+        // 按文章ID分组
+        return postTags.stream()
+                .collect(Collectors.groupingBy(
+                        BlogPostTag::getPostId,
+                        Collectors.mapping(tag -> {
+                            PostDetailResponse.TagVO tagVO = new PostDetailResponse.TagVO();
+                            tagVO.setId(tag.getTagId());
+                            tagVO.setName(tagNameMap.get(tag.getTagId()));
+                            return tagVO;
+                        }, Collectors.toList())
+                ));
     }
 
     private PostDetailResponse convertToDetailResponse(BlogPost post) {
@@ -239,7 +321,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         return response;
     }
 
-    private PostListResponse convertToListResponse(BlogPost post) {
+    private PostListResponse convertToListResponse(BlogPost post, SysUser user, List<PostDetailResponse.TagVO> tags) {
         PostListResponse response = new PostListResponse();
         response.setId(post.getId());
         response.setUserId(post.getUserId());
@@ -251,18 +333,20 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         response.setCommentCount(post.getCommentCount());
         response.setCreateTime(post.getCreateTime());
 
-        // 获取作者昵称和头像
-        SysUser user = sysUserMapper.selectById(post.getUserId());
+        // 使用预获取的作者信息
         if (user != null) {
             response.setNickname(user.getNickname());
             response.setAvatar(user.getAvatar());
         }
 
-        // 获取标签名称列表
-        List<String> tagNames = getTagsByPostId(post.getId()).stream()
-                .map(PostDetailResponse.TagVO::getName)
-                .collect(Collectors.toList());
-        response.setTags(tagNames);
+        // 使用预获取的标签信息
+        if (tags != null) {
+            response.setTags(tags.stream()
+                    .map(PostDetailResponse.TagVO::getName)
+                    .collect(Collectors.toList()));
+        } else {
+            response.setTags(Collections.emptyList());
+        }
 
         return response;
     }

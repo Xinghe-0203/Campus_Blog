@@ -3,6 +3,11 @@
 # =============================================================================
 # 说明：将 application.properties 重命名为 application.yml，
 #       YAML 格式更清晰易读，适合复杂配置。
+#
+# 【重要】敏感信息处理：
+#   - 数据库密码、JWT密钥等敏感配置应使用环境变量替代
+#   - 示例：password: ${DB_PASSWORD}
+#   - 生产环境请务必修改默认密码和密钥
 # =============================================================================
 
 # Spring 基础配置
@@ -14,14 +19,17 @@ spring:
   datasource:
     # 驱动类名：MySQL 8.x 使用 com.mysql.cj.jdbc.Driver
     driver-class-name: com.mysql.cj.jdbc.Driver
-    
+
     # 数据库连接 URL：云端数据库
+    # 【建议】使用环境变量：url: jdbc:mysql://${DB_HOST:38.147.185.141}:3306/campus_blog?...
     url: jdbc:mysql://38.147.185.141:3306/campus_blog?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false
-    
+
     # 数据库用户名
+    # 【建议】使用环境变量：username: ${DB_USERNAME}
     username: campus_blog
-    
+
     # 数据库密码
+    # 【重要】生产环境应使用环境变量：password: ${DB_PASSWORD}
     password: chaojiwudibangbangtang
     
     # HikariCP 连接池配置（Spring Boot 默认连接池，性能最优）
@@ -83,5 +91,6 @@ knife4j:
 
 # ==================== JWT 配置 ====================
 jwt:
+  # 【重要】生产环境应使用环境变量：secret: ${JWT_SECRET}
   secret: bXlTZWNyZXRLZXlGb3JDYW1wdXBCbG9nU3lzdGVtMjAyNFZlcnlMb25nQW5kU2VjdXJl
   expiration: 86400000           # 24小时（毫秒）

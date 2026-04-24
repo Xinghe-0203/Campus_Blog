@@ -11,4 +11,12 @@ public interface BlogPostTagMapper extends BaseMapper<BlogPostTag> {
 
     @Insert("INSERT INTO blog_post_tag (post_id, tag_id) VALUES (#{postId}, #{tagId})")
     void insertPostTag(@Param("postId") Long postId, @Param("tagId") Long tagId);
+
+    @Insert("<script>" +
+            "INSERT INTO blog_post_tag (post_id, tag_id) VALUES " +
+            "<foreach collection='tagIds' item='tagId' separator=','>" +
+            "(#{postId}, #{tagId})" +
+            "</foreach>" +
+            "</script>")
+    void batchInsertPostTags(@Param("postId") Long postId, @Param("tagIds") java.util.List<Long> tagIds);
 }

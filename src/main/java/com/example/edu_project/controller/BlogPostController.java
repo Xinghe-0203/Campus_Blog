@@ -32,7 +32,8 @@ public class BlogPostController {
     public Result<Long> createPost(@RequestBody PostCreateRequest request,
                                    @RequestHeader(value = "X-User-Id", required = false) Long userId) {
         if (userId == null) {
-            // TODO: 从JWT Token中获取用户ID，暂用默认用户
+            // [安全警告] 当前通过请求头传递用户ID存在身份伪造风险
+            // TODO: JWT实现后，从Token中解析用户ID，移除X-User-Id请求头
             userId = 1L;
         }
         Long postId = blogPostService.createPost(request, userId);
@@ -48,6 +49,8 @@ public class BlogPostController {
                                     @RequestBody PostCreateRequest request,
                                     @RequestHeader(value = "X-User-Id", required = false) Long userId) {
         if (userId == null) {
+            // [安全警告] 当前通过请求头传递用户ID存在身份伪造风险
+            // TODO: JWT实现后，从Token中解析用户ID，移除X-User-Id请求头
             userId = 1L;
         }
         request.setId(id);
@@ -63,6 +66,8 @@ public class BlogPostController {
     public Result<Void> deletePost(@PathVariable Long id,
                                    @RequestHeader(value = "X-User-Id", required = false) Long userId) {
         if (userId == null) {
+            // [安全警告] 当前通过请求头传递用户ID存在身份伪造风险
+            // TODO: JWT实现后，从Token中解析用户ID，移除X-User-Id请求头
             userId = 1L;
         }
         blogPostService.deletePost(id, userId);
