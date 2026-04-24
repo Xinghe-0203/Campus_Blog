@@ -3,8 +3,10 @@ package com.example.edu_project.utils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
@@ -23,6 +25,9 @@ public class JwtUtils {
 
     @Value("${jwt.expiration:86400000}")
     private Long expiration;
+
+    private static final String AUTHORIZATION_HEADER = "Authorization";
+    private static final String BEARER_PREFIX = "Bearer ";
 
     /**
      * 生成 Token
@@ -43,6 +48,39 @@ public class JwtUtils {
                 .expiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(key)
                 .compact();
+    }
+
+    /**
+     * 从请求中提取 Token
+     * @param request HTTP请求
+     * @return Token字符串，如果不存在返回null
+     */
+    public String extractTokenFromRequest(HttpServletRequest request) {
+        String bearerToken = request.getHeader(AUTHORIZATION_HEADER);
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith(BEARER_PREFIX)) {
+            return bearerToken.substring(BEARER_PREFIX.length());
+        }
+        return null;
+    }
+
+    /**
+     * 从请求中获取用户ID
+     * @param request HTTP请求
+     * @return 用户ID，如果Token无效返回null
+     */
+    public Long getUserIdFromRequest(HttpServletRequest request) {
+        String token = extractTokenFromRequest(request);
+        if (token == null) {
+            return null;
+        }
+        try {
+            if (isTokenExpired(token)) {
+                return null;
+            }
+            return getUserIdFromToken(token);
+        } catch (Exception e) {
+            return null;
+        }
     }
 
     /**

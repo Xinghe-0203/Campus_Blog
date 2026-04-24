@@ -1,10 +1,12 @@
 package com.example.edu_project.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.example.edu_project.common.exception.BusinessException;
 import com.example.edu_project.common.result.Result;
 import com.example.edu_project.dto.PostCreateRequest;
 import com.example.edu_project.dto.PostQueryRequest;
 import com.example.edu_project.service.BlogPostService;
+import com.example.edu_project.utils.SecurityUtils;
 import com.example.edu_project.vo.PostDetailResponse;
 import com.example.edu_project.vo.PostListResponse;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,12 +31,10 @@ public class BlogPostController {
      */
     @Operation(summary = "发布文章")
     @PostMapping
-    public Result<Long> createPost(@RequestBody PostCreateRequest request,
-                                   @RequestHeader(value = "X-User-Id", required = false) Long userId) {
+    public Result<Long> createPost(@RequestBody PostCreateRequest request) {
+        Long userId = SecurityUtils.getCurrentUserIdOrNull();
         if (userId == null) {
-            // [安全警告] 当前通过请求头传递用户ID存在身份伪造风险
-            // TODO: JWT实现后，从Token中解析用户ID，移除X-User-Id请求头
-            userId = 1L;
+            throw new BusinessException(401, "请先登录");
         }
         Long postId = blogPostService.createPost(request, userId);
         return Result.success(postId);
@@ -46,12 +46,10 @@ public class BlogPostController {
     @Operation(summary = "更新文章")
     @PutMapping("/{id}")
     public Result<Void> updatePost(@PathVariable Long id,
-                                    @RequestBody PostCreateRequest request,
-                                    @RequestHeader(value = "X-User-Id", required = false) Long userId) {
+                                    @RequestBody PostCreateRequest request) {
+        Long userId = SecurityUtils.getCurrentUserIdOrNull();
         if (userId == null) {
-            // [安全警告] 当前通过请求头传递用户ID存在身份伪造风险
-            // TODO: JWT实现后，从Token中解析用户ID，移除X-User-Id请求头
-            userId = 1L;
+            throw new BusinessException(401, "请先登录");
         }
         request.setId(id);
         blogPostService.updatePost(request, userId);
@@ -63,12 +61,10 @@ public class BlogPostController {
      */
     @Operation(summary = "删除文章")
     @DeleteMapping("/{id}")
-    public Result<Void> deletePost(@PathVariable Long id,
-                                   @RequestHeader(value = "X-User-Id", required = false) Long userId) {
+    public Result<Void> deletePost(@PathVariable Long id) {
+        Long userId = SecurityUtils.getCurrentUserIdOrNull();
         if (userId == null) {
-            // [安全警告] 当前通过请求头传递用户ID存在身份伪造风险
-            // TODO: JWT实现后，从Token中解析用户ID，移除X-User-Id请求头
-            userId = 1L;
+            throw new BusinessException(401, "请先登录");
         }
         blogPostService.deletePost(id, userId);
         return Result.success(null);
