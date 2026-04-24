@@ -12,6 +12,7 @@ import com.example.edu_project.vo.PostListResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -31,7 +32,7 @@ public class BlogPostController {
      */
     @Operation(summary = "发布文章")
     @PostMapping
-    public Result<Long> createPost(@RequestBody PostCreateRequest request) {
+    public Result<Long> createPost(@Valid @RequestBody PostCreateRequest request) {
         Long userId = SecurityUtils.getCurrentUserIdOrNull();
         if (userId == null) {
             throw new BusinessException(401, "请先登录");
@@ -46,7 +47,7 @@ public class BlogPostController {
     @Operation(summary = "更新文章")
     @PutMapping("/{id}")
     public Result<Void> updatePost(@PathVariable Long id,
-                                    @RequestBody PostCreateRequest request) {
+                                    @Valid @RequestBody PostCreateRequest request) {
         Long userId = SecurityUtils.getCurrentUserIdOrNull();
         if (userId == null) {
             throw new BusinessException(401, "请先登录");

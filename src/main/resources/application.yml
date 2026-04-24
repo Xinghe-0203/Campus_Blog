@@ -58,7 +58,8 @@ mybatis-plus:
   
   configuration:
     map-underscore-to-camel-case: true  # 数据库下划线自动转驼峰命名
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # 控制台打印 SQL 语句（开发调试用）
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # 控制台打印 SQL 语句（开发调试用，生产环境建议关闭）
+    # 生产环境注释掉上一行，添加: log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
     
   # MyBatis Plus 全局策略配置
   global-config:

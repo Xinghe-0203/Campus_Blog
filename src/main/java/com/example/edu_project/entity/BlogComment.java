@@ -46,10 +46,4 @@ public class BlogComment implements Serializable {
      */
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
-
-    /**
-     * 逻辑删除：0-正常，1-删除
-     */
-    @TableLogic
-    private Integer isDeleted;
 }

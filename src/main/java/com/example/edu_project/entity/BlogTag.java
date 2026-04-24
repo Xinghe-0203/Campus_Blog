@@ -24,10 +24,4 @@ public class BlogTag implements Serializable {
      * 标签名称（唯一）
      */
     private String name;
-
-    /**
-     * 逻辑删除：0-正常，1-删除
-     */
-    @TableLogic
-    private Integer isDeleted;
 }

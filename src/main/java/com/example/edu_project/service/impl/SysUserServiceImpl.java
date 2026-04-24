@@ -5,14 +5,17 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.edu_project.common.exception.BusinessException;
 import com.example.edu_project.dto.UserLoginRequest;
 import com.example.edu_project.dto.UserRegisterRequest;
+import com.example.edu_project.dto.UserRegisterResponse;
 import com.example.edu_project.entity.SysUser;
 import com.example.edu_project.mapper.SysUserMapper;
 import com.example.edu_project.service.SysUserService;
 import com.example.edu_project.utils.JwtUtils;
 import com.example.edu_project.vo.UserLoginResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * 用户服务实现类
@@ -27,23 +30,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     private BCryptPasswordEncoder passwordEncoder;
 
     @Override
-    public SysUser register(UserRegisterRequest request) {
-        // 检查用户名是否已存在
-        LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(SysUser::getUsername, request.getUsername());
-        if (this.count(wrapper) > 0) {
-            throw new BusinessException(400, "用户名已存在");
-        }
-
-        // 检查邮箱是否已被使用
-        if (request.getEmail() != null && !request.getEmail().isEmpty()) {
-            LambdaQueryWrapper<SysUser> emailWrapper = new LambdaQueryWrapper<>();
-            emailWrapper.eq(SysUser::getEmail, request.getEmail());
-            if (this.count(emailWrapper) > 0) {
-                throw new BusinessException(400, "邮箱已被使用");
-            }
-        }
-
+    @Transactional(rollbackFor = Exception.class)
+    public UserRegisterResponse register(UserRegisterRequest request) {
         // 密码强度校验（至少6位）
         if (request.getPassword() == null || request.getPassword().length() < 6) {
             throw new BusinessException(400, "密码长度至少为6位");
@@ -58,8 +46,14 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         user.setRole("user");
         user.setStatus(1);
 
-        this.save(user);
-        return user;
+        try {
+            this.save(user);
+        } catch (DuplicateKeyException e) {
+            // 并发注册时捕获数据库唯一约束异常
+            throw new BusinessException(400, "注册失败，请稍后重试");
+        }
+
+        return new UserRegisterResponse(user.getId(), user.getUsername());
     }
 
     @Override

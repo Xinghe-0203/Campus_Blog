@@ -196,6 +196,22 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
             wrapper.eq(BlogPost::getUserId, request.getUserId());
         }
 
+        // 标签筛选
+        if (request.getTagId() != null) {
+            // 查询指定标签关联的文章ID列表
+            LambdaQueryWrapper<BlogPostTag> tagWrapper = new LambdaQueryWrapper<>();
+            tagWrapper.eq(BlogPostTag::getTagId, request.getTagId());
+            List<BlogPostTag> taggedPosts = blogPostTagMapper.selectList(tagWrapper);
+            if (taggedPosts.isEmpty()) {
+                // 没有文章匹配该标签，返回空结果
+                return new Page<>(request.getPage(), request.getPageSize(), 0);
+            }
+            List<Long> taggedPostIds = taggedPosts.stream()
+                    .map(BlogPostTag::getPostId)
+                    .collect(Collectors.toList());
+            wrapper.in(BlogPost::getId, taggedPostIds);
+        }
+
         // 按创建时间倒序
         wrapper.orderByDesc(BlogPost::getCreateTime);
 

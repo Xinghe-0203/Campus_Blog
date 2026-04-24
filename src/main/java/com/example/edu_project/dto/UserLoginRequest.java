@@ -19,6 +19,7 @@ public class UserLoginRequest {
     private String username;
 
     @NotBlank(message = "密码不能为空")
+    @Size(max = 50, message = "密码长度不能超过50个字符")
     @Schema(description = "密码", required = true)
     private String password;
 }

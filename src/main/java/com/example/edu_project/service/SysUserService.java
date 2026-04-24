@@ -3,6 +3,7 @@ package com.example.edu_project.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.example.edu_project.dto.UserLoginRequest;
 import com.example.edu_project.dto.UserRegisterRequest;
+import com.example.edu_project.dto.UserRegisterResponse;
 import com.example.edu_project.entity.SysUser;
 import com.example.edu_project.vo.UserLoginResponse;
 
@@ -14,9 +15,9 @@ public interface SysUserService extends IService<SysUser> {
     /**
      * 用户注册
      * @param request 注册请求
-     * @return 注册后的用户信息
+     * @return 注册响应
      */
-    SysUser register(UserRegisterRequest request);
+    UserRegisterResponse register(UserRegisterRequest request);
 
     /**
      * 用户登录

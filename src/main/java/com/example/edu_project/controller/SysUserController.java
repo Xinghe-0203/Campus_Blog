@@ -3,6 +3,7 @@ package com.example.edu_project.controller;
 import com.example.edu_project.common.result.Result;
 import com.example.edu_project.dto.UserLoginRequest;
 import com.example.edu_project.dto.UserRegisterRequest;
+import com.example.edu_project.dto.UserRegisterResponse;
 import com.example.edu_project.entity.SysUser;
 import com.example.edu_project.mapper.SysUserMapper;
 import com.example.edu_project.service.SysUserService;
@@ -34,9 +35,9 @@ public class SysUserController {
      */
     @Operation(summary = "用户注册")
     @PostMapping("/register")
-    public Result<SysUser> register(@RequestBody UserRegisterRequest request) {
-        SysUser user = sysUserService.register(request);
-        return Result.success(user);
+    public Result<UserRegisterResponse> register(@RequestBody UserRegisterRequest request) {
+        UserRegisterResponse response = sysUserService.register(request);
+        return Result.success(response);
     }
 
     /**
