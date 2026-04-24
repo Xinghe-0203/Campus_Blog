@@ -50,7 +50,7 @@ mvn test
 
 | Component | Version |
 |-----------|---------|
-| Spring Boot | 3.3.5 |
+| Spring Boot | 3.0.12 |
 | Spring Security | (included, pending config) |
 | MyBatis Plus | 3.5.15 |
 | JWT | 0.12.3 |
@@ -114,6 +114,7 @@ All controllers return `Result<T>` - the unified API response wrapper. All mappe
 2. **阅读相关代码** - 修改某个模块前，先完整阅读该模块的所有相关文件（Controller、Service、Mapper、Entity）
 3. **了解关联关系** - 不要臆想或猜测代码之间的关联，务必通过阅读源码确认
 4. **避免重复造轮子** - 确认现有功能后再决定是复用还是新增
+5. **不确定的先问我** - 如果遇到不清楚的地方或不确定如何处理，先向用户确认再执行
 
 违反此规范可能导致：
 - 破坏已有的正确实现
