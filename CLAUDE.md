@@ -17,9 +17,9 @@ This is a **campus blog forum system** - a full-stack web application built with
 
 ## Environment Setup
 
-**Required environment variables:**
-- `DB_PASSWORD` - Database password
-- `JWT_SECRET` - JWT signing key (32+ characters recommended)
+Environment variables (optional for local dev, required for production):
+- `DB_PASSWORD` - Database password (default: `chaojiwudibangbangtang`)
+- `JWT_SECRET` - JWT signing key (default has a local dev value)
 
 ```bash
 # Linux/Mac
@@ -142,5 +142,5 @@ throw new BusinessException(code, message)  // business errors
 
 ## Development Status
 
-✅ **Completed**: User auth, article management, Spring Security + JWT, all entities/mappers/services, security hardening
+✅ **Completed**: User auth, article management, Spring Security + JWT, all entities/mappers/services, security hardening, entity validation
 ⏳ **Pending**: Comment/like/collect functionality, frontend pages, frontend-backend integration
