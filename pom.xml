@@ -38,14 +38,14 @@
         </dependency>
 
         <!-- ==================== 安全认证 ==================== -->
-        <!-- Spring Security：提供认证和授权功能（暂时注释，开发阶段） -->
-        <!-- <dependency>
+        <!-- Spring Security：提供认证和授权功能 -->
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
-        </dependency> -->
+        </dependency>
 
-        <!-- JWT：JSON Web Token，用于前后端分离身份认证（暂时注释，开发阶段） -->
-        <!-- <dependency>
+        <!-- JWT：JSON Web Token，用于前后端分离身份认证 -->
+        <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
             <version>${jjwt.version}</version>
@@ -61,7 +61,7 @@
             <artifactId>jjwt-jackson</artifactId>
             <version>${jjwt.version}</version>
             <scope>runtime</scope>
-        </dependency> -->
+        </dependency>
 
         <!-- ==================== 数据库相关 ==================== -->
         <!-- MySQL 驱动：连接 MySQL 数据库 -->

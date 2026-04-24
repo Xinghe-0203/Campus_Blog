@@ -10,7 +10,7 @@
 | **项目类型** | 全栈 Web 应用 |
 | **开发周期** | 校技能大赛周期 |
 | **开发人员** | 刘畅 |
-| **当前版本** | v1.3 |
+| **当前版本** | v1.4 |
 | **GitHub 仓库** | https://github.com/Xinghe-0203/Campus_Blog |
 
 ---
@@ -42,7 +42,7 @@
 | **⚙️ 后端项目骨架** | ✅ 已完成 | 100% |
 | **🛠️ 后端基础完善** | ✅ 已完成 | 100% |
 | **✅ 版本兼容性修复** | ✅ 已完成 | 100% |
-| **🔐 用户认证模块** | ⏳ 待开发 | 0% |
+| **🔐 用户认证模块** | ✅ 已完成 | 100% |
 | **📝 文章管理模块** | ⏳ 待开发 | 0% |
 | **💬 评论互动模块** | ⏳ 待开发 | 0% |
 | **❤️ 点赞收藏模块** | ⏳ 待开发 | 0% |
@@ -120,8 +120,8 @@
 | **Lombok** | 最新 | Java 代码简化工具，自动生成 Getter/Setter/Builder 等 |
 | **Hutool** | 5.8.38 | Java 工具类库，提供字符串、日期、加密等常用工具 |
 | **Knife4j** | 4.5.0 | API 文档工具，基于 Swagger 的增强版，提供美观的 UI 界面 |
-| **Spring Security** | 3.0.12 | 安全认证框架（暂未启用，注释中） |
-| **JWT (JJWT)** | 0.12.3 | JSON Web Token 认证（暂未启用，注释中） |
+| **Spring Security** | 3.0.12 | 安全认证框架 |
+| **JWT (JJWT)** | 0.12.3 | JSON Web Token 认证 |
 
 ### 4.2 数据库技术 (Database)
 
@@ -360,7 +360,7 @@ src/main/java/com/example/edu_project/
 ├── config/                               # 配置类
 │   ├── MybatisPlusConfig.java          # MyBatis Plus 配置
 │   ├── MyMetaObjectHandler.java         # 自动填充处理器
-│   └── SecurityConfig.java              # Spring Security 配置（暂未启用）
+│   └── SecurityConfig.java              # Spring Security 配置
 │
 ├── controller/                           # Controller 层（API 接口）
 │   └── SysUserController.java            # 用户控制器
@@ -443,8 +443,8 @@ src/main/java/com/example/edu_project/
 | :--- | :--- | :--- | :--- |
 | 查询所有用户 | GET | `/api/user/list` | ✅ 已实现 |
 | 根据ID查询用户 | GET | `/api/user/{id}` | ✅ 已实现 |
-| 用户注册 | POST | `/api/user/register` | ⏳ 待开发 |
-| 用户登录 | POST | `/api/user/login` | ⏳ 待开发 |
+| 用户注册 | POST | `/api/user/register` | ✅ 已实现 |
+| 用户登录 | POST | `/api/user/login` | ✅ 已实现 |
 | 获取用户信息 | GET | `/api/user/info` | ⏳ 待开发 |
 | 更新用户信息 | PUT | `/api/user/info` | ⏳ 待开发 |
 
@@ -490,10 +490,10 @@ src/main/java/com/example/edu_project/
 | :--- | :--- | :--- | :--- |
 | **✅ 第一阶段** | 数据库与环境搭建 | 完成 MySQL 表创建，初始化 Spring Boot 项目骨架 | ✅ 已完成 |
 | **✅ 第二阶段** | 版本兼容性修复 | 解决依赖冲突，确定稳定版本组合 | ✅ 已完成 |
-| **⏳ 第三阶段** | 用户认证模块 | 实现用户注册、登录、密码加密 | ⏳ 待开始 |
+| **✅ 第三阶段** | 用户认证模块 | 实现用户注册、登录、密码加密 | ✅ 已完成 |
 | **⏳ 第四阶段** | 文章管理模块 | 实现文章的增删改查接口 | ⏳ 待开始 |
 | **⏳ 第五阶段** | 互动功能模块 | 实现评论、点赞、收藏功能 | ⏳ 待开始 |
-| **⏳ 第六阶段** | 安全认证加固 | 启用 Spring Security + JWT | ⏳ 待开始 |
+| **✅ 第六阶段** | 安全认证加固 | 启用 Spring Security + JWT | ✅ 已完成 |
 | **⏳ 第七阶段** | 前端页面开发 | 编写 HTML/CSS，实现响应式布局和 Markdown 集成 | ⏳ 待开始 |
 | **⏳ 第八阶段** | 前后端联调 | 使用 Axios 将前端页面与后端接口连通 | ⏳ 待开始 |
 | **⏳ 第九阶段** | 优化与美化 | 加入 ECharts 统计图表，进行 UI 细节打磨 | ⏳ 待开始 |
@@ -612,7 +612,14 @@ edu_project/
     │   │   ├── BlogPostTagMapper.java
     │   │   ├── BlogLikeMapper.java
     │   │   └── BlogCollectMapper.java
-    │   ├── service/
+    │   ├── dto/
+    │   │   ├── UserRegisterRequest.java
+    │   │   └── UserLoginRequest.java
+    │   ├── vo/
+    │   │   └── UserLoginResponse.java
+    │   ├── utils/
+    │   │   └── JwtUtils.java
+    │   └── service/
     │   │   ├── SysUserService.java
     │   │   ├── BlogPostService.java
     │   │   ├── BlogCommentService.java
@@ -666,6 +673,7 @@ edu_project/
 
 | 日期 | 版本 | 更新内容 |
 | :--- | :--- | :--- |
+| 2026-04-24 | v1.4 | 实现用户注册、登录功能<br>启用 Spring Security + JWT 认证<br>新增 JwtUtils 工具类<br>新增 DTO/VO 层<br>BCrypt 密码加密存储<br>JWT Token 身份认证 |
 | 2026-04-24 | v1.3 | 修复 Spring Boot 与 MyBatis Plus 兼容性问题<br>确定稳定版本组合：Spring Boot 3.0.12 + MyBatis Plus 3.5.5<br>暂时注释 Spring Security 和 JWT 依赖（开发阶段）<br>注释分页插件配置<br>项目成功启动并正常运行<br>完善所有文档 |
 | 2026-04-21 | v1.2 | 完善后端基础架构<br>修复联合主键实体类配置问题<br>添加逻辑删除字段到 BlogTag 和 BlogComment<br>创建 MetaObjectHandler 自动填充处理器<br>创建完整的 Service 层（7个接口 + 7个实现类）<br>创建全局异常处理器<br>添加 Spring Security 和 JWT 依赖 |
 | 2026-04-21 | v1.1 | 初始化项目计划书，完成数据库设计和后端项目骨架搭建<br>修复 Spring Boot 版本兼容性问题（4.0.5 → 3.3.5）<br>项目成功上传到 GitHub：https://github.com/Xinghe-0203/Campus_Blog |
@@ -679,5 +687,5 @@ edu_project/
 
 ---
 
-**文档版本**：v1.3
+**文档版本**：v1.4
 **最后更新**：2026-04-24

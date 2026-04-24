@@ -80,3 +80,8 @@ knife4j:
   enable: true                   # 开启 Knife4j
   setting:
     language: zh_CN              # 中文界面
+
+# ==================== JWT 配置 ====================
+jwt:
+  secret: bXlTZWNyZXRLZXlGb3JDYW1wdXBCbG9nU3lzdGVtMjAyNFZlcnlMb25nQW5kU2VjdXJl
+  expiration: 86400000           # 24小时（毫秒）

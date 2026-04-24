@@ -14,8 +14,8 @@
 | **Knife4j** | 4.5.0 | API 文档（基于 Swagger） |
 | **Lombok** | 最新 | 简化 Java 代码 |
 | **Hutool** | 5.8.38 | Java 工具类库 |
-| **JWT (JJWT)** | 0.12.3 | JSON Web Token 认证（暂未启用） |
-| **Spring Security** | 3.0.12 | 安全认证框架（暂未启用） |
+| **JWT (JJWT)** | 0.12.3 | JSON Web Token 认证 |
+| **Spring Security** | 3.0.12 | 安全认证框架 |
 
 ## 项目结构
 
@@ -26,7 +26,7 @@ edu_project/
 │   ├── config/                                  # 配置类
 │   │   ├── MybatisPlusConfig.java              # MyBatis Plus 配置
 │   │   ├── MyMetaObjectHandler.java           # 自动填充处理器
-│   │   └── SecurityConfig.java                # Spring Security 配置（暂未启用）
+│   │   └── SecurityConfig.java                # Spring Security 配置
 │   ├── controller/                              # Controller 层（API 接口）
 │   │   └── SysUserController.java              # 用户控制器
 │   ├── service/                                 # Service 层（业务逻辑）
@@ -53,7 +53,14 @@ edu_project/
 │   │   ├── BlogPostTagMapper.java
 │   │   ├── BlogLikeMapper.java
 │   │   └── BlogCollectMapper.java
-│   ├── entity/                                  # Entity 实体类
+│   ├── dto/                                     # 数据传输对象
+│   │   ├── UserRegisterRequest.java
+│   │   └── UserLoginRequest.java
+│   ├── vo/                                      # 视图对象
+│   │   └── UserLoginResponse.java
+│   ├── utils/                                   # 工具类
+│   │   └── JwtUtils.java                       # JWT 工具类
+│   └── entity/                                  # Entity 实体类
 │   │   ├── SysUser.java
 │   │   ├── BlogPost.java
 │   │   ├── BlogComment.java
@@ -121,6 +128,8 @@ edu_project/
 
 | 方法 | 路径 | 说明 |
 | :--- | :--- | :--- |
+| POST | `/api/user/register` | 用户注册 |
+| POST | `/api/user/login` | 用户登录 |
 | GET | `/api/user/list` | 查询所有用户 |
 | GET | `/api/user/{id}` | 根据ID查询用户 |
 
@@ -154,13 +163,21 @@ edu_project/
 
 ## 下一步开发计划
 
-1. 实现用户注册、登录功能
+1. ~~实现用户注册、登录功能~~ ✅ 已完成
 2. 实现文章的增删改查接口
 3. 实现评论、点赞、收藏功能
-4. 启用 Spring Security + JWT 认证
+4. ~~启用 Spring Security + JWT 认证~~ ✅ 已完成
 5. 对接前端页面
 
 ## 更新日志
+
+### v1.4 (2026-04-24)
+- 实现用户注册功能（用户名/邮箱唯一性校验、BCrypt 密码加密）
+- 实现用户登录功能（密码校验、JWT Token 生成）
+- 启用 Spring Security + JWT 依赖
+- 新增 JwtUtils 工具类
+- 新增 DTO/VO 层（UserRegisterRequest、UserLoginRequest、UserLoginResponse）
+- SecurityConfig 配置 JWT 认证过滤器
 
 ### v1.3 (2026-04-24)
 - 解决 Spring Boot 与 MyBatis Plus 兼容性问题
