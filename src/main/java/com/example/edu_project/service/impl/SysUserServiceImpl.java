@@ -46,6 +46,22 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new BusinessException(400, "密码必须包含大小写字母、数字或特殊字符中的至少3种");
         }
 
+        // 提前检查用户名是否已存在
+        LambdaQueryWrapper<SysUser> usernameWrapper = new LambdaQueryWrapper<>();
+        usernameWrapper.eq(SysUser::getUsername, request.getUsername());
+        if (this.count(usernameWrapper) > 0) {
+            throw new BusinessException(400, "用户名已存在");
+        }
+
+        // 检查邮箱是否已存在（如果提供了邮箱）
+        if (request.getEmail() != null && !request.getEmail().trim().isEmpty()) {
+            LambdaQueryWrapper<SysUser> emailWrapper = new LambdaQueryWrapper<>();
+            emailWrapper.eq(SysUser::getEmail, request.getEmail());
+            if (this.count(emailWrapper) > 0) {
+                throw new BusinessException(400, "邮箱已被注册");
+            }
+        }
+
         // 创建用户
         SysUser user = new SysUser();
         user.setUsername(request.getUsername());
@@ -91,8 +107,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new BusinessException(403, "账号已被禁用");
         }
 
-        // 生成 Token
-        String token = jwtUtils.generateToken(user.getId(), user.getUsername());
+        // 生成 Token（包含角色）
+        String token = jwtUtils.generateToken(user.getId(), user.getUsername(), user.getRole());
 
         return new UserLoginResponse(
                 user.getId(),

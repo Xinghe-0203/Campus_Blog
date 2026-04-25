@@ -11,6 +11,7 @@ import com.example.edu_project.vo.PostDetailResponse;
 import com.example.edu_project.vo.PostListResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
@@ -31,14 +32,31 @@ public class BlogPostController {
     private BlogPostService blogPostService;
 
     /**
-     * 阅读量防刷缓存：key=文章ID，value=上次访问时间
+     * 阅读量防刷缓存：key="用户标识-文章ID"，value=上次访问时间
+     * 用户标识：已登录用户用userId，未登录用户用IP地址
      */
-    private final ConcurrentHashMap<Long, AtomicLong> viewCountCache = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, AtomicLong> viewCountCache = new ConcurrentHashMap<>();
 
     /**
      * 阅读量增加间隔时间（毫秒），防止同一用户频繁刷新
      */
     private static final long VIEW_COUNT_INTERVAL_MS = 60000; // 1分钟内只计算一次
+
+    /**
+     * 获取用户标识：优先用userId，未登录用IP
+     */
+    private String getUserIdentifier(HttpServletRequest request) {
+        Long userId = SecurityUtils.getCurrentUserIdOrNull();
+        if (userId != null) {
+            return "user-" + userId;
+        }
+        // 未登录用户使用IP地址
+        String ip = request.getRemoteAddr();
+        if (ip == null || ip.isEmpty()) {
+            ip = "unknown";
+        }
+        return "ip-" + ip;
+    }
 
     /**
      * 创建文章
@@ -109,9 +127,10 @@ public class BlogPostController {
      */
     @Operation(summary = "增加阅读量")
     @PutMapping("/{id}/view")
-    public Result<Void> incrementViewCount(@PathVariable Long id) {
+    public Result<Void> incrementViewCount(@PathVariable Long id, HttpServletRequest request) {
+        String userKey = getUserIdentifier(request) + "-" + id;
         long now = System.currentTimeMillis();
-        AtomicLong lastViewTime = viewCountCache.computeIfAbsent(id, k -> new AtomicLong(0));
+        AtomicLong lastViewTime = viewCountCache.computeIfAbsent(userKey, k -> new AtomicLong(0));
         if (now - lastViewTime.get() < VIEW_COUNT_INTERVAL_MS) {
             // 距离上次访问不足1分钟，不增加阅读量
             return Result.success(null);

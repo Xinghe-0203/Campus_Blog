@@ -22,6 +22,7 @@ import com.example.edu_project.mapper.BlogPostTagMapper;
 import com.example.edu_project.mapper.BlogTagMapper;
 import com.example.edu_project.mapper.SysUserMapper;
 import com.example.edu_project.service.BlogPostService;
+import com.example.edu_project.utils.SecurityUtils;
 import com.example.edu_project.vo.PostDetailResponse;
 import com.example.edu_project.vo.PostListResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -128,7 +129,8 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         if (post == null) {
             throw new BusinessException(404, "文章不存在");
         }
-        if (!post.getUserId().equals(userId)) {
+        // 检查权限：作者本人或管理员可以修改
+        if (!post.getUserId().equals(userId) && !SecurityUtils.isCurrentUserAdmin()) {
             throw new BusinessException(403, "无权修改此文章");
         }
 
@@ -158,7 +160,8 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         if (post == null) {
             throw new BusinessException(404, "文章不存在");
         }
-        if (!post.getUserId().equals(userId)) {
+        // 检查权限：作者本人或管理员可以删除
+        if (!post.getUserId().equals(userId) && !SecurityUtils.isCurrentUserAdmin()) {
             throw new BusinessException(403, "无权删除此文章");
         }
 
@@ -196,9 +199,6 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         if (post.getStatus() != 1) {
             throw new BusinessException(404, "文章不存在");
         }
-
-        // 增加阅读量
-        incrementViewCount(postId);
 
         PostDetailResponse response = new PostDetailResponse();
         response.setId(post.getId());

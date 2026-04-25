@@ -1,6 +1,7 @@
 package com.example.edu_project.config;
 
 import com.example.edu_project.utils.JwtUtils;
+import com.example.edu_project.utils.UserContext;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -36,10 +37,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (StringUtils.hasText(token) && !jwtUtils.isTokenExpired(token)) {
                 Long userId = jwtUtils.getUserIdFromToken(token);
                 String username = jwtUtils.getUsernameFromToken(token);
+                String role = jwtUtils.getRoleFromToken(token);
 
-                // 创建认证对象，principal 存 userId
+                // 创建用户上下文对象
+                UserContext userContext = new UserContext(userId, role);
+
+                // 创建认证对象，principal 存 userContext
                 UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(userId, null, Collections.emptyList());
+                        new UsernamePasswordAuthenticationToken(userContext, null, Collections.emptyList());
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 // 将认证信息存入 SecurityContext

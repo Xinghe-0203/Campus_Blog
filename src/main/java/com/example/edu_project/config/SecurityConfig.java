@@ -34,13 +34,13 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorize -> authorize
                 // 公开接口：用户注册、登录、文档
-                .requestMatchers("/user/register", "/user/login", "/doc.html", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
+                .requestMatchers("/api/user/register", "/api/user/login", "/api/doc.html", "/api/swagger-ui/**", "/api/v3/api-docs/**", "/api/swagger-resources/**", "/api/webjars/**").permitAll()
                 // 文章公开接口：列表、详情、阅读量
-                .requestMatchers(HttpMethod.GET, "/post/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/post/**").permitAll()
                 // 文章管理接口需要认证（发布、更新、删除）
-                .requestMatchers(HttpMethod.POST, "/post/**").authenticated()
-                .requestMatchers(HttpMethod.PUT, "/post/**").authenticated()
-                .requestMatchers(HttpMethod.DELETE, "/post/**").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/post/**").authenticated()
+                .requestMatchers(HttpMethod.PUT, "/api/post/**").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/api/post/**").authenticated()
                 // 其他接口需要认证
                 .anyRequest().authenticated()
             )

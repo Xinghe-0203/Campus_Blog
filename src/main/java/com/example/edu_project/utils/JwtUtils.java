@@ -39,6 +39,17 @@ public class JwtUtils {
         return createToken(claims, username);
     }
 
+    /**
+     * 生成 Token（包含角色）
+     */
+    public String generateToken(Long userId, String username, String role) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", userId);
+        claims.put("username", username);
+        claims.put("role", role);
+        return createToken(claims, username);
+    }
+
     private String createToken(Map<String, Object> claims, String subject) {
         SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         return Jwts.builder()
@@ -121,5 +132,17 @@ public class JwtUtils {
     public String getUsernameFromToken(String token) {
         Claims claims = parseToken(token);
         return claims.getSubject();
+    }
+
+    /**
+     * 从 Token 中获取用户角色
+     */
+    public String getRoleFromToken(String token) {
+        try {
+            Claims claims = parseToken(token);
+            return claims.get("role", String.class);
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

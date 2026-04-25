@@ -16,9 +16,14 @@ public class BlogPostTag implements Serializable {
     private static final long serialVersionUID = 1L;
 
     /**
-     * 文章ID（作为联合主键之一）
+     * 主键ID，自增
      */
-    @TableId
+    @TableId(type = IdType.AUTO)
+    private Long id;
+
+    /**
+     * 文章ID
+     */
     private Long postId;
 
     /**

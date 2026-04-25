@@ -64,7 +64,9 @@ edu_project/
 │   │   ├── PostDetailResponse.java
 │   │   └── PostListResponse.java
 │   ├── utils/                                   # 工具类
-│   │   └── JwtUtils.java                       # JWT 工具类
+│   │   ├── JwtUtils.java                       # JWT 工具类
+│   │   ├── SecurityUtils.java                  # 安全工具类
+│   │   └── UserContext.java                    # 用户上下文对象
 │   └── entity/                                  # Entity 实体类
 │   │   ├── SysUser.java
 │   │   ├── BlogPost.java
@@ -147,21 +149,20 @@ $env:JWT_SECRET="your_jwt_secret_key_here"
 
 | 方法 | 路径 | 说明 |
 | :--- | :--- | :--- |
-| POST | `/api/user/register` | 用户注册 |
-| POST | `/api/user/login` | 用户登录 |
-| GET | `/api/user/list` | 查询所有用户 |
-| GET | `/api/user/{id}` | 根据ID查询用户 |
+| POST | `/api/user/register` | 用户注册（密码复杂度校验 + 用户名/邮箱唯一性校验） |
+| POST | `/api/user/login` | 用户登录（返回含角色信息的JWT Token） |
+| GET | `/api/user/{id}` | 根据ID查询用户（管理员可查所有，普通用户仅查自己） |
 
 ### 文章模块
 
 | 方法 | 路径 | 说明 |
 | :--- | :--- | :--- |
-| POST | `/api/post` | 发布文章 |
-| PUT | `/api/post/{id}` | 更新文章 |
-| DELETE | `/api/post/{id}` | 删除文章 |
-| GET | `/api/post/{id}` | 获取文章详情 |
-| GET | `/api/post/list` | 获取文章列表 |
-| PUT | `/api/post/{id}/view` | 增加阅读量 |
+| POST | `/api/post` | 发布文章（需登录） |
+| PUT | `/api/post/{id}` | 更新文章（仅作者或管理员可操作） |
+| DELETE | `/api/post/{id}` | 删除文章（仅作者或管理员可操作） |
+| GET | `/api/post/{id}` | 获取文章详情（公开访问） |
+| GET | `/api/post/list` | 获取文章列表（支持关键词/分类/标签筛选） |
+| PUT | `/api/post/{id}/view` | 增加阅读量（按用户/IP防刷） |
 
 ## 开发规范
 
@@ -196,10 +197,26 @@ $env:JWT_SECRET="your_jwt_secret_key_here"
 1. ~~实现用户注册、登录功能~~ ✅ 已完成
 2. ~~实现文章的增删改查接口~~ ✅ 已完成
 3. ~~启用 Spring Security + JWT 认证~~ ✅ 已完成
-4. 实现评论、点赞、收藏功能
-5. 对接前端页面
+4. ~~代码安全加固与Bug修复~~ ✅ 已完成
+5. 实现评论、点赞、收藏功能
+6. 实现登录限流与账号锁定机制
+7. 实现XSS防护过滤器
+8. 对接前端页面
 
 ## 更新日志
+
+### v1.7 (2026-04-25)
+- 🔧 修复SecurityConfig路径匹配错误（添加/api前缀）
+- 🔧 修复阅读量防刷逻辑（按用户/IP区分，不再按文章ID全局限制）
+- 🔧 修复BlogPostTag联合主键配置（新增自增id字段）
+- 🔧 修复阅读量重复增加问题（移除getPostDetail中的自动增加）
+- 🔧 完善用户注册体验（提前检查用户名/邮箱存在性）
+- ✨ 新增管理员权限支持（admin可修改/删除所有文章）
+- ✨ JWT Token新增角色信息，SecurityUtils支持权限检查
+- ✨ 新增UserContext用户上下文对象
+- ⚡ 优化SecurityUtils性能（避免不必要的异常开销）
+- 📝 完善配置文件说明（明确生产环境环境变量要求）
+- 🔒 SQL日志支持环境变量配置控制
 
 ### v1.6 (2026-04-24)
 - 全面安全加固与代码质量修复

@@ -61,8 +61,7 @@ public class SysUserController {
             throw new BusinessException(401, "请先登录");
         }
         // 非管理员只能查看自己
-        SysUser currentUser = sysUserService.getUserById(currentUserId);
-        if (!"admin".equals(currentUser.getRole()) && !currentUserId.equals(id)) {
+        if (!SecurityUtils.isCurrentUserAdmin() && !currentUserId.equals(id)) {
             throw new BusinessException(403, "无权限查看其他用户信息");
         }
         SysUser user = sysUserService.getUserById(id);

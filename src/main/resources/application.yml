@@ -29,7 +29,8 @@ spring:
     username: campus_blog
 
     # 数据库密码
-    # 【重要】生产环境应使用环境变量：password: ${DB_PASSWORD:默认密码}
+    # 【重要】生产环境必须通过环境变量配置：password: ${DB_PASSWORD}
+    # 本地开发示例：export DB_PASSWORD=chaojiwudibangbangtang
     password: ${DB_PASSWORD:chaojiwudibangbangtang}
     
     # HikariCP 连接池配置（Spring Boot 默认连接池，性能最优）
@@ -58,8 +59,9 @@ mybatis-plus:
   
   configuration:
     map-underscore-to-camel-case: true  # 数据库下划线自动转驼峰命名
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl  # 控制台打印 SQL 语句（开发调试用，生产环境建议关闭）
-    # 生产环境注释掉上一行，添加: log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
+    # SQL日志配置：开发环境开启，生产环境建议关闭
+    # 可通过环境变量 MYBATIS_LOG_IMPL 控制
+    log-impl: ${mybatis-plus.log-impl:org.apache.ibatis.logging.stdout.StdOutImpl}
     
   # MyBatis Plus 全局策略配置
   global-config:
@@ -94,6 +96,7 @@ knife4j:
 
 # ==================== JWT 配置 ====================
 jwt:
-  # 【重要】生产环境应使用环境变量：secret: ${JWT_SECRET:默认本地开发密钥}
+  # 【重要】生产环境必须通过环境变量配置：secret: ${JWT_SECRET}
+  # 本地开发示例：export JWT_SECRET=bXlTZWNyZXRLZXlGb3JDYW1wdXBCbG9nU3lzdGVtMjAyNFZlcnlMb25nQW5kU2VjdXJl
   secret: ${JWT_SECRET:bXlTZWNyZXRLZXlGb3JDYW1wdXBCbG9nU3lzdGVtMjAyNFZlcnlMb25nQW5kU2VjdXJl}
   expiration: 86400000           # 24小时（毫秒）
