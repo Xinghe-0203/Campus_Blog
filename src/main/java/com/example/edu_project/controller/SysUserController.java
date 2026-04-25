@@ -67,6 +67,9 @@ public class SysUserController {
             throw new BusinessException(403, "无权限查看其他用户信息");
         }
         SysUser user = sysUserService.getUserById(id);
+        if (user == null) {
+            throw new BusinessException(404, "用户不存在");
+        }
         UserVO userVO = new UserVO();
         userVO.setId(user.getId());
         userVO.setUsername(user.getUsername());

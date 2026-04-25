@@ -2,6 +2,7 @@ package com.example.edu_project.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 
@@ -12,6 +13,7 @@ import lombok.Data;
 @Schema(description = "发表评论请求")
 public class CommentCreateRequest {
 
+    @NotNull(message = "文章ID不能为空")
     @Schema(description = "文章ID", required = true)
     private Long postId;
 

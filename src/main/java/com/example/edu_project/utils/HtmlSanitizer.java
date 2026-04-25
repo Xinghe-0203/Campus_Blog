@@ -20,7 +20,7 @@ public class HtmlSanitizer {
             .addTags("span", "div", "hr", "table", "thead", "tbody", "tr", "th", "td")
             .addAttributes("a", "href", "title", "target")
             .addAttributes("img", "src", "alt", "title", "width", "height")
-            .addProtocols("img", "src", "http", "https", "data")
+            .addProtocols("img", "src", "http", "https")
             .addProtocols("a", "href", "http", "https", "mailto")
             .preserveRelativeLinks(false);
 

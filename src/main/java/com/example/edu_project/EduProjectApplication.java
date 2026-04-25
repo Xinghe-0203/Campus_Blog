@@ -1,5 +1,7 @@
 package com.example.edu_project;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
@@ -19,12 +21,14 @@ import com.example.edu_project.config.SecurityConfig;
 @Import(SecurityConfig.class)
 public class EduProjectApplication {
 
+    private static final Logger log = LoggerFactory.getLogger(EduProjectApplication.class);
+
     public static void main(String[] args) {
         SpringApplication.run(EduProjectApplication.class, args);
-        System.out.println("========================================");
-        System.out.println("   校园博客论坛系统启动成功！");
-        System.out.println("   API文档地址：http://localhost:80/api/doc.html");
-        System.out.println("========================================");
+        log.info("========================================");
+        log.info("   校园博客论坛系统启动成功！");
+        log.info("   API文档地址：http://localhost:80/api/doc.html");
+        log.info("========================================");
     }
 
 }

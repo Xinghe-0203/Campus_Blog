@@ -106,8 +106,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
         // 检查账户是否被锁定
         if (user.getLockUntil() != null && user.getLockUntil().isAfter(LocalDateTime.now())) {
-            long remainingMinutes = java.time.Duration.between(LocalDateTime.now(), user.getLockUntil()).toMinutes();
-            throw new BusinessException(403, "账户已锁定，请在" + remainingMinutes + "分钟后重试");
+            throw new BusinessException(403, "登录失败次数过多，请稍后再试");
         }
 
         // 验证密码
@@ -117,8 +116,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             // 重新查询获取最新锁定状态
             SysUser updatedUser = this.getById(user.getId());
             if (updatedUser.getLockUntil() != null && updatedUser.getLockUntil().isAfter(LocalDateTime.now())) {
-                long remainingMinutes = java.time.Duration.between(LocalDateTime.now(), updatedUser.getLockUntil()).toMinutes();
-                throw new BusinessException(403, "账户已锁定，请在" + remainingMinutes + "分钟后重试");
+                throw new BusinessException(403, "登录失败次数过多，请稍后再试");
             }
             throw new BusinessException(401, "用户名或密码错误");
         }

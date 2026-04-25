@@ -16,6 +16,9 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 /**
  * JWT 认证过滤器
@@ -34,7 +37,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String token = jwtUtils.extractTokenFromRequest(request);
 
-            if (StringUtils.hasText(token) && !jwtUtils.isTokenExpired(token)) {
+            if (StringUtils.hasText(token) && !jwtUtils.isTokenExpired(token) && !jwtUtils.isTokenRevoked(token)) {
                 Long userId = jwtUtils.getUserIdFromToken(token);
                 String username = jwtUtils.getUsernameFromToken(token);
                 String role = jwtUtils.getRoleFromToken(token);
@@ -42,9 +45,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 // 创建用户上下文对象
                 UserContext userContext = new UserContext(userId, role);
 
-                // 创建认证对象，principal 存 userContext
+                // 创建认证对象，设置正确的权限列表
+                List<GrantedAuthority> authorities = Collections.singletonList(
+                        new SimpleGrantedAuthority("ROLE_" + role)
+                );
                 UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(userContext, null, Collections.emptyList());
+                        new UsernamePasswordAuthenticationToken(userContext, null, authorities);
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                 // 将认证信息存入 SecurityContext

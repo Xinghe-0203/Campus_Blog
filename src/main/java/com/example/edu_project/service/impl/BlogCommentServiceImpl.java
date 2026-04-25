@@ -99,6 +99,10 @@ public class BlogCommentServiceImpl extends ServiceImpl<BlogCommentMapper, BlogC
         Map<Long, SysUser> userMap = users.stream()
                 .collect(Collectors.toMap(SysUser::getId, u -> u));
 
+        // 先将评论列表转为 Map，ID -> Comment，用于 O(1) 查找父评论
+        Map<Long, BlogComment> commentMapById = comments.stream()
+                .collect(Collectors.toMap(BlogComment::getId, c -> c));
+
         // 转换为VO
         List<CommentVO> commentVOs = comments.stream()
                 .map(comment -> {
@@ -109,12 +113,9 @@ public class BlogCommentServiceImpl extends ServiceImpl<BlogCommentMapper, BlogC
                         vo.setUserNickname(user.getNickname());
                         vo.setUserAvatar(user.getAvatar());
                     }
-                    // 如果是回复，设置回复的用户昵称
+                    // 如果是回复，使用 Map O(1) 查找父评论（替代原来的 O(n) stream filter）
                     if (comment.getParentId() != null) {
-                        BlogComment parentComment = comments.stream()
-                                .filter(c -> c.getId().equals(comment.getParentId()))
-                                .findFirst()
-                                .orElse(null);
+                        BlogComment parentComment = commentMapById.get(comment.getParentId());
                         if (parentComment != null) {
                             SysUser parentUser = userMap.get(parentComment.getUserId());
                             if (parentUser != null) {
@@ -127,9 +128,9 @@ public class BlogCommentServiceImpl extends ServiceImpl<BlogCommentMapper, BlogC
                 })
                 .collect(Collectors.toList());
 
-        // 构建树形结构
+        // 构建树形结构（使用已有的 commentVOs 构建 Map）
         List<CommentVO> rootComments = new ArrayList<>();
-        Map<Long, CommentVO> commentMap = commentVOs.stream()
+        Map<Long, CommentVO> voMap = commentVOs.stream()
                 .collect(Collectors.toMap(CommentVO::getId, c -> c));
 
         for (CommentVO vo : commentVOs) {
@@ -138,7 +139,7 @@ public class BlogCommentServiceImpl extends ServiceImpl<BlogCommentMapper, BlogC
                 rootComments.add(vo);
             } else {
                 // 子评论，添加到父评论的replies中
-                CommentVO parent = commentMap.get(vo.getParentId());
+                CommentVO parent = voMap.get(vo.getParentId());
                 if (parent != null) {
                     parent.getReplies().add(vo);
                 }
