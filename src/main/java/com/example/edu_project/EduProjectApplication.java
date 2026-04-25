@@ -1,5 +1,6 @@
 package com.example.edu_project;
 
+import com.example.edu_project.config.DotenvConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
@@ -24,8 +25,10 @@ public class EduProjectApplication {
     private static final Logger log = LoggerFactory.getLogger(EduProjectApplication.class);
 
     public static void main(String[] args) {
-        SpringApplication.run(EduProjectApplication.class, args);
+        // 在 Spring Boot 启动前加载 .env 文件
+        DotenvConfig.load();
         log.info("========================================");
+        SpringApplication.run(EduProjectApplication.class, args);
         log.info("   校园博客论坛系统启动成功！");
         log.info("   API文档地址：http://localhost:80/api/doc.html");
         log.info("========================================");
