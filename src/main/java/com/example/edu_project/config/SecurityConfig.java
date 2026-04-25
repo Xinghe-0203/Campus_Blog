@@ -58,6 +58,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/post/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/comment/post/**").permitAll()
                 .requestMatchers(HttpMethod.GET, "/like/check/**", "/collect/check/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/tag/**").permitAll()
                 .requestMatchers(HttpMethod.POST, "/post/**").authenticated()
                 .requestMatchers(HttpMethod.PUT, "/post/**").authenticated()
                 .requestMatchers(HttpMethod.DELETE, "/post/**").authenticated()
