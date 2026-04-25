@@ -87,7 +87,7 @@ public class BlogLikeServiceImpl extends ServiceImpl<BlogLikeMapper, BlogLike> i
 
             // 获取最新点赞数
             BlogPost updatedPost = blogPostService.getById(postId);
-            result.setLikeCount(updatedPost.getLikeCount());
+            result.setLikeCount(updatedPost != null ? updatedPost.getLikeCount() : 0);
         }
 
         return result;

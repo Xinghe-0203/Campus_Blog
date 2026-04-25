@@ -31,7 +31,7 @@ spring:
     # 数据库密码
     # 【重要】生产环境必须通过环境变量配置：password: ${DB_PASSWORD}
     # 本地开发示例：export DB_PASSWORD=chaojiwudibangbangtang
-    password: ${DB_PASSWORD:chaojiwudibangbangtang}
+    password: ${DB_PASSWORD}
     
     # HikariCP 连接池配置（Spring Boot 默认连接池，性能最优）
     hikari:
@@ -98,5 +98,5 @@ knife4j:
 jwt:
   # 【重要】生产环境必须通过环境变量配置：secret: ${JWT_SECRET}
   # 本地开发示例：export JWT_SECRET=bXlTZWNyZXRLZXlGb3JDYW1wdXBCbG9nU3lzdGVtMjAyNFZlcnlMb25nQW5kU2VjdXJl
-  secret: ${JWT_SECRET:bXlTZWNyZXRLZXlGb3JDYW1wdXBCbG9nU3lzdGVtMjAyNFZlcnlMb25nQW5kU2VjdXJl}
+  secret: ${JWT_SECRET}
   expiration: 86400000           # 24小时（毫秒）

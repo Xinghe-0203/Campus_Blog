@@ -165,7 +165,7 @@ public class BlogCommentServiceImpl extends ServiceImpl<BlogCommentMapper, BlogC
         // 查找所有要删除的评论ID（包括当前评论及其所有子评论）
         List<Long> commentIdsToDelete = new ArrayList<>();
         commentIdsToDelete.add(commentId);
-        collectChildCommentIds(commentId, commentIdsToDelete);
+        collectChildCommentIds(commentId, commentIdsToDelete, 1);
 
         // 批量删除所有相关评论（逻辑删除）
         this.removeByIds(commentIdsToDelete);
@@ -174,10 +174,15 @@ public class BlogCommentServiceImpl extends ServiceImpl<BlogCommentMapper, BlogC
         blogPostService.decrementCommentCount(comment.getPostId(), commentIdsToDelete.size());
     }
 
+    private static final int MAX_RECURSION_DEPTH = 100; // 最大递归深度，防止栈溢出
+
     /**
      * 递归收集所有子评论ID
      */
-    private void collectChildCommentIds(Long parentId, List<Long> result) {
+    private void collectChildCommentIds(Long parentId, List<Long> result, int currentDepth) {
+        if (currentDepth > MAX_RECURSION_DEPTH) {
+            throw new BusinessException(400, "评论层级过深，请简化回复结构");
+        }
         LambdaQueryWrapper<BlogComment> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(BlogComment::getParentId, parentId);
         List<BlogComment> childComments = this.list(wrapper);
@@ -185,7 +190,7 @@ public class BlogCommentServiceImpl extends ServiceImpl<BlogCommentMapper, BlogC
         for (BlogComment child : childComments) {
             result.add(child.getId());
             // 递归收集子评论的子评论
-            collectChildCommentIds(child.getId(), result);
+            collectChildCommentIds(child.getId(), result, currentDepth + 1);
         }
     }
 }

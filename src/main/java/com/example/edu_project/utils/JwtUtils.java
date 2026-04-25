@@ -22,7 +22,7 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class JwtUtils {
 
-    @Value("${jwt.secret:bXlTZWNyZXRLZXlGb3JDYW1wdXBCbG9nU3lzdGVtMjAyNFZlcnlMb25nQW5kU2VjdXJl}")
+    @Value("${jwt.secret}")
     private String secret;
 
     @Value("${jwt.expiration:86400000}")

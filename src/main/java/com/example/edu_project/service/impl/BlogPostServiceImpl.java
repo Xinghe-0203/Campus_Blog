@@ -413,35 +413,6 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
                 ));
     }
 
-    private PostDetailResponse convertToDetailResponse(BlogPost post) {
-        PostDetailResponse response = new PostDetailResponse();
-        response.setId(post.getId());
-        response.setUserId(post.getUserId());
-        response.setTitle(post.getTitle());
-        response.setSummary(post.getSummary());
-        response.setContent(post.getContent());
-        response.setCategory(post.getCategory());
-        response.setViewCount(post.getViewCount());
-        response.setLikeCount(post.getLikeCount());
-        response.setCommentCount(post.getCommentCount());
-        response.setStatus(post.getStatus());
-        response.setCreateTime(post.getCreateTime());
-        response.setUpdateTime(post.getUpdateTime());
-
-        // 获取作者信息
-        SysUser user = sysUserMapper.selectById(post.getUserId());
-        if (user != null) {
-            response.setUsername(user.getUsername());
-            response.setNickname(user.getNickname());
-            response.setAvatar(user.getAvatar());
-        }
-
-        // 获取标签列表
-        response.setTags(getTagsByPostId(post.getId()));
-
-        return response;
-    }
-
     private PostListResponse convertToListResponse(BlogPost post, SysUser user, List<PostDetailResponse.TagVO> tags) {
         PostListResponse response = new PostListResponse();
         response.setId(post.getId());

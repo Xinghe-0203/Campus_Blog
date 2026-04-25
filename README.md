@@ -224,10 +224,18 @@ $env:JWT_SECRET="your_jwt_secret_key_here"
 4. ~~代码安全加固与Bug修复~~ ✅ 已完成
 5. ~~实现评论、点赞、收藏功能~~ ✅ 已完成
 6. ~~实现登录限流与账号锁定机制~~ ✅ 已完成
-7. 实现XSS防护过滤器
+7. ~~实现XSS防护过滤器~~ ✅ 已完成（HtmlSanitizer + Jsoup）
 8. 对接前端页面
 
 ## 更新日志
+
+### v1.12 (2026-04-25)
+- 🔒 移除 JWT/Database 密码硬编码默认值（安全加固）
+- 🔒 BlogLikeServiceImpl: 添加 updatedPost 空指针检查
+- 🔧 BlogCommentServiceImpl: 添加评论递归深度限制（MAX_RECURSION_DEPTH=100）
+- 🔧 BlogPostServiceImpl: 移除未使用的 convertToDetailResponse 死代码
+- 📝 README.md: XSS防护过滤器标记为已完成
+- 📝 前端开发文档.md: 版本号更新至 v1.11
 
 ### v1.11 (2026-04-25)
 - 🔒 JwtAuthenticationFilter: 添加 Token 撤销检查 + 修复权限列表
