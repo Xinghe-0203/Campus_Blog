@@ -77,17 +77,4 @@ public class SecurityUtils {
         UserContext context = getCurrentUserContextOrNull();
         return context != null && context.isAdmin();
     }
-
-    /**
-     * 获取当前用户角色
-     * @return 角色或null
-     */
-    public static String getCurrentUserRole() {
-        try {
-            UserContext context = getCurrentUserContext();
-            return context.getRole();
-        } catch (BusinessException e) {
-            return null;
-        }
-    }
 }

@@ -3,7 +3,6 @@ package com.example.edu_project.utils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -137,26 +136,6 @@ public class JwtUtils {
             return bearerToken.substring(BEARER_PREFIX.length());
         }
         return null;
-    }
-
-    /**
-     * 从请求中获取用户ID
-     * @param request HTTP请求
-     * @return 用户ID，如果Token无效返回null
-     */
-    public Long getUserIdFromRequest(HttpServletRequest request) {
-        String token = extractTokenFromRequest(request);
-        if (token == null) {
-            return null;
-        }
-        try {
-            if (isTokenExpired(token) || isTokenRevoked(token)) {
-                return null;
-            }
-            return getUserIdFromToken(token);
-        } catch (Exception e) {
-            return null;
-        }
     }
 
     /**

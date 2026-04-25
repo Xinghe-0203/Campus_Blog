@@ -85,4 +85,16 @@ public interface BlogPostService extends IService<BlogPost> {
      * @param count 减少数量
      */
     void decrementCommentCount(Long postId, int count);
+
+    /**
+     * 增加收藏数
+     * @param postId 文章ID
+     */
+    void incrementCollectCount(Long postId);
+
+    /**
+     * 减少收藏数
+     * @param postId 文章ID
+     */
+    void decrementCollectCount(Long postId);
 }

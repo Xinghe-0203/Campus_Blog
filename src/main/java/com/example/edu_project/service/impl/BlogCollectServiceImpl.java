@@ -17,6 +17,7 @@ import com.example.edu_project.mapper.BlogPostTagMapper;
 import com.example.edu_project.mapper.BlogTagMapper;
 import com.example.edu_project.mapper.SysUserMapper;
 import com.example.edu_project.service.BlogCollectService;
+import com.example.edu_project.service.BlogPostService;
 import com.example.edu_project.vo.CollectItemVO;
 import com.example.edu_project.vo.CollectResultVO;
 import com.example.edu_project.vo.CollectStatusVO;
@@ -26,7 +27,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
@@ -47,6 +47,9 @@ public class BlogCollectServiceImpl extends ServiceImpl<BlogCollectMapper, BlogC
 
     @Autowired
     private BlogTagMapper blogTagMapper;
+
+    @Autowired
+    private BlogPostService blogPostService;
 
     /**
      * 细粒度锁映射表：key="userId-postId"，value=锁对象
@@ -113,6 +116,7 @@ public class BlogCollectServiceImpl extends ServiceImpl<BlogCollectMapper, BlogC
             if (existingCollect != null) {
                 // 取消收藏：删除记录
                 this.removeById(existingCollect.getId());
+                blogPostService.decrementCollectCount(postId);
                 result.setAction("uncollect");
             } else {
                 // 收藏：尝试添加记录，使用 try-catch 处理并发插入
@@ -121,6 +125,7 @@ public class BlogCollectServiceImpl extends ServiceImpl<BlogCollectMapper, BlogC
                 newCollect.setPostId(postId);
                 try {
                     this.save(newCollect);
+                    blogPostService.incrementCollectCount(postId);
                     result.setAction("collect");
                 } catch (DuplicateKeyException e) {
                     // 并发情况下另一个请求已经插入了，直接视为取消收藏（再执行一次取消）
@@ -128,9 +133,11 @@ public class BlogCollectServiceImpl extends ServiceImpl<BlogCollectMapper, BlogC
                     BlogCollect concurrentCollect = this.getOne(wrapper);
                     if (concurrentCollect != null) {
                         this.removeById(concurrentCollect.getId());
+                        blogPostService.decrementCollectCount(postId);
                         result.setAction("uncollect");
                     } else {
                         // 极少数情况：记录刚被删了，那就当作收藏成功
+                        blogPostService.incrementCollectCount(postId);
                         result.setAction("collect");
                     }
                 }
@@ -233,6 +240,7 @@ public class BlogCollectServiceImpl extends ServiceImpl<BlogCollectMapper, BlogC
                         item.setViewCount(post.getViewCount());
                         item.setLikeCount(post.getLikeCount());
                         item.setCommentCount(post.getCommentCount());
+                        item.setCollectCount(post.getCollectCount());
 
                         SysUser author = userMap.get(post.getUserId());
                         if (author != null) {

@@ -62,6 +62,11 @@ public class BlogPost implements Serializable {
     private Integer commentCount;
 
     /**
+     * 收藏数
+     */
+    private Integer collectCount;
+
+    /**
      * 文章状态：1=已发布，0=草稿，2=已下架
      */
     private Integer status;

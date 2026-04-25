@@ -43,6 +43,9 @@ public class PostListResponse {
     @Schema(description = "评论数")
     private Integer commentCount;
 
+    @Schema(description = "收藏数")
+    private Integer collectCount;
+
     @Schema(description = "创建时间")
     private LocalDateTime createTime;
 

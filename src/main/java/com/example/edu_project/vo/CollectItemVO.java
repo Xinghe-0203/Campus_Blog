@@ -40,6 +40,9 @@ public class CollectItemVO {
     @Schema(description = "评论数")
     private Integer commentCount;
 
+    @Schema(description = "收藏数")
+    private Integer collectCount;
+
     @Schema(description = "标签列表")
     private List<String> tags;
 

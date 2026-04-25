@@ -100,6 +100,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         post.setViewCount(0);
         post.setLikeCount(0);
         post.setCommentCount(0);
+        post.setCollectCount(0);
         post.setStatus(1); // 已发布
 
         this.save(post);
@@ -214,7 +215,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
             throw new BusinessException(404, "文章不存在");
         }
         if (post.getStatus() != 1) {
-            throw new BusinessException(404, "文章不存在");
+            throw new BusinessException(404, "文章未发布");
         }
 
         PostDetailResponse response = new PostDetailResponse();
@@ -227,6 +228,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         response.setViewCount(post.getViewCount());
         response.setLikeCount(post.getLikeCount());
         response.setCommentCount(post.getCommentCount());
+        response.setCollectCount(post.getCollectCount());
         response.setStatus(post.getStatus());
         response.setCreateTime(post.getCreateTime());
         response.setUpdateTime(post.getUpdateTime());
@@ -361,6 +363,18 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         baseMapper.decrementCommentCount(postId, count);
     }
 
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void incrementCollectCount(Long postId) {
+        baseMapper.incrementCollectCount(postId);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void decrementCollectCount(Long postId) {
+        baseMapper.decrementCollectCount(postId);
+    }
+
     private void savePostTags(Long postId, List<Long> tagIds) {
         if (tagIds == null || tagIds.isEmpty()) {
             return;
@@ -426,6 +440,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         response.setViewCount(post.getViewCount());
         response.setLikeCount(post.getLikeCount());
         response.setCommentCount(post.getCommentCount());
+        response.setCollectCount(post.getCollectCount());
         response.setCreateTime(post.getCreateTime());
 
         // 使用预获取的作者信息

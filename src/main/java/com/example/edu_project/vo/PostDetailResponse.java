@@ -49,6 +49,9 @@ public class PostDetailResponse {
     @Schema(description = "评论数")
     private Integer commentCount;
 
+    @Schema(description = "收藏数")
+    private Integer collectCount;
+
     @Schema(description = "状态：1=已发布，0=草稿，2=已下架")
     private Integer status;
 
