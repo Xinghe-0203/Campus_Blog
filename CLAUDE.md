@@ -142,5 +142,42 @@ throw new BusinessException(code, message)  // business errors
 
 ## Development Status
 
-✅ **Completed**: User auth, article management, Spring Security + JWT, all entities/mappers/services, security hardening, entity validation
-⏳ **Pending**: Comment/like/collect functionality, frontend pages, frontend-backend integration
+✅ **Completed**: User auth, article management, Spring Security + JWT, all entities/mappers/services, security hardening, entity validation, like/collect/comment functionality
+⏳ **Pending**: Frontend pages, frontend-backend integration
+
+---
+
+## Important Reminders
+
+### 文档更新规范
+- **每次更新完代码都要更新md文件** - Update README.md and campus_blog.md after any code changes
+
+---
+
+## 代码修改规范
+
+**【强制】每次修改代码前，必须先阅读相关文档和现有代码：**
+
+1. **阅读项目文档** - 修改前先阅读 `campus_blog.md`、`README.md`、`CLAUDE.md`，了解项目架构和已有设计
+2. **阅读相关代码** - 修改某个模块前，先完整阅读该模块的所有相关文件（Controller、Service、Mapper、Entity）
+3. **了解关联关系** - 不要臆想或猜测代码之间的关联，务必通过阅读源码确认
+4. **避免重复造轮子** - 确认现有功能后再决定是复用还是新增
+
+违反此规范可能导致：
+- 破坏已有的正确实现
+- 与现有架构设计冲突
+- 重复造轮子，浪费工作量
+
+---
+
+## 开发荣耻
+
+以瞎清接口为耻，以认真查询为荣。
+以模糊执行为耻，以寻求确认为荣。
+以想业务为耻，以人类确认为荣。
+以创造接口为耻，以复用现有为荣。
+以跳过验证为耻，以主动测试为荣。
+以破坏架构为耻，以遵循规范为荣。
+以假装理解为耻，以诚实无知为荣。
+以盲目修改为耻，以谨慎重构为荣。
+以忘记更新文档为耻，以及时更新文档为荣。

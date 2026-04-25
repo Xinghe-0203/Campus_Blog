@@ -164,6 +164,29 @@ $env:JWT_SECRET="your_jwt_secret_key_here"
 | GET | `/api/post/list` | 获取文章列表（支持关键词/分类/标签筛选） |
 | PUT | `/api/post/{id}/view` | 增加阅读量（按用户/IP防刷） |
 
+### 点赞模块
+
+| 方法 | 路径 | 说明 |
+| :--- | :--- | :--- |
+| POST | `/api/like/{postId}` | 点赞/取消点赞（需登录） |
+| GET | `/api/like/check/{postId}` | 检查是否已点赞（公开访问） |
+
+### 收藏模块
+
+| 方法 | 路径 | 说明 |
+| :--- | :--- | :--- |
+| POST | `/api/collect/{postId}` | 收藏/取消收藏（需登录） |
+| GET | `/api/collect/check/{postId}` | 检查是否已收藏（公开访问） |
+| GET | `/api/collect/my` | 获取我的收藏列表（需登录） |
+
+### 评论模块
+
+| 方法 | 路径 | 说明 |
+| :--- | :--- | :--- |
+| POST | `/api/comment` | 发表评论/回复（需登录） |
+| GET | `/api/comment/post/{postId}` | 获取文章评论列表（公开访问，树形结构） |
+| DELETE | `/api/comment/{commentId}` | 删除评论（仅作者或管理员可操作） |
+
 ## 开发规范
 
 ### 1. 统一返回格式
@@ -198,12 +221,22 @@ $env:JWT_SECRET="your_jwt_secret_key_here"
 2. ~~实现文章的增删改查接口~~ ✅ 已完成
 3. ~~启用 Spring Security + JWT 认证~~ ✅ 已完成
 4. ~~代码安全加固与Bug修复~~ ✅ 已完成
-5. 实现评论、点赞、收藏功能
+5. ~~实现评论、点赞、收藏功能~~ ✅ 已完成
 6. 实现登录限流与账号锁定机制
 7. 实现XSS防护过滤器
 8. 对接前端页面
 
 ## 更新日志
+
+### v1.8 (2026-04-25)
+- ✨ 新增点赞模块：支持点赞/取消点赞，自动更新文章点赞数
+- ✨ 新增收藏模块：支持收藏/取消收藏，分页查看我的收藏列表
+- ✨ 新增评论模块：支持发表评论/回复，树形结构展示评论列表
+- 🔧 优化BlogLike和BlogCollect实体：新增自增id字段
+- 🔧 更新SecurityConfig：添加新接口的权限控制
+- 🔧 新增多个DTO/VO类：LikeStatusVO、LikeResultVO、CollectStatusVO、CollectResultVO、CollectItemVO、CommentCreateRequest、CommentVO
+- 📝 完善项目文档：更新README.md和CLAUDE.md
+- 🔒 新增管理员权限支持：管理员可删除任意评论
 
 ### v1.7 (2026-04-25)
 - 🔧 修复SecurityConfig路径匹配错误（添加/api前缀）

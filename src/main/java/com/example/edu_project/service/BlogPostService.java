@@ -54,4 +54,28 @@ public interface BlogPostService extends IService<BlogPost> {
      * @param postId 文章ID
      */
     void incrementViewCount(Long postId);
+
+    /**
+     * 增加点赞数
+     * @param postId 文章ID
+     */
+    void incrementLikeCount(Long postId);
+
+    /**
+     * 减少点赞数
+     * @param postId 文章ID
+     */
+    void decrementLikeCount(Long postId);
+
+    /**
+     * 增加评论数
+     * @param postId 文章ID
+     */
+    void incrementCommentCount(Long postId);
+
+    /**
+     * 减少评论数
+     * @param postId 文章ID
+     */
+    void decrementCommentCount(Long postId);
 }

@@ -312,6 +312,26 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         baseMapper.incrementViewCount(postId);
     }
 
+    @Override
+    public void incrementLikeCount(Long postId) {
+        baseMapper.incrementLikeCount(postId);
+    }
+
+    @Override
+    public void decrementLikeCount(Long postId) {
+        baseMapper.decrementLikeCount(postId);
+    }
+
+    @Override
+    public void incrementCommentCount(Long postId) {
+        baseMapper.incrementCommentCount(postId);
+    }
+
+    @Override
+    public void decrementCommentCount(Long postId) {
+        baseMapper.decrementCommentCount(postId);
+    }
+
     private void savePostTags(Long postId, List<Long> tagIds) {
         if (tagIds == null || tagIds.isEmpty()) {
             return;

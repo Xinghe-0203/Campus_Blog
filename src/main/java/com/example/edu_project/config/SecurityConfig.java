@@ -37,6 +37,10 @@ public class SecurityConfig {
                 .requestMatchers("/api/user/register", "/api/user/login", "/api/doc.html", "/api/swagger-ui/**", "/api/v3/api-docs/**", "/api/swagger-resources/**", "/api/webjars/**").permitAll()
                 // 文章公开接口：列表、详情、阅读量
                 .requestMatchers(HttpMethod.GET, "/api/post/**").permitAll()
+                // 评论公开接口：获取评论列表
+                .requestMatchers(HttpMethod.GET, "/api/comment/post/**").permitAll()
+                // 点赞/收藏检查接口：无需登录也可查看状态
+                .requestMatchers(HttpMethod.GET, "/api/like/check/**", "/api/collect/check/**").permitAll()
                 // 文章管理接口需要认证（发布、更新、删除）
                 .requestMatchers(HttpMethod.POST, "/api/post/**").authenticated()
                 .requestMatchers(HttpMethod.PUT, "/api/post/**").authenticated()
