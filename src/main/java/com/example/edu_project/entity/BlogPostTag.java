@@ -30,4 +30,10 @@ public class BlogPostTag implements Serializable {
      * 标签ID
      */
     private Long tagId;
+
+    /**
+     * 逻辑删除：0-正常，1-删除
+     */
+    @TableLogic
+    private Integer isDeleted;
 }

@@ -62,6 +62,16 @@ public class SysUser implements Serializable {
     private Integer status;
 
     /**
+     * 粉丝数
+     */
+    private Integer followerCount;
+
+    /**
+     * 关注数
+     */
+    private Integer followingCount;
+
+    /**
      * 登录失败次数
      */
     @TableField(fill = FieldFill.INSERT)

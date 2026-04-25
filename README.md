@@ -88,15 +88,29 @@ edu_project/
 
 ## 数据库表结构
 
-项目包含 7 张核心表：
+项目包含 **18 张数据表**：
 
-1. **sys_user** - 用户表
-2. **blog_post** - 文章/帖子表
+### 核心表（7张）
+1. **sys_user** - 用户表（含 follower_count、following_count）
+2. **blog_post** - 文章/帖子表（含 view_count、like_count、comment_count、collect_count）
 3. **blog_comment** - 评论表（支持嵌套回复）
-4. **blog_tag** - 标签表
+4. **blog_tag** - 标签表（含 post_count）
 5. **blog_post_tag** - 文章-标签关联表（联合主键）
 6. **blog_like** - 点赞记录表（联合主键）
 7. **blog_collect** - 收藏记录表（联合主键）
+
+### 增强功能表（11张）
+8. **blog_follow** - 关注关系表
+9. **blog_notification** - 通知表
+10. **blog_trending** - 热度统计表
+11. **blog_draft** - 文章草稿表
+12. **blog_report** - 内容举报表
+13. **circle_post** - 校友圈动态表
+14. **circle_like** - 校友圈点赞表
+15. **circle_comment** - 校友圈评论表
+16. **circle_repost** - 校友圈转发表
+17. **media** - 媒体资源表
+18. **blog_post_media** - 文章媒体关联表
 
 ## 快速开始
 
@@ -186,6 +200,95 @@ mvn spring-boot:run
 | GET | `/api/comment/post/{postId}` | 获取文章评论列表（公开访问，树形结构） |
 | DELETE | `/api/comment/{commentId}` | 删除评论（仅作者或管理员可操作） |
 
+### 标签模块
+
+| 方法 | 路径 | 说明 |
+| :--- | :--- | :--- |
+| GET | `/api/tag/list` | 获取标签列表（公开访问） |
+
+### 关注模块
+
+| 方法 | 路径 | 说明 |
+| :--- | :--- | :--- |
+| POST | `/api/follow` | 关注用户（需登录，body: `{"targetUserId": Long}`） |
+| DELETE | `/api/follow/{targetUserId}` | 取消关注（需登录） |
+| GET | `/api/follow/check/{targetUserId}` | 检查是否关注（需登录） |
+| GET | `/api/follow/followers/{userId}` | 获取用户粉丝列表（公开访问） |
+| GET | `/api/follow/following/{userId}` | 获取用户关注列表（公开访问） |
+| GET | `/api/follow/counts/{userId}` | 获取粉丝/关注数量（公开访问） |
+
+### 通知模块
+
+| 方法 | 路径 | 说明 |
+| :--- | :--- | :--- |
+| GET | `/api/notification/list` | 获取通知列表（需登录） |
+| GET | `/api/notification/unread-count` | 获取未读通知数量（需登录） |
+| PUT | `/api/notification/{id}/read` | 标记单条通知已读（需登录） |
+| PUT | `/api/notification/read-all` | 标记全部已读（需登录） |
+| DELETE | `/api/notification/{id}` | 删除通知（需登录） |
+
+### 热门/趋势模块
+
+| 方法 | 路径 | 说明 |
+| :--- | :--- | :--- |
+| GET | `/api/trending/posts` | 获取热门文章列表（公开访问） |
+| GET | `/api/trending/hot-tags` | 获取热门标签（公开访问） |
+
+### 草稿模块
+
+| 方法 | 路径 | 说明 |
+| :--- | :--- | :--- |
+| POST | `/api/post/draft` | 保存草稿（需登录） |
+| GET | `/api/post/draft/latest` | 获取最新草稿（需登录） |
+| DELETE | `/api/post/draft/{draftId}` | 删除草稿（需登录） |
+| GET | `/api/post/draft/{draftId}` | 获取指定草稿（需登录） |
+
+### 举报模块
+
+| 方法 | 路径 | 说明 |
+| :--- | :--- | :--- |
+| POST | `/api/report` | 举报内容（需登录） |
+| GET | `/api/report/my` | 获取我的举报记录（需登录） |
+
+### 校友圈模块
+
+| 方法 | 路径 | 说明 |
+| :--- | :--- | :--- |
+| POST | `/api/circle/post` | 发布动态（需登录） |
+| GET | `/api/circle/feed/recommend` | 获取推荐流（需登录） |
+| GET | `/api/circle/feed/following` | 获取关注流（需登录） |
+| GET | `/api/circle/post/{postId}` | 获取动态详情（需登录） |
+| DELETE | `/api/circle/post/{postId}` | 删除动态（需登录，仅作者） |
+| POST | `/api/circle/like/{postId}` | 点赞/取消点赞（需登录） |
+| GET | `/api/circle/like/check/{postId}` | 检查是否已点赞（需登录） |
+| GET | `/api/circle/comment/{postId}` | 获取动态评论（公开访问） |
+| POST | `/api/circle/comment` | 发表评论（需登录） |
+| DELETE | `/api/circle/comment/{commentId}` | 删除评论（需登录，仅作者） |
+| POST | `/api/circle/repost/{postId}` | 转发动态（需登录） |
+
+### 用户模块扩展
+
+| 方法 | 路径 | 说明 |
+| :--- | :--- | :--- |
+| PUT | `/api/user/password` | 修改密码（需登录，body: `{"oldPassword": "", "newPassword": ""}`） |
+| GET | `/api/user/search` | 搜索用户（需登录，query: `keyword`） |
+
+### 文章搜索模块
+
+| 方法 | 路径 | 说明 |
+| :--- | :--- | :--- |
+| GET | `/api/post/search/advanced` | 文章高级搜索（需登录） |
+| GET | `/api/post/search/suggest` | 获取搜索建议（公开访问） |
+
+### 媒体上传模块
+
+| 方法 | 路径 | 说明 |
+| :--- | :--- | :--- |
+| POST | `/api/media/upload` | 上传图片/视频（需登录，支持批量） |
+| GET | `/api/media/{id}` | 获取媒体详情（需登录） |
+| GET | `/api/media/my` | 获取我的媒体列表（需登录） |
+| DELETE | `/api/media/{id}` | 删除媒体（需登录，仅作者） |
+
 ## 开发规范
 
 ### 1. 统一返回格式
@@ -226,6 +329,28 @@ mvn spring-boot:run
 8. 对接前端页面
 
 ## 更新日志
+
+### v1.19 (2026-04-25)
+- ✨ 新增社交/关注系统：BlogFollow、FollowService、FollowController
+- ✨ 新增通知系统：BlogNotification、NotificationService、NotificationController
+- ✨ 新增热门/趋势系统：BlogTrending、TrendingService、TrendingController
+- ✨ 新增草稿自动保存：BlogDraft、SaveDraftRequest
+- ✨ 新增举报管理：BlogReport、ReportService、AdminReportController
+- ✨ 新增校友圈动态：CirclePost、Media、CircleService、CircleController
+- ✨ 新增校友圈点赞/评论/转发：CircleLike、CircleComment、CircleRepost
+- ✨ 新增修改密码和用户搜索功能
+- ✨ 新增文章高级搜索和搜索建议自动补全
+- ✨ 新增媒体上传功能：图片/视频上传、批量上传、自动压缩
+- 🔒 修复 CircleServiceImpl.deleteComment 越权逻辑漏洞
+- 🔧 实体层：BlogPostMedia 添加 @TableLogic 和 isDeleted 字段支持软删除
+- 🔧 Mapper层：BlogPostMediaMapper.xml foreach 语法修复
+- 🔧 媒体：MediaController 单文件上传路径修正为 /media/upload
+- 🔧 软删除：CircleServiceImpl 和 BlogPostServiceImpl 多处添加 isDeleted 过滤
+
+### v1.18 (2026-04-25)
+- 🔧 数据库表结构更新：新增11张增强功能表
+- 🔧 sys_user 新增 follower_count、following_count 字段
+- 🔧 blog_post 新增 collectCount、cover_url 字段
 
 ### v1.17 (2026-04-25)
 - 🎨 新增标签查询功能：添加 BlogTagService 接口和 BlogTagController GET /tag/list

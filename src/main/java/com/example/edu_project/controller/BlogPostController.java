@@ -3,8 +3,10 @@ package com.example.edu_project.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.example.edu_project.common.exception.BusinessException;
 import com.example.edu_project.common.result.Result;
+import com.example.edu_project.dto.PostAdvancedSearchRequest;
 import com.example.edu_project.dto.PostCreateRequest;
 import com.example.edu_project.dto.PostQueryRequest;
+import com.example.edu_project.dto.SaveDraftRequest;
 import com.example.edu_project.service.BlogPostService;
 import com.example.edu_project.utils.SecurityUtils;
 import com.example.edu_project.vo.PostDetailResponse;
@@ -18,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -171,5 +174,89 @@ public class BlogPostController {
 
         blogPostService.incrementViewCount(id);
         return Result.success(null);
+    }
+
+    /**
+     * 保存草稿
+     */
+    @Operation(summary = "保存草稿")
+    @PostMapping("/draft")
+    public Result<Long> saveDraft(@Valid @RequestBody SaveDraftRequest request) {
+        Long userId = SecurityUtils.getCurrentUserIdOrNull();
+        if (userId == null) {
+            throw new BusinessException(401, "请先登录");
+        }
+        Long draftId = blogPostService.saveDraft(userId, request);
+        return Result.success(draftId);
+    }
+
+    /**
+     * 获取我的最新草稿
+     */
+    @Operation(summary = "获取我的最新草稿")
+    @GetMapping("/draft/latest")
+    public Result<SaveDraftRequest> getLatestDraft() {
+        Long userId = SecurityUtils.getCurrentUserIdOrNull();
+        if (userId == null) {
+            throw new BusinessException(401, "请先登录");
+        }
+        SaveDraftRequest draft = blogPostService.getLatestDraft(userId);
+        return Result.success(draft);
+    }
+
+    /**
+     * 删除草稿
+     */
+    @Operation(summary = "删除草稿")
+    @DeleteMapping("/draft/{draftId}")
+    public Result<Void> deleteDraft(@PathVariable Long draftId) {
+        Long userId = SecurityUtils.getCurrentUserIdOrNull();
+        if (userId == null) {
+            throw new BusinessException(401, "请先登录");
+        }
+        blogPostService.deleteDraft(draftId, userId);
+        return Result.success(null);
+    }
+
+    /**
+     * 获取指定草稿
+     */
+    @Operation(summary = "获取指定草稿")
+    @GetMapping("/draft/{draftId}")
+    public Result<SaveDraftRequest> getDraft(@PathVariable Long draftId) {
+        Long userId = SecurityUtils.getCurrentUserIdOrNull();
+        if (userId == null) {
+            throw new BusinessException(401, "请先登录");
+        }
+        SaveDraftRequest draft = blogPostService.getDraft(draftId, userId);
+        return Result.success(draft);
+    }
+
+    /**
+     * 文章高级搜索
+     */
+    @Operation(summary = "文章高级搜索")
+    @GetMapping("/search/advanced")
+    public Result<IPage<PostListResponse>> advancedSearch(@Valid PostAdvancedSearchRequest request) {
+        Long userId = SecurityUtils.getCurrentUserIdOrNull();
+        if (userId == null) {
+            throw new BusinessException(401, "请先登录");
+        }
+        IPage<PostListResponse> result = blogPostService.advancedSearch(request);
+        return Result.success(result);
+    }
+
+    /**
+     * 获取搜索建议（标题自动补全）
+     */
+    @Operation(summary = "获取搜索建议")
+    @GetMapping("/search/suggest")
+    public Result<List<String>> getSearchSuggestions(@RequestParam(required = false) String keyword) {
+        Long userId = SecurityUtils.getCurrentUserIdOrNull();
+        if (userId == null) {
+            throw new BusinessException(401, "请先登录");
+        }
+        List<String> suggestions = blogPostService.getSearchSuggestions(keyword);
+        return Result.success(suggestions);
     }
 }

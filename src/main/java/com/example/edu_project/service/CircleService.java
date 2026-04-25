@@ -1,0 +1,122 @@
+package com.example.edu_project.service;
+
+import com.baomidou.mybatisplus.extension.service.IService;
+import com.example.edu_project.entity.CirclePost;
+import com.example.edu_project.vo.CircleCommentVO;
+import com.example.edu_project.vo.CirclePostVO;
+
+import java.util.List;
+
+/**
+ * 校友圈服务接口
+ */
+public interface CircleService extends IService<CirclePost> {
+
+    /**
+     * 发布动态
+     * @param content 内容
+     * @param images 图片列表
+     * @param location 位置
+     * @param repostId 转发来源ID
+     * @param tags 标签列表
+     * @param userId 发布用户ID
+     * @return 创建的动态ID
+     */
+    Long createPost(String content, List<String> images, String location, Long repostId, List<String> tags, Long userId);
+
+    /**
+     * 删除动态
+     * @param postId 动态ID
+     * @param userId 操作用户ID
+     */
+    void deletePost(Long postId, Long userId);
+
+    /**
+     * 获取推荐流
+     * @param page 页码
+     * @param pageSize 每页数量
+     * @param currentUserId 当前用户ID（可为空）
+     * @return 动态列表
+     */
+    List<CirclePostVO> getRecommendFeed(int page, int pageSize, Long currentUserId);
+
+    /**
+     * 获取关注流
+     * @param page 页码
+     * @param pageSize 每页数量
+     * @param userId 当前用户ID
+     * @return 动态列表
+     */
+    List<CirclePostVO> getFollowingFeed(int page, int pageSize, Long userId);
+
+    /**
+     * 获取动态详情
+     * @param postId 动态ID
+     * @param currentUserId 当前用户ID（可为空）
+     * @return 动态详情
+     */
+    CirclePostVO getPostDetail(Long postId, Long currentUserId);
+
+    // ==================== 点赞相关方法 ====================
+
+    /**
+     * 点赞/取消点赞
+     * @param postId 动态ID
+     * @param userId 用户ID
+     */
+    void toggleLike(Long postId, Long userId);
+
+    /**
+     * 检查是否已点赞
+     * @param postId 动态ID
+     * @param userId 用户ID
+     * @return 是否已点赞
+     */
+    Boolean checkLikeStatus(Long postId, Long userId);
+
+    // ==================== 评论相关方法 ====================
+
+    /**
+     * 发表评论
+     * @param postId 动态ID
+     * @param content 评论内容
+     * @param parentId 父评论ID（回复时使用）
+     * @param replyToUserId 回复给的用户ID
+     * @param userId 评论用户ID
+     * @return 评论ID
+     */
+    Long createComment(Long postId, String content, Long parentId, Long replyToUserId, Long userId);
+
+    /**
+     * 获取动态评论列表（树形结构）
+     * @param postId 动态ID
+     * @return 评论列表
+     */
+    List<CircleCommentVO> getComments(Long postId);
+
+    /**
+     * 删除评论
+     * @param commentId 评论ID
+     * @param userId 操作用户ID
+     */
+    void deleteComment(Long commentId, Long userId);
+
+    // ==================== 转发相关方法 ====================
+
+    /**
+     * 转发动态
+     * @param originalPostId 原动态ID
+     * @param content 转发时添加的内容
+     * @param userId 操作用户ID
+     * @return 新动态ID
+     */
+    Long repostPost(Long originalPostId, String content, Long userId);
+
+    /**
+     * 检查是否已转发
+     * @param postId 动态ID
+     * @param userId 用户ID
+     * @return 是否已转发
+     */
+    Boolean checkRepostStatus(Long postId, Long userId);
+}

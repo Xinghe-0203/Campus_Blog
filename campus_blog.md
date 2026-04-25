@@ -10,7 +10,7 @@
 | **项目类型** | 全栈 Web 应用 |
 | **开发周期** | 校技能大赛周期 |
 | **开发人员** | 刘畅 |
-| **当前版本** | v1.17 |
+| **当前版本** | v1.19 |
 | **GitHub 仓库** | https://github.com/Xinghe-0203/Campus_Blog |
 
 ---
@@ -48,16 +48,24 @@
 | **❤️ 点赞收藏模块** | ✅ 已完成 | 100% |
 | **🏷️ 标签管理模块** | ✅ 已完成 | 100% |
 | **🔒 安全增强** | ✅ 已完成 | 100% |
+| **👥 社交/关注系统** | ✅ 已完成 | 100% |
+| **🔔 通知系统** | ✅ 已完成 | 100% |
+| **📈 热门/趋势系统** | ✅ 已完成 | 100% |
+| **📝 草稿自动保存** | ✅ 已完成 | 100% |
+| **🚨 举报管理** | ✅ 已完成 | 100% |
+| **🌐 校友圈动态** | ✅ 已完成 | 100% |
+| **📷 媒体上传** | ✅ 已完成 | 100% |
 | **🎨 前端页面开发** | ⏳ 待开发 | 0% |
 | **🔗 前后端联调** | ⏳ 待开发 | 0% |
 
 ### 2.1 已完成的工作
 
 #### ✅ 数据库设计（100%）
-- 7 张核心数据表设计
-- 完整的 SQL 初始化脚本
+- 18 张数据表设计（含增强功能模块）
+- 完整的 SQL 初始化脚本（数据库表.sql）
 - 包含示例数据（管理员账号、示例标签）
 - 支持逻辑删除、自动时间戳
+- 包含：关注关系、通知、热度统计、草稿、举报、校友圈、媒体上传等增强功能
 
 #### ✅ 后端项目骨架（100%）
 - Maven 项目结构搭建
@@ -76,6 +84,13 @@
 - 创建 MetaObjectHandler 自动填充处理器（自动填充 createTime、updateTime）
 - 创建完整的 Service 层（7 个 Service 接口 + 7 个 ServiceImpl 实现类）
 - 创建全局异常处理器（GlobalExceptionHandler + BusinessException）
+
+#### ✅ 后端增强功能（v1.8 - v1.17）
+- 点赞/收藏/评论模块完整实现（含并发安全处理）
+- Spring Security + JWT 认证（登录锁定、Token黑名单、刷新Token）
+- XSS 防护过滤器（Jsoup）
+- 标签查询功能（BlogTagController）
+- 收藏数统计（collectCount）
 
 #### ✅ 版本兼容性修复（2026-04-24）
 - 解决 Spring Boot 与 MyBatis Plus 兼容性问题
@@ -162,7 +177,7 @@
 
 ### 5.1 数据库表概览
 
-项目包含 **7 张核心数据表**：
+项目包含 **18 张数据表**（含增强功能模块）：
 
 | 表名 | 中文说明 | 数据量预估 |
 | :--- | :--- | :--- |
@@ -173,6 +188,17 @@
 | **blog_post_tag** | 文章-标签关联表 | 中 |
 | **blog_like** | 点赞记录表 | 大 |
 | **blog_collect** | 收藏记录表 | 中 |
+| **blog_follow** | 关注关系表 | 中 |
+| **blog_notification** | 通知表 | 大 |
+| **blog_trending** | 热度统计表 | 中 |
+| **blog_draft** | 文章草稿表 | 中 |
+| **blog_report** | 内容举报表 | 小 |
+| **blog_circle_post** | 校友圈动态表 | 大 |
+| **blog_circle_like** | 校友圈点赞表 | 大 |
+| **blog_circle_comment** | 校友圈评论表 | 大 |
+| **blog_circle_repost** | 校友圈转发表 | 中 |
+| **blog_media** | 媒体资源表 | 中 |
+| **blog_post_media** | 文章媒体关联表 | 中 |
 
 ### 5.2 详细表结构
 
@@ -187,6 +213,8 @@
 | password | VARCHAR(100) | NOT NULL | 密码（BCrypt 加密） |
 | nickname | VARCHAR(50) | NULLABLE | 用户昵称 |
 | avatar | VARCHAR(255) | NULLABLE | 头像 URL |
+| follower_count | INT | DEFAULT 0 | 粉丝数 |
+| following_count | INT | DEFAULT 0 | 关注数 |
 | email | VARCHAR(100) | NULLABLE | 邮箱地址 |
 | role | VARCHAR(20) | DEFAULT 'user' | 用户角色：user/管理员 |
 | status | TINYINT(1) | DEFAULT 1 | 账号状态：1=正常，0=禁用 |
@@ -212,11 +240,13 @@
 | user_id | BIGINT | NOT NULL | 作者用户ID（外键） |
 | title | VARCHAR(200) | NOT NULL | 文章标题 |
 | summary | VARCHAR(500) | NULLABLE | 文章摘要 |
+| cover_url | VARCHAR(500) | NULLABLE | 封面图 URL |
 | content | LONGTEXT | NOT NULL | 文章内容（Markdown） |
 | category | VARCHAR(50) | DEFAULT '其他' | 文章分类 |
 | view_count | INT | DEFAULT 0 | 阅读量 |
 | like_count | INT | DEFAULT 0 | 点赞数 |
 | comment_count | INT | DEFAULT 0 | 评论数 |
+| collect_count | INT | DEFAULT 0 | 收藏数 |
 | status | TINYINT(1) | DEFAULT 1 | 状态：1=发布，0=草稿，2=下架 |
 | create_time | DATETIME | DEFAULT NOW | 创建时间 |
 | update_time | DATETIME | AUTO UPDATE | 更新时间 |
@@ -261,6 +291,7 @@
 | :--- | :--- | :--- | :--- |
 | id | BIGINT | PK, AUTO_INCREMENT | 主键ID |
 | name | VARCHAR(50) | NOT NULL, UNIQUE | 标签名称 |
+| post_count | INT | DEFAULT 0 | 帖子数量 |
 | is_deleted | TINYINT(1) | DEFAULT 0 | 逻辑删除 |
 
 **索引**：
@@ -332,13 +363,26 @@ sys_user (用户表)
     │           ├── 1:N ──> blog_comment (评论表)
     │           ├── N:M ──> blog_tag (标签表) [通过 blog_post_tag]
     │           ├── 1:N ──> blog_like (点赞记录)
-    │           └── 1:N ──> blog_collect (收藏记录)
+    │           ├── 1:N ──> blog_collect (收藏记录)
+    │           ├── 1:N ──> blog_draft (草稿表)
+    │           └── 1:N ──> blog_post_media (文章媒体关联)
     │
     ├── 1:N ──> blog_comment (评论表) [通过 user_id]
-    │
     ├── 1:N ──> blog_like (点赞记录) [通过 user_id]
+    ├── 1:N ──> blog_collect (收藏记录) [通过 user_id]
+    ├── 1:N ──> blog_follow (关注关系) [作为 follower_id]
+    ├── 1:N ──> blog_follow (粉丝关系) [作为 following_id]
+    ├── 1:N ──> blog_notification (通知) [作为 user_id]
+    ├── 1:N ──> blog_report (举报) [作为 reporter_id]
+    ├── 1:N ──> blog_media (媒体资源) [作为 user_id]
     │
-    └── 1:N ──> blog_collect (收藏记录) [通过 user_id]
+    └── 1:N ──> blog_circle_post (校友圈动态)
+
+blog_circle_post (校友圈动态表)
+    ├── 1:N ──> blog_circle_comment (校友圈评论)
+    ├── 1:N ──> blog_circle_like (校友圈点赞)
+    ├── 1:N ──> blog_circle_repost (校友圈转发)
+    └── N:1 ──> blog_circle_post (转发原始动态)
 ```
 
 ---
@@ -504,12 +548,13 @@ src/main/java/com/example/edu_project/
 | **✅ 第二阶段** | 版本兼容性修复 | 解决依赖冲突，确定稳定版本组合 | ✅ 已完成 |
 | **✅ 第三阶段** | 用户认证模块 | 实现用户注册、登录、密码加密 | ✅ 已完成 |
 | **✅ 第四阶段** | 文章管理模块 | 实现文章的增删改查接口 | ✅ 已完成 |
-| **⏳ 第五阶段** | 互动功能模块 | 实现评论、点赞、收藏功能 | ⏳ 待开始 |
+| **✅ 第五阶段** | 互动功能模块 | 实现评论、点赞、收藏功能 | ✅ 已完成 |
 | **✅ 第六阶段** | 安全认证加固 | 启用 Spring Security + JWT | ✅ 已完成 |
-| **⏳ 第七阶段** | 前端页面开发 | 编写 HTML/CSS，实现响应式布局和 Markdown 集成 | ⏳ 待开始 |
-| **⏳ 第八阶段** | 前后端联调 | 使用 Axios 将前端页面与后端接口连通 | ⏳ 待开始 |
-| **⏳ 第九阶段** | 优化与美化 | 加入 ECharts 统计图表，进行 UI 细节打磨 | ⏳ 待开始 |
-| **⏳ 第十阶段** | 测试与修复 | 功能测试、Bug 修复、性能优化 | ⏳ 待开始 |
+| **🚧 第七阶段** | 增强功能开发 | 社交/关注、通知、热门/趋势、草稿、举报、校友圈、媒体上传 | ✅ 已完成 |
+| **⏳ 第八阶段** | 前端页面开发 | 编写 HTML/CSS，实现响应式布局和 Markdown 集成 | ⏳ 待开始 |
+| **⏳ 第九阶段** | 前后端联调 | 使用 Axios 将前端页面与后端接口连通 | ⏳ 待开始 |
+| **⏳ 第十阶段** | 优化与美化 | 加入 ECharts 统计图表，进行 UI 细节打磨 | ⏳ 待开始 |
+| **⏳ 第十一阶段** | 测试与修复 | 功能测试、Bug 修复、性能优化 | ⏳ 待开始 |
 
 ---
 
@@ -737,6 +782,8 @@ edu_project/
 
 ---
 
+| 2026-04-25 | v1.19 | 新增社交/关注系统（BlogFollow、FollowService、FollowController）<br>新增通知系统（BlogNotification、NotificationService、NotificationController）<br>新增热门/趋势系统（BlogTrending、TrendingService、TrendingController）<br>新增草稿自动保存（BlogDraft、SaveDraftRequest）<br>新增举报管理（BlogReport、ReportService、AdminReportController）<br>新增校友圈动态（CirclePost、Media、CircleService、CircleController）<br>新增校友圈点赞/评论/转发（CircleLike、CircleComment、CircleRepost）<br>新增修改密码和用户搜索功能（PUT /user/password, GET /user/search）<br>新增文章高级搜索和搜索建议（GET /post/search/advanced, GET /post/search/suggest）<br>新增媒体上传功能（图片/视频上传、批量上传、自动压缩）<br>🔒 修复 CircleServiceImpl.deleteComment 越权逻辑漏洞<br>🔧 BlogPostMedia 添加 @TableLogic 和 isDeleted 字段支持软删除<br>🔧 BlogPostMediaMapper.xml foreach 语法修复<br>🔧 MediaController 单文件上传路径修正为 /media/upload<br>🔧 CircleServiceImpl 和 BlogPostServiceImpl 多处添加 isDeleted 过滤 |
+| 2026-04-25 | v1.18 | 数据库更新：新增11张增强功能表（关注、通知、热度、草稿、举报、校友圈、媒体）<br>sys_user新增follower_count、following_count字段<br>blog_post新增collectCount、cover_url字段<br>blog_tag新增postCount字段<br>更新campus_blog.md文档（18张表、ER图、开发进度） |
 | 2026-04-25 | v1.17 | 新增标签查询功能<br>添加BlogTagService接口和BlogTagController GET /tag/list<br>SecurityConfig添加/tag/**的permitAll规则 |
 | 2026-04-25 | v1.16 | BlogPost新增collectCount字段<br>BlogCollectServiceImpl.toggleCollect()正确更新收藏数<br>getPostDetail未发布文章返回"文章未发布"<br>移除JwtUtils.getUserIdFromRequest()和SecurityUtils.getCurrentUserRole()死代码 |
 | 2026-04-25 | v1.15 | 修复JWT黑名单验证绕过漏洞<br>修复isTokenExpired()异常处理<br>修复JwtAuthenticationFilter签名验证顺序<br>修复refresh token rotation<br>修复logger.warn格式 |
@@ -750,5 +797,5 @@ edu_project/
 
 ---
 
-**文档版本**：v1.17
+**文档版本**：v1.19
 **最后更新**：2026-04-25

@@ -21,9 +21,6 @@ public interface BlogPostMapper extends BaseMapper<BlogPost> {
     @Update("UPDATE blog_post SET comment_count = comment_count + 1 WHERE id = #{id} AND is_deleted = 0")
     void incrementCommentCount(@Param("id") Long id);
 
-    @Update("UPDATE blog_post SET comment_count = comment_count - 1 WHERE id = #{id} AND is_deleted = 0 AND comment_count > 0")
-    void decrementCommentCount(@Param("id") Long id);
-
     @Update("UPDATE blog_post SET comment_count = comment_count - #{count} WHERE id = #{id} AND is_deleted = 0 AND comment_count >= #{count}")
     void decrementCommentCount(@Param("id") Long id, @Param("count") int count);
 

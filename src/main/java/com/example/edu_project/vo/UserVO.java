@@ -43,4 +43,13 @@ public class UserVO {
 
     @Schema(description = "更新时间")
     private LocalDateTime updateTime;
+
+    @Schema(description = "粉丝数")
+    private Integer followerCount;
+
+    @Schema(description = "关注数")
+    private Integer followingCount;
+
+    @Schema(description = "是否关注（当前用户是否关注此用户）")
+    private Boolean isFollowing;
 }

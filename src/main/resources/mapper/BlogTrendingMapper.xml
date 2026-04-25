@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.edu_project.mapper.BlogTrendingMapper">
+
+    <!-- 根据文章ID和日期查询趋势记录 -->
+    <select id="selectByPostIdAndDate" resultType="com.example.edu_project.entity.BlogTrending">
+        SELECT * FROM blog_trending
+        WHERE post_id = #{postId}
+          AND stat_date >= #{dateStart}
+          AND stat_date &lt; #{dateEnd}
+          AND is_deleted = 0
+    </select>
+
+    <!-- 获取热门文章列表（按热度评分降序） -->
+    <select id="selectHotPosts" resultType="com.example.edu_project.entity.BlogTrending">
+        SELECT * FROM blog_trending
+        WHERE stat_date >= #{dateStart}
+          AND stat_date &lt; #{dateEnd}
+          AND is_deleted = 0
+        ORDER BY score DESC
+    </select>
+
+    <!-- 插入或更新趋势记录（使用 ON DUPLICATE KEY UPDATE 实现 upsert） -->
+    <insert id="upsert" parameterType="com.example.edu_project.entity.BlogTrending">
+        INSERT INTO blog_trending (post_id, score, view_count, like_count, comment_count, stat_date, create_time, is_deleted)
+        VALUES (#{trending.postId}, #{trending.score}, #{trending.viewCount}, #{trending.likeCount},
+                #{trending.commentCount}, #{trending.statDate}, NOW(), 0)
+        ON DUPLICATE KEY UPDATE
+            score = #{trending.score},
+            view_count = #{trending.viewCount},
+            like_count = #{trending.likeCount},
+            comment_count = #{trending.commentCount}
+    </insert>
+
+    <!-- 获取所有文章的最新趋势数据 -->
+    <select id="selectAllLatest" resultType="com.example.edu_project.entity.BlogTrending">
+        SELECT * FROM blog_trending
+        WHERE is_deleted = 0
+        AND stat_date = (
+            SELECT MAX(stat_date) FROM blog_trending t2
+            WHERE t2.post_id = blog_trending.post_id
+              AND t2.is_deleted = 0
+        )
+    </select>
+
+</mapper>

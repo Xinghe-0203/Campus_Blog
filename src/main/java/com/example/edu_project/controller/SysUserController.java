@@ -1,10 +1,13 @@
 package com.example.edu_project.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.example.edu_project.common.exception.BusinessException;
 import com.example.edu_project.common.result.Result;
+import com.example.edu_project.dto.ChangePasswordRequest;
 import com.example.edu_project.dto.UserLoginRequest;
 import com.example.edu_project.dto.UserRegisterRequest;
 import com.example.edu_project.dto.UserRegisterResponse;
+import com.example.edu_project.dto.UserSearchRequest;
 import com.example.edu_project.entity.SysUser;
 import com.example.edu_project.service.SysUserService;
 import com.example.edu_project.utils.JwtUtils;
@@ -119,5 +122,29 @@ public class SysUserController {
         response.setToken(newToken);
         response.setRefreshToken(newRefreshToken);
         return Result.success(response);
+    }
+
+    /**
+     * 修改密码
+     */
+    @Operation(summary = "修改密码")
+    @PutMapping("/password")
+    public Result<Void> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+        Long userId = SecurityUtils.getCurrentUserIdOrNull();
+        if (userId == null) {
+            throw new BusinessException(401, "请先登录");
+        }
+        sysUserService.changePassword(userId, request.getOldPassword(), request.getNewPassword());
+        return Result.success("密码修改成功", null);
+    }
+
+    /**
+     * 搜索用户
+     */
+    @Operation(summary = "搜索用户")
+    @GetMapping("/search")
+    public Result<IPage<UserVO>> searchUsers(@Valid UserSearchRequest request) {
+        IPage<UserVO> result = sysUserService.searchUsers(request);
+        return Result.success(result);
     }
 }

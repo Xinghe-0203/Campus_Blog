@@ -1,16 +1,20 @@
 package com.example.edu_project.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.edu_project.common.exception.BusinessException;
 import com.example.edu_project.dto.UserLoginRequest;
 import com.example.edu_project.dto.UserRegisterRequest;
 import com.example.edu_project.dto.UserRegisterResponse;
+import com.example.edu_project.dto.UserSearchRequest;
 import com.example.edu_project.entity.SysUser;
 import com.example.edu_project.mapper.SysUserMapper;
 import com.example.edu_project.service.SysUserService;
 import com.example.edu_project.utils.JwtUtils;
 import com.example.edu_project.vo.UserLoginResponse;
+import com.example.edu_project.vo.UserVO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -160,5 +164,90 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     @Transactional(readOnly = true)
     public SysUser getUserById(Long id) {
         return this.getById(id);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void changePassword(Long userId, String oldPassword, String newPassword) {
+        // 参数校验
+        if (userId == null) {
+            throw new BusinessException(400, "用户ID不能为空");
+        }
+        if (oldPassword == null || oldPassword.trim().isEmpty()) {
+            throw new BusinessException(400, "旧密码不能为空");
+        }
+        if (newPassword == null || newPassword.trim().isEmpty()) {
+            throw new BusinessException(400, "新密码不能为空");
+        }
+        if (newPassword.length() < 8) {
+            throw new BusinessException(400, "新密码长度至少为8位");
+        }
+
+        // 获取用户
+        SysUser user = this.getById(userId);
+        if (user == null) {
+            throw new BusinessException(404, "用户不存在");
+        }
+
+        // 验证旧密码
+        if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new BusinessException(400, "旧密码不正确");
+        }
+
+        // 新密码复杂度校验：至少8位，包含大小写字母、数字或特殊字符中的3种
+        int categories = 0;
+        if (newPassword.matches(".*[A-Z].*")) categories++;
+        if (newPassword.matches(".*[a-z].*")) categories++;
+        if (newPassword.matches(".*\\d.*")) categories++;
+        if (newPassword.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?].*")) categories++;
+        if (categories < 3) {
+            throw new BusinessException(400, "新密码必须包含大小写字母、数字或特殊字符中的至少3种");
+        }
+
+        // 更新密码
+        user.setPassword(passwordEncoder.encode(newPassword));
+        this.updateById(user);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public IPage<UserVO> searchUsers(UserSearchRequest request) {
+        Page<SysUser> page = new Page<>(request.getPage(), request.getPageSize());
+
+        LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
+        // 关键词搜索：支持 username 和 nickname 模糊匹配
+        if (request.getKeyword() != null && !request.getKeyword().trim().isEmpty()) {
+            String keyword = request.getKeyword().trim();
+            wrapper.and(w -> w.like(SysUser::getUsername, keyword)
+                    .or()
+                    .like(SysUser::getNickname, keyword));
+        }
+
+        // 按创建时间倒序
+        wrapper.orderByDesc(SysUser::getCreateTime);
+
+        IPage<SysUser> userPage = this.page(page, wrapper);
+
+        // 转换为 UserVO
+        IPage<UserVO> result = new Page<>(userPage.getCurrent(), userPage.getSize(), userPage.getTotal());
+        result.setRecords(userPage.getRecords().stream()
+                .map(this::convertToUserVO)
+                .collect(java.util.stream.Collectors.toList()));
+
+        return result;
+    }
+
+    private UserVO convertToUserVO(SysUser user) {
+        UserVO userVO = new UserVO();
+        userVO.setId(user.getId());
+        userVO.setUsername(user.getUsername());
+        userVO.setNickname(user.getNickname());
+        userVO.setAvatar(user.getAvatar());
+        userVO.setEmail(user.getEmail());
+        userVO.setRole(user.getRole());
+        userVO.setStatus(user.getStatus());
+        userVO.setCreateTime(user.getCreateTime());
+        userVO.setUpdateTime(user.getUpdateTime());
+        return userVO;
     }
 }

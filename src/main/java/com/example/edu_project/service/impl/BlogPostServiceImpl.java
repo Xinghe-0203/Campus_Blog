@@ -5,10 +5,13 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.edu_project.common.exception.BusinessException;
+import com.example.edu_project.dto.PostAdvancedSearchRequest;
 import com.example.edu_project.dto.PostCreateRequest;
 import com.example.edu_project.dto.PostQueryRequest;
+import com.example.edu_project.dto.SaveDraftRequest;
 import com.example.edu_project.entity.BlogCollect;
 import com.example.edu_project.entity.BlogComment;
+import com.example.edu_project.entity.BlogDraft;
 import com.example.edu_project.entity.BlogLike;
 import com.example.edu_project.entity.BlogPost;
 import com.example.edu_project.entity.BlogPostTag;
@@ -16,6 +19,7 @@ import com.example.edu_project.entity.BlogTag;
 import com.example.edu_project.entity.SysUser;
 import com.example.edu_project.mapper.BlogCollectMapper;
 import com.example.edu_project.mapper.BlogCommentMapper;
+import com.example.edu_project.mapper.BlogDraftMapper;
 import com.example.edu_project.mapper.BlogLikeMapper;
 import com.example.edu_project.mapper.BlogPostMapper;
 import com.example.edu_project.mapper.BlogPostTagMapper;
@@ -62,6 +66,9 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
 
     @Autowired
     private HtmlSanitizer htmlSanitizer;
+
+    @Autowired
+    private BlogDraftMapper blogDraftMapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -178,6 +185,10 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         if (post == null) {
             throw new BusinessException(404, "文章不存在");
         }
+        // 检查是否已被删除
+        if (post.getIsDeleted() != null && post.getIsDeleted() == 1) {
+            throw new BusinessException(404, "文章不存在");
+        }
         // 检查权限：作者本人或管理员可以删除
         if (!post.getUserId().equals(userId) && !SecurityUtils.isCurrentUserAdmin()) {
             throw new BusinessException(403, "无权删除此文章");
@@ -186,25 +197,13 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         // 删除文章
         this.removeById(postId);
 
-        // 删除标签关联
+        // 删除标签关联（标签是共享资源，文章删除后关联关系需要清除）
         LambdaQueryWrapper<BlogPostTag> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(BlogPostTag::getPostId, postId);
         blogPostTagMapper.delete(wrapper);
 
-        // 删除评论关联
-        LambdaQueryWrapper<BlogComment> commentWrapper = new LambdaQueryWrapper<>();
-        commentWrapper.eq(BlogComment::getPostId, postId);
-        blogCommentMapper.delete(commentWrapper);
-
-        // 删除点赞关联
-        LambdaQueryWrapper<BlogLike> likeWrapper = new LambdaQueryWrapper<>();
-        likeWrapper.eq(BlogLike::getPostId, postId);
-        blogLikeMapper.delete(likeWrapper);
-
-        // 删除收藏关联
-        LambdaQueryWrapper<BlogCollect> collectWrapper = new LambdaQueryWrapper<>();
-        collectWrapper.eq(BlogCollect::getPostId, postId);
-        blogCollectMapper.delete(collectWrapper);
+        // 保留关联数据（评论、点赞、收藏），
+        // 评论/点赞/收藏保留便于数据恢复或审计，关联的文章ID在展示时做判断即可
     }
 
     @Override
@@ -212,6 +211,10 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
     public PostDetailResponse getPostDetail(Long postId) {
         BlogPost post = this.getById(postId);
         if (post == null) {
+            throw new BusinessException(404, "文章不存在");
+        }
+        // 检查是否已被删除
+        if (post.getIsDeleted() != null && post.getIsDeleted() == 1) {
             throw new BusinessException(404, "文章不存在");
         }
         if (post.getStatus() != 1) {
@@ -253,7 +256,8 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         Page<BlogPost> page = new Page<>(request.getPage(), request.getPageSize());
 
         LambdaQueryWrapper<BlogPost> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(BlogPost::getStatus, 1); // 只查询已发布的文章
+        wrapper.eq(BlogPost::getStatus, 1) // 只查询已发布的文章
+                .ne(BlogPost::getIsDeleted, 1); // 排除已删除的文章
 
         // 关键词搜索
         if (request.getKeyword() != null && !request.getKeyword().isEmpty()) {
@@ -354,7 +358,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void decrementCommentCount(Long postId) {
-        baseMapper.decrementCommentCount(postId);
+        baseMapper.decrementCommentCount(postId, 1);
     }
 
     @Override
@@ -484,5 +488,225 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
                     return tagVO;
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public Long saveDraft(Long userId, SaveDraftRequest request) {
+        // XSS 防护
+        String sanitizedTitle = request.getTitle() != null ? htmlSanitizer.sanitizeRichText(request.getTitle()) : null;
+        String sanitizedSummary = request.getSummary() != null ? htmlSanitizer.sanitizeRichText(request.getSummary()) : null;
+        String sanitizedContent = request.getContent() != null ? htmlSanitizer.sanitizeRichText(request.getContent()) : null;
+        String sanitizedCategory = request.getCategory() != null ? htmlSanitizer.sanitizePlainText(request.getCategory()) : null;
+
+        // 校验标签ID有效性
+        if (request.getTagIds() != null && !request.getTagIds().isEmpty()) {
+            validateTagIds(request.getTagIds());
+        }
+
+        // 将 tagIds 列表转换为逗号分隔字符串
+        String tagIdsStr = null;
+        if (request.getTagIds() != null && !request.getTagIds().isEmpty()) {
+            tagIdsStr = request.getTagIds().stream()
+                    .map(String::valueOf)
+                    .collect(Collectors.joining(","));
+        }
+
+        // 查询用户的最新草稿（按 update_time 倒序）
+        LambdaQueryWrapper<BlogDraft> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(BlogDraft::getUserId, userId)
+                .orderByDesc(BlogDraft::getUpdateTime)
+                .last("LIMIT 1");
+        BlogDraft existingDraft = blogDraftMapper.selectOne(wrapper);
+
+        if (existingDraft != null) {
+            // 更新已有草稿
+            existingDraft.setTitle(sanitizedTitle);
+            existingDraft.setContent(sanitizedContent);
+            existingDraft.setSummary(sanitizedSummary);
+            existingDraft.setCategory(sanitizedCategory);
+            existingDraft.setTagIds(tagIdsStr);
+            existingDraft.setPostId(request.getPostId());
+            blogDraftMapper.updateById(existingDraft);
+            return existingDraft.getId();
+        } else {
+            // 创建新草稿
+            BlogDraft draft = new BlogDraft();
+            draft.setUserId(userId);
+            draft.setTitle(sanitizedTitle);
+            draft.setContent(sanitizedContent);
+            draft.setSummary(sanitizedSummary);
+            draft.setCategory(sanitizedCategory);
+            draft.setTagIds(tagIdsStr);
+            draft.setPostId(request.getPostId());
+            blogDraftMapper.insert(draft);
+            return draft.getId();
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public SaveDraftRequest getLatestDraft(Long userId) {
+        LambdaQueryWrapper<BlogDraft> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(BlogDraft::getUserId, userId)
+                .orderByDesc(BlogDraft::getUpdateTime)
+                .last("LIMIT 1");
+        BlogDraft draft = blogDraftMapper.selectOne(wrapper);
+
+        if (draft == null) {
+            throw new BusinessException(404, "没有草稿");
+        }
+
+        return convertToSaveDraftRequest(draft);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteDraft(Long draftId, Long userId) {
+        BlogDraft draft = blogDraftMapper.selectById(draftId);
+        if (draft == null) {
+            throw new BusinessException(404, "草稿不存在");
+        }
+        // 检查权限：只能删除自己的草稿
+        if (!draft.getUserId().equals(userId)) {
+            throw new BusinessException(403, "无权删除此草稿");
+        }
+
+        // 逻辑删除
+        blogDraftMapper.deleteById(draftId);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public SaveDraftRequest getDraft(Long draftId, Long userId) {
+        BlogDraft draft = blogDraftMapper.selectById(draftId);
+        if (draft == null) {
+            throw new BusinessException(404, "草稿不存在");
+        }
+        // 检查权限：只能查看自己的草稿
+        if (!draft.getUserId().equals(userId)) {
+            throw new BusinessException(403, "无权查看此草稿");
+        }
+
+        return convertToSaveDraftRequest(draft);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public IPage<PostListResponse> advancedSearch(PostAdvancedSearchRequest request) {
+        Page<BlogPost> page = new Page<>(request.getPage(), request.getPageSize());
+
+        LambdaQueryWrapper<BlogPost> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(BlogPost::getStatus, 1) // 只查询已发布的文章
+                .ne(BlogPost::getIsDeleted, 1); // 排除已删除的文章
+
+        // 关键词搜索
+        if (request.getKeyword() != null && !request.getKeyword().trim().isEmpty()) {
+            wrapper.and(w -> w.like(BlogPost::getTitle, request.getKeyword())
+                    .or()
+                    .like(BlogPost::getContent, request.getKeyword()));
+        }
+
+        // 分类筛选
+        if (request.getCategory() != null && !request.getCategory().trim().isEmpty()) {
+            wrapper.eq(BlogPost::getCategory, request.getCategory());
+        }
+
+        // 作者筛选
+        if (request.getUserId() != null) {
+            wrapper.eq(BlogPost::getUserId, request.getUserId());
+        }
+
+        // 标签筛选
+        if (request.getTagId() != null) {
+            LambdaQueryWrapper<BlogPostTag> tagWrapper = new LambdaQueryWrapper<>();
+            tagWrapper.eq(BlogPostTag::getTagId, request.getTagId());
+            List<BlogPostTag> taggedPosts = blogPostTagMapper.selectList(tagWrapper);
+            if (taggedPosts.isEmpty()) {
+                return new Page<>(request.getPage(), request.getPageSize(), 0);
+            }
+            List<Long> taggedPostIds = taggedPosts.stream()
+                    .map(BlogPostTag::getPostId)
+                    .collect(Collectors.toList());
+            wrapper.in(BlogPost::getId, taggedPostIds);
+        }
+
+        // 排序
+        String sortBy = request.getSortBy();
+        if ("view".equalsIgnoreCase(sortBy)) {
+            wrapper.orderByDesc(BlogPost::getViewCount);
+        } else if ("like".equalsIgnoreCase(sortBy)) {
+            wrapper.orderByDesc(BlogPost::getLikeCount);
+        } else {
+            // 默认按时间
+            wrapper.orderByDesc(BlogPost::getCreateTime);
+        }
+
+        IPage<BlogPost> postPage = this.page(page, wrapper);
+
+        List<BlogPost> posts = postPage.getRecords();
+        if (posts.isEmpty()) {
+            return new Page<>(postPage.getCurrent(), postPage.getSize(), postPage.getTotal());
+        }
+
+        // 批量获取用户信息和标签信息
+        List<Long> userIds = posts.stream()
+                .map(BlogPost::getUserId)
+                .distinct()
+                .collect(Collectors.toList());
+        List<Long> postIds = posts.stream()
+                .map(BlogPost::getId)
+                .collect(Collectors.toList());
+
+        Map<Long, SysUser> userMap = sysUserMapper.selectBatchIds(userIds).stream()
+                .collect(Collectors.toMap(SysUser::getId, u -> u));
+        Map<Long, List<PostDetailResponse.TagVO>> postTagsMap = getTagsMapByPostIds(postIds);
+
+        IPage<PostListResponse> result = new Page<>(postPage.getCurrent(), postPage.getSize(), postPage.getTotal());
+        result.setRecords(posts.stream()
+                .map(post -> convertToListResponse(post, userMap.get(post.getUserId()), postTagsMap.get(post.getId())))
+                .collect(Collectors.toList()));
+
+        return result;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<String> getSearchSuggestions(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        LambdaQueryWrapper<BlogPost> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(BlogPost::getStatus, 1)
+                .like(BlogPost::getTitle, keyword.trim())
+                .select(BlogPost::getTitle)
+                .orderByDesc(BlogPost::getViewCount)
+                .last("LIMIT 10");
+
+        List<BlogPost> posts = this.list(wrapper);
+        return posts.stream()
+                .map(BlogPost::getTitle)
+                .collect(Collectors.toList());
+    }
+
+    private SaveDraftRequest convertToSaveDraftRequest(BlogDraft draft) {
+        SaveDraftRequest request = new SaveDraftRequest();
+        request.setDraftId(draft.getId());
+        request.setTitle(draft.getTitle());
+        request.setContent(draft.getContent());
+        request.setSummary(draft.getSummary());
+        request.setCategory(draft.getCategory());
+        request.setPostId(draft.getPostId());
+
+        // 将逗号分隔的 tagIds 转换为列表
+        if (draft.getTagIds() != null && !draft.getTagIds().isEmpty()) {
+            String[] tagIdStrs = draft.getTagIds().split(",");
+            request.setTagIds(java.util.Arrays.stream(tagIdStrs)
+                    .map(Long::parseLong)
+                    .collect(Collectors.toList()));
+        }
+
+        return request;
     }
 }

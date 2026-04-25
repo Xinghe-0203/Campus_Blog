@@ -97,3 +97,10 @@ jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION}           # 24小时（毫秒）
   refresh-expiration: ${JWT_REFRESH_EXPIRATION}  # 7天（毫秒）
+
+# ==================== 上传配置 ====================
+upload:
+  base-path: uploads
+  image:
+    max-width: 1920
+    quality: 0.85

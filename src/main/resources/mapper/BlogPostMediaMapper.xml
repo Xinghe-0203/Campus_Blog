@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.edu_project.mapper.BlogPostMediaMapper">
+
+    <!-- 批量插入文章媒体关联 -->
+    <insert id="batchInsert">
+        INSERT INTO blog_post_media (post_id, media_id, display_order, create_time)
+        VALUES
+        <foreach collection="mediaIds" item="mediaId" index="idx" separator=",">
+            (#{postId}, #{mediaId}, #{idx}, NOW())
+        </foreach>
+    </insert>
+
+    <!-- 根据文章ID查询所有媒体关联 -->
+    <select id="selectByPostId" resultType="com.example.edu_project.entity.BlogPostMedia">
+        SELECT * FROM blog_post_media
+        WHERE post_id = #{postId}
+        ORDER BY display_order ASC, id ASC
+    </select>
+
+    <!-- 根据文章ID删除所有媒体关联 -->
+    <delete id="deleteByPostId">
+        DELETE FROM blog_post_media WHERE post_id = #{postId}
+    </delete>
+
+</mapper>

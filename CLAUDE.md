@@ -176,7 +176,8 @@ throw new BusinessException(code, message)  // business errors
 
 ## Development Status
 
-✅ **Completed**: User auth, article management, Spring Security + JWT, all entities/mappers/services, security hardening, entity validation, like/collect/comment functionality, login lock, JWT blacklist/refresh, XSS filter (Jsoup), concurrency fixes (fine-grained locks, DuplicateKeyException handling)
+✅ **Completed**: User auth, article management, Spring Security + JWT, all entities/mappers/services, security hardening, entity validation, like/collect/comment functionality, login lock, JWT blacklist/refresh, XSS filter (Jsoup), concurrency fixes (fine-grained locks, DuplicateKeyException handling), follow system, notification system, trending system, draft auto-save, report management, circle posts, circle likes/comments/reposts, media upload, password change, user search, advanced post search
+
 ⏳ **Pending**: Frontend pages, frontend-backend integration, Redis integration (distributed cache/rate limiting)
 
 ---
@@ -184,7 +185,7 @@ throw new BusinessException(code, message)  // business errors
 ## Important Reminders
 
 ### 文档更新规范
-- **每次更新完代码都要更新md文件** - Update README.md and campus_blog.md after any code changes
+- **每次更新完代码都要更新md文件** - Update README.md , campus_blog.md and other md files after any code changes
 
 ---
 
