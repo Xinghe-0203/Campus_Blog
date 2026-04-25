@@ -156,8 +156,8 @@ throw new BusinessException(code, message)  // business errors
 
 ## Development Status
 
-✅ **Completed**: User auth, article management, Spring Security + JWT, all entities/mappers/services, security hardening, entity validation, like/collect/comment functionality, login lock, JWT blacklist/refresh
-⏳ **Pending**: Frontend pages, frontend-backend integration, XSS filter
+✅ **Completed**: User auth, article management, Spring Security + JWT, all entities/mappers/services, security hardening, entity validation, like/collect/comment functionality, login lock, JWT blacklist/refresh, XSS filter (Jsoup)
+⏳ **Pending**: Frontend pages, frontend-backend integration, Redis integration (distributed cache/rate limiting)
 
 ---
 
