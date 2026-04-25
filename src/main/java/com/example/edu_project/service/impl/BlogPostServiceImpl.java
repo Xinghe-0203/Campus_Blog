@@ -96,7 +96,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         post.setTitle(sanitizedTitle);
         post.setSummary(sanitizedSummary);
         post.setContent(sanitizedContent);
-        post.setCategory(request.getCategory() != null ? request.getCategory() : "默认分类");
+        post.setCategory(request.getCategory() != null ? htmlSanitizer.sanitizePlainText(request.getCategory()) : "默认分类");
         post.setViewCount(0);
         post.setLikeCount(0);
         post.setCommentCount(0);
@@ -155,7 +155,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         post.setSummary(sanitizedSummary);
         post.setContent(sanitizedContent);
         if (request.getCategory() != null) {
-            post.setCategory(htmlSanitizer.sanitize(request.getCategory()));
+            post.setCategory(htmlSanitizer.sanitizePlainText(request.getCategory()));
         }
 
         this.updateById(post);
