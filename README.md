@@ -387,6 +387,16 @@ mvn spring-boot:run
 
 ## 更新日志
 
+### v1.20 (2026-04-26)
+- 🔒 安全修复：ReportServiceImpl 添加管理员权限校验
+- 🔒 安全修复：SysUserServiceImpl.login 密码验证顺序修正（先检查账户状态）
+- 🐛 修复 toggleLike/toggleCollect/follow/unfollow 逻辑删除+唯一约束冲突 bug
+- 🐛 修复 TrendingServiceImpl.getHotTags 分页-排序错误
+- 🐛 修复 MediaServiceImpl 软删除机制统一（移除手动 status 检查）
+- 📝 文档更新：README.md、campus_blog.md、前端开发文档.md 等更新至 v1.20
+- 📝 修复 CLAUDE.md 数据库表数量（7→18）
+- 📝 移除对不存在文档 MEDIA_UPLOAD_PLAN.md 的引用
+
 ### v1.19 (2026-04-25)
 - ✨ 新增社交/关注系统：BlogFollow、FollowService、FollowController
 - ✨ 新增通知系统：BlogNotification、NotificationService、NotificationController

@@ -165,7 +165,7 @@ public class TrendingServiceImpl extends ServiceImpl<BlogTrendingMapper, BlogTre
 
         BlogTrending trending = new BlogTrending();
         trending.setPostId(postId);
-        trending.setScore(score);
+        trending.setScore((double)score);
         trending.setViewCount(post.getViewCount());
         trending.setLikeCount(post.getLikeCount());
         trending.setCommentCount(post.getCommentCount());

@@ -10,7 +10,7 @@
 | **项目类型** | 全栈 Web 应用 |
 | **开发周期** | 校技能大赛周期 |
 | **开发人员** | 刘畅 |
-| **当前版本** | v1.19 |
+| **当前版本** | v1.20 |
 | **GitHub 仓库** | https://github.com/Xinghe-0203/Campus_Blog |
 
 ---
@@ -965,6 +965,7 @@ edu_project/
 
 ---
 
+| 2026-04-26 | v1.20 | 🔒 ReportServiceImpl 添加管理员权限校验<br>🔒 SysUserServiceImpl.login 密码验证顺序修正<br>🐛 修复 toggleLike/toggleCollect/follow/unfollow 逻辑删除+唯一约束冲突 bug<br>🐛 修复 TrendingServiceImpl.getHotTags 分页-排序错误<br>🐛 修复 MediaServiceImpl 软删除机制统一<br>📝 文档更新至 v1.20 |
 | 2026-04-25 | v1.19 | 新增社交/关注系统（BlogFollow、FollowService、FollowController）<br>新增通知系统（BlogNotification、NotificationService、NotificationController）<br>新增热门/趋势系统（BlogTrending、TrendingService、TrendingController）<br>新增草稿自动保存（BlogDraft、SaveDraftRequest）<br>新增举报管理（BlogReport、ReportService、AdminReportController）<br>新增校友圈动态（CirclePost、Media、CircleService、CircleController）<br>新增校友圈点赞/评论/转发（CircleLike、CircleComment、CircleRepost）<br>新增修改密码和用户搜索功能（PUT /user/password, GET /user/search）<br>新增文章高级搜索和搜索建议（GET /post/search/advanced, GET /post/search/suggest）<br>新增媒体上传功能（图片/视频上传、批量上传、自动压缩）<br>🔒 修复 CircleServiceImpl.deleteComment 越权逻辑漏洞<br>🔧 BlogPostMedia 添加 @TableLogic 和 isDeleted 字段支持软删除<br>🔧 BlogPostMediaMapper.xml foreach 语法修复<br>🔧 MediaController 单文件上传路径修正为 /media/upload<br>🔧 CircleServiceImpl 和 BlogPostServiceImpl 多处添加 isDeleted 过滤 |
 | 2026-04-25 | v1.18 | 数据库更新：新增11张增强功能表（关注、通知、热度、草稿、举报、校友圈、媒体）<br>sys_user新增follower_count、following_count字段<br>blog_post新增collectCount、cover_url字段<br>blog_tag新增postCount字段<br>更新campus_blog.md文档（18张表、ER图、开发进度） |
 | 2026-04-25 | v1.17 | 新增标签查询功能<br>添加BlogTagService接口和BlogTagController GET /tag/list<br>SecurityConfig添加/tag/**的permitAll规则 |
@@ -980,5 +981,5 @@ edu_project/
 
 ---
 
-**文档版本**：v1.19
+**文档版本**：v1.20
 **最后更新**：2026-04-25
