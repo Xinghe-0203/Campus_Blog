@@ -73,8 +73,14 @@ public class BlogCollectServiceImpl extends ServiceImpl<BlogCollectMapper, BlogC
 
     /**
      * 获取锁，如果锁已过期则移除并返回新锁
+     * 当锁数量超过MAX_LOCKS_SIZE时，触发主动清理移除过期锁
      */
     private Object getCollectLock(String lockKey) {
+        // 先清理过期锁，避免内存泄漏
+        if (collectLocks.size() >= MAX_LOCKS_SIZE) {
+            collectLocks.entrySet().removeIf(entry -> entry.getValue().isExpired());
+        }
+
         LockEntry entry = collectLocks.compute(lockKey, (key, existing) -> {
             if (existing == null || existing.isExpired()) {
                 return new LockEntry(new Object());

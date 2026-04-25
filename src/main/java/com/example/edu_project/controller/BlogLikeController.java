@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "点赞管理", description = "点赞相关接口")
 @RestController
 @RequestMapping("/like")
-@CrossOrigin
 public class BlogLikeController {
 
     @Autowired

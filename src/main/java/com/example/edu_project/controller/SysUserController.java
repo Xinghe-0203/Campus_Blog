@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "用户管理", description = "用户相关接口")
 @RestController
 @RequestMapping("/user")
-@CrossOrigin
 public class SysUserController {
 
     @Autowired
@@ -88,7 +87,7 @@ public class SysUserController {
      */
     @Operation(summary = "刷新Token")
     @PostMapping("/refresh")
-    public Result<String> refreshToken(@RequestHeader("Authorization") String authHeader) {
+    public Result<UserLoginResponse> refreshToken(@RequestHeader("Authorization") String authHeader) {
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
             throw new BusinessException(400, "无效的Token");
         }
@@ -112,6 +111,13 @@ public class SysUserController {
 
         // 生成新的AccessToken
         String newToken = jwtUtils.generateToken(userId, username, role);
-        return Result.success(newToken);
+        // 生成新的RefreshToken（完成refresh token rotation）
+        String newRefreshToken = jwtUtils.generateRefreshToken(userId, username, role);
+
+        // 返回完整响应
+        UserLoginResponse response = new UserLoginResponse();
+        response.setToken(newToken);
+        response.setRefreshToken(newRefreshToken);
+        return Result.success(response);
     }
 }

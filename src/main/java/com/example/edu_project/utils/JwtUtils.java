@@ -90,8 +90,17 @@ public class JwtUtils {
      * 将Token加入黑名单（撤销Token）
      */
     public void revokeToken(String token) {
-        if (token != null && !isTokenExpired(token)) {
-            tokenBlacklist.add(token);
+        if (token == null) {
+            return;
+        }
+        try {
+            // 必须先验证 Token 签名，确保是有效的 token 才能加入黑名单
+            parseToken(token);
+            if (!isTokenExpired(token)) {
+                tokenBlacklist.add(token);
+            }
+        } catch (Exception e) {
+            // 无效 token 不加入黑名单
         }
     }
 
@@ -169,8 +178,14 @@ public class JwtUtils {
         try {
             Claims claims = parseToken(token);
             return claims.getExpiration().before(new Date());
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            return true; // 已过期
+        } catch (io.jsonwebtoken.JwtException e) {
+            // 其他 JWT 解析错误（格式错误、签名验证失败等）不算过期，而是无效
+            // 这里返回 false 让调用方通过 parseToken 的结果判断
+            return false;
         } catch (Exception e) {
-            return true;
+            return false;
         }
     }
 

@@ -128,6 +128,9 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         if (request.getTitle().length() > 200) {
             throw new BusinessException(400, "文章标题不能超过200字符");
         }
+        if (request.getContent() != null && request.getContent().length() > 50000) {
+            throw new BusinessException(400, "文章内容不能超过50000字符");
+        }
 
         // 校验标签ID有效性
         if (request.getTagIds() != null && !request.getTagIds().isEmpty()) {
@@ -152,7 +155,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         post.setSummary(sanitizedSummary);
         post.setContent(sanitizedContent);
         if (request.getCategory() != null) {
-            post.setCategory(request.getCategory());
+            post.setCategory(htmlSanitizer.sanitize(request.getCategory()));
         }
 
         this.updateById(post);

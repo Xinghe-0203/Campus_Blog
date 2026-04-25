@@ -20,7 +20,7 @@ public class UserRegisterRequest {
     private String username;
 
     @NotBlank(message = "密码不能为空")
-    @Size(min = 6, max = 50, message = "密码长度必须在6-50个字符之间")
+    @Size(min = 8, max = 50, message = "密码长度必须在8-50个字符之间")
     @Schema(description = "密码", required = true)
     private String password;
 

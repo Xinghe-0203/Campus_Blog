@@ -52,8 +52,14 @@ public class BlogLikeServiceImpl extends ServiceImpl<BlogLikeMapper, BlogLike> i
 
     /**
      * 获取锁，如果锁已过期则移除并返回新锁
+     * 当锁数量超过MAX_LOCKS_SIZE时，触发主动清理移除过期锁
      */
     private Object getLock(String lockKey) {
+        // 先清理过期锁，避免内存泄漏
+        if (likeLocks.size() >= MAX_LOCKS_SIZE) {
+            likeLocks.entrySet().removeIf(entry -> entry.getValue().isExpired());
+        }
+
         LockEntry entry = likeLocks.compute(lockKey, (key, existing) -> {
             if (existing == null || existing.isExpired()) {
                 return new LockEntry(new Object());

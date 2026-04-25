@@ -227,6 +227,14 @@ mvn spring-boot:run
 
 ## 更新日志
 
+### v1.14 (2026-04-25)
+- 🔒 修复点赞/收藏锁内存泄漏：getLock/getCollectLock 添加主动清理过期锁
+- 🔒 修复阅读量增加 TOCTOU 竞态条件：使用 CAS 操作替代直接 set
+- 🔧 统一密码最小长度：UserRegisterRequest DTO 密码最小长度从 6 改为 8
+- 🔧 移除 DotenvConfig 硬编码路径 "D:/MyCode/edu_project"
+- 🔧 添加 category 字段 XSS 防护：在 BlogPostServiceImpl 中对 category 进行 HTML 过滤
+- 🔧 移除所有 Controller 的 @CrossOrigin 注解（使用全局 CORS 配置）
+
 ### v1.13 (2026-04-25)
 - 🔧 JwtUtils: 移除未使用的 generateToken(Long, String) 重载方法
 - 🔧 HtmlSanitizer: 移除未使用的 containsDangerousTags 方法

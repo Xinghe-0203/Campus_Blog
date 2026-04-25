@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "收藏管理", description = "收藏相关接口")
 @RestController
 @RequestMapping("/collect")
-@CrossOrigin
 public class BlogCollectController {
 
     @Autowired

@@ -74,8 +74,7 @@ public class DotenvConfig {
     private static Path findEnvFile() {
         String[] searchPaths = {
             System.getProperty("user.dir"),
-            System.getProperty("user.home"),
-            "D:/MyCode/edu_project"
+            System.getProperty("user.home")
         };
 
         for (String dir : searchPaths) {

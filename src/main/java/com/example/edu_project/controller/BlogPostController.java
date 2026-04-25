@@ -28,7 +28,6 @@ import java.util.concurrent.atomic.AtomicLong;
 @Tag(name = "文章管理", description = "文章相关接口")
 @RestController
 @RequestMapping("/post")
-@CrossOrigin
 public class BlogPostController {
 
     @Autowired
@@ -155,11 +154,21 @@ public class BlogPostController {
         String userKey = getUserIdentifier(request) + "-" + id;
         long now = System.currentTimeMillis();
         AtomicLong lastViewTime = viewCountCache.computeIfAbsent(userKey, k -> new AtomicLong(0));
-        if (now - lastViewTime.get() < VIEW_COUNT_INTERVAL_MS) {
-            // 距离上次访问不足1分钟，不增加阅读量
-            return Result.success(null);
+
+        // 使用 CAS 操作解决 TOCTOU 竞态条件
+        while (true) {
+            long lastTime = lastViewTime.get();
+            if (now - lastTime < VIEW_COUNT_INTERVAL_MS) {
+                // 距离上次访问不足1分钟，不增加阅读量
+                return Result.success(null);
+            }
+            // 尝试原子更新：如果 lastTime 没变，则更新为 now
+            if (lastViewTime.compareAndSet(lastTime, now)) {
+                break;
+            }
+            // 否则说明其他线程已经修改，重新读取
         }
-        lastViewTime.set(now);
+
         blogPostService.incrementViewCount(id);
         return Result.success(null);
     }

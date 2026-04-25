@@ -37,24 +37,32 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String token = jwtUtils.extractTokenFromRequest(request);
 
-            if (StringUtils.hasText(token) && !jwtUtils.isTokenExpired(token) && !jwtUtils.isTokenRevoked(token)) {
-                Long userId = jwtUtils.getUserIdFromToken(token);
-                String username = jwtUtils.getUsernameFromToken(token);
-                String role = jwtUtils.getRoleFromToken(token);
+            if (StringUtils.hasText(token)) {
+                try {
+                    // 必须先验证 Token 签名，再检查黑名单
+                    if (!jwtUtils.isTokenExpired(token) && !jwtUtils.isTokenRevoked(token)) {
+                        Long userId = jwtUtils.getUserIdFromToken(token);
+                        String username = jwtUtils.getUsernameFromToken(token);
+                        String role = jwtUtils.getRoleFromToken(token);
 
-                // 创建用户上下文对象
-                UserContext userContext = new UserContext(userId, role);
+                        // 创建用户上下文对象
+                        UserContext userContext = new UserContext(userId, role);
 
-                // 创建认证对象，设置正确的权限列表
-                List<GrantedAuthority> authorities = Collections.singletonList(
-                        new SimpleGrantedAuthority("ROLE_" + role)
-                );
-                UsernamePasswordAuthenticationToken authentication =
-                        new UsernamePasswordAuthenticationToken(userContext, null, authorities);
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                        // 创建认证对象，设置正确的权限列表
+                        List<GrantedAuthority> authorities = Collections.singletonList(
+                                new SimpleGrantedAuthority(role != null ? "ROLE_" + role : "ROLE_USER")
+                        );
+                        UsernamePasswordAuthenticationToken authentication =
+                                new UsernamePasswordAuthenticationToken(userContext, null, authorities);
+                        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                // 将认证信息存入 SecurityContext
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                        // 将认证信息存入 SecurityContext
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+                    }
+                } catch (Exception e) {
+                    // Token 无效或解析失败，继续过滤链（未认证）
+                    logger.warn("JWT Authentication failed: {}", e.getMessage());
+                }
             }
         } catch (Exception e) {
             // Token 无效或解析失败，继续过滤链（未认证）
