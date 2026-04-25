@@ -738,6 +738,7 @@ edu_project/
 
 ---
 
+| 2026-04-25 | v1.13 | .env配置支持与环境变量校验<br>新增DotenvConfig自动加载.env文件<br>新增EnvValidationConfig启动时校验环境变量<br>新增.env.example配置模板<br>添加.env到.gitignore<br>移除所有代码中的硬编码默认值 |
 | 2026-04-25 | v1.12 | 安全修复与文档更新<br>移除JWT/Database密码硬编码默认值<br>BlogLikeServiceImpl添加updatedPost空指针检查<br>BlogCommentServiceImpl添加评论递归深度限制<br>移除未使用的convertToDetailResponse死代码<br>移除未使用的generateToken和containsDangerousTags方法 |
 | 2026-04-25 | v1.11 | 安全与性能优化<br>JwtAuthenticationFilter添加Token撤销检查和权限列表<br>HtmlSanitizer移除data:协议防止XSS bypass<br>登录锁定信息通用化防用户枚举<br>CommentCreateRequest添加@NotNull校验<br>BlogCommentServiceImpl修复O(n²)查询为O(n) |
 | 2026-04-25 | v1.10 | 安全增强与代码完善<br>修复用户枚举漏洞（通用错误信息）<br>修复点赞/收藏竞态条件（细粒度锁 + DuplicateKeyException处理）<br>新增XSS防护（Jsoup过滤）<br>完善@Transactional注解<br>修复batchInsertPostTags事务缺失问题 |
@@ -746,5 +747,5 @@ edu_project/
 
 ---
 
-**文档版本**：v1.12
+**文档版本**：v1.13
 **最后更新**：2026-04-25

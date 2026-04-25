@@ -113,23 +113,21 @@ edu_project/
 
 ### 3. 环境变量配置（必需）
 
-部署前必须设置以下环境变量：
+使用 `.env` 文件配置所有敏感信息：
 
 ```bash
-# Linux/Mac
-export DB_PASSWORD=your_db_password
-export JWT_SECRET=your_jwt_secret_key_here
+# 1. 复制环境变量模板
+cp .env.example .env
 
-# Windows PowerShell
-$env:DB_PASSWORD="your_db_password"
-$env:JWT_SECRET="your_jwt_secret_key_here"
+# 2. 修改 .env 文件，填入实际配置值
+
+# 3. 启动项目（.env 会自动加载）
+mvn spring-boot:run
 ```
 
-### 4. 修改配置（可选）
+**注意**：`.env` 文件包含敏感信息，已添加到 `.gitignore` 不会提交到 Git。
 
-如需修改数据库地址等其他配置，编辑 `src/main/resources/application.yml`。
-
-### 5. 启动项目
+### 4. 启动项目
 
 运行 `EduProjectApplication.java` 的 `main` 方法。
 
@@ -228,6 +226,10 @@ $env:JWT_SECRET="your_jwt_secret_key_here"
 8. 对接前端页面
 
 ## 更新日志
+
+### v1.13 (2026-04-25)
+- 🔧 JwtUtils: 移除未使用的 generateToken(Long, String) 重载方法
+- 🔧 HtmlSanitizer: 移除未使用的 containsDangerousTags 方法
 
 ### v1.12 (2026-04-25)
 - 🔒 移除 JWT/Database 密码硬编码默认值（安全加固）
