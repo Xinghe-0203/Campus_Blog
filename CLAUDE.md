@@ -108,7 +108,7 @@ Controller → Service → Mapper → Entity
 - All mappers extend `BaseMapper<T>`
 - Soft delete via `isDeleted` field with `@TableLogic`
 
-### Database Tables (7)
+### Database Tables (18)
 
 | Table | Purpose | Notes |
 |-------|---------|-------|
@@ -119,6 +119,17 @@ Controller → Service → Mapper → Entity
 | `blog_post_tag` | Post-Tag relation | composite PK (postId, tagId) |
 | `blog_like` | Likes | composite PK (userId, postId) |
 | `blog_collect` | Collections | composite PK (userId, postId) |
+| `blog_follow` | Follow relations | follower/following counts |
+| `blog_notification` | Notifications | user notifications |
+| `blog_trending` | Trending statistics | hot posts/tags |
+| `blog_draft` | Drafts | auto-save drafts |
+| `blog_report` | Reports | content reporting |
+| `circle_post` | Circle posts | alumni circle posts |
+| `circle_like` | Circle likes | alumni circle likes |
+| `circle_comment` | Circle comments | alumni circle comments |
+| `circle_repost` | Circle reposts | alumni circle reposts |
+| `media` | Media files | images/videos upload |
+| `blog_post_media` | Post-Media relation | post media attachments |
 
 ---
 

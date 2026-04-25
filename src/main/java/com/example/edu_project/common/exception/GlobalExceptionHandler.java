@@ -3,11 +3,14 @@ package com.example.edu_project.common.exception;
 import com.example.edu_project.common.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.BindException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
 import jakarta.validation.ConstraintViolationException;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
@@ -109,7 +112,34 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DuplicateKeyException.class)
     public Result<Void> handleDuplicateKeyException(DuplicateKeyException e) {
         log.warn("数据重复：[{}]", e.getClass().getSimpleName());
-        return Result.error(500, "操作失败，请稍后重试");
+        return Result.error(409, "数据已存在，操作冲突");
+    }
+
+    /**
+     * 处理访问拒绝异常（权限不足）
+     */
+    @ExceptionHandler(AccessDeniedException.class)
+    public Result<Void> handleAccessDeniedException(AccessDeniedException e) {
+        log.warn("访问拒绝：{}", e.getMessage());
+        return Result.error(403, "权限不足，拒绝访问");
+    }
+
+    /**
+     * 处理认证异常（未登录或认证失败）
+     */
+    @ExceptionHandler(AuthenticationException.class)
+    public Result<Void> handleAuthenticationException(AuthenticationException e) {
+        log.warn("认证失败：{}", e.getMessage());
+        return Result.error(401, "认证失败，请先登录");
+    }
+
+    /**
+     * 处理文件上传大小超限异常
+     */
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public Result<Void> handleMaxUploadSizeExceededException(MaxUploadSizeExceededException e) {
+        log.warn("文件上传超限：{}", e.getMessage());
+        return Result.error(400, "上传文件大小超出限制");
     }
 
     /**
@@ -117,7 +147,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Throwable.class)
     public Result<Void> handleThrowable(Throwable e) {
-        log.error("系统异常：[{}]", e.getClass().getSimpleName());
-        return Result.error(500, "系统内部错误，请联系管理员");
+        log.error("系统异常: {}", e.getMessage(), e);
+        return Result.error(500, "系统内部错误：" + e.getClass().getSimpleName());
     }
 }

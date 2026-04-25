@@ -113,6 +113,11 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new BusinessException(403, "登录失败次数过多，请稍后再试");
         }
 
+        // 检查账号状态（先于密码验证）
+        if (user.getStatus() == 0) {
+            throw new BusinessException(403, "账号已被禁用");
+        }
+
         // 验证密码
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             // 密码错误，使用原子操作增加失败计数
@@ -123,11 +128,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                 throw new BusinessException(403, "登录失败次数过多，请稍后再试");
             }
             throw new BusinessException(401, "用户名或密码错误");
-        }
-
-        // 检查账号状态
-        if (user.getStatus() == 0) {
-            throw new BusinessException(403, "账号已被禁用");
         }
 
         // 登录成功，重置失败计数和锁定

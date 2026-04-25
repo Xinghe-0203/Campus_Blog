@@ -27,10 +27,21 @@ edu_project/
 │   │   ├── MybatisPlusConfig.java              # MyBatis Plus 配置
 │   │   ├── MyMetaObjectHandler.java           # 自动填充处理器
 │   │   └── SecurityConfig.java                # Spring Security 配置
-│   ├── controller/                              # Controller 层（API 接口）
+│   ├── controller/                              # Controller 层（13个）
 │   │   ├── SysUserController.java              # 用户控制器
-│   │   └── BlogPostController.java             # 文章控制器
-│   ├── service/                                 # Service 层（业务逻辑）
+│   │   ├── BlogPostController.java             # 文章控制器
+│   │   ├── BlogCommentController.java          # 评论控制器
+│   │   ├── BlogLikeController.java             # 点赞控制器
+│   │   ├── BlogCollectController.java          # 收藏控制器
+│   │   ├── BlogTagController.java              # 标签控制器
+│   │   ├── FollowController.java               # 关注控制器
+│   │   ├── NotificationController.java         # 通知控制器
+│   │   ├── TrendingController.java             # 热门控制器
+│   │   ├── ReportController.java               # 举报控制器
+│   │   ├── AdminReportController.java          # 管理员举报控制器
+│   │   ├── CircleController.java               # 校友圈控制器
+│   │   └── MediaController.java               # 媒体控制器
+│   ├── service/                                 # Service 层（13个）
 │   │   ├── SysUserService.java
 │   │   ├── BlogPostService.java
 │   │   ├── BlogCommentService.java
@@ -38,22 +49,45 @@ edu_project/
 │   │   ├── BlogPostTagService.java
 │   │   ├── BlogLikeService.java
 │   │   ├── BlogCollectService.java
-│   │   └── impl/                                # Service 实现类
+│   │   ├── FollowService.java
+│   │   ├── NotificationService.java
+│   │   ├── TrendingService.java
+│   │   ├── ReportService.java
+│   │   ├── CircleService.java
+│   │   ├── MediaService.java
+│   │   └── impl/                                # Service 实现类（13个）
 │   │       ├── SysUserServiceImpl.java
 │   │       ├── BlogPostServiceImpl.java
 │   │       ├── BlogCommentServiceImpl.java
 │   │       ├── BlogTagServiceImpl.java
 │   │       ├── BlogPostTagServiceImpl.java
 │   │       ├── BlogLikeServiceImpl.java
-│   │       └── BlogCollectServiceImpl.java
-│   ├── mapper/                                  # Mapper 层（数据库操作）
+│   │       ├── BlogCollectServiceImpl.java
+│   │       ├── FollowServiceImpl.java
+│   │       ├── NotificationServiceImpl.java
+│   │       ├── TrendingServiceImpl.java
+│   │       ├── ReportServiceImpl.java
+│   │       ├── CircleServiceImpl.java
+│   │       └── MediaServiceImpl.java
+│   ├── mapper/                                  # Mapper 层（18个）
 │   │   ├── SysUserMapper.java
 │   │   ├── BlogPostMapper.java
 │   │   ├── BlogCommentMapper.java
 │   │   ├── BlogTagMapper.java
 │   │   ├── BlogPostTagMapper.java
 │   │   ├── BlogLikeMapper.java
-│   │   └── BlogCollectMapper.java
+│   │   ├── BlogCollectMapper.java
+│   │   ├── BlogFollowMapper.java
+│   │   ├── BlogNotificationMapper.java
+│   │   ├── BlogTrendingMapper.java
+│   │   ├── BlogDraftMapper.java
+│   │   ├── BlogReportMapper.java
+│   │   ├── CirclePostMapper.java
+│   │   ├── CircleLikeMapper.java
+│   │   ├── CircleCommentMapper.java
+│   │   ├── CircleRepostMapper.java
+│   │   ├── MediaMapper.java
+│   │   └── BlogPostMediaMapper.java
 │   ├── dto/                                     # 数据传输对象
 │   │   ├── UserRegisterRequest.java
 │   │   ├── UserLoginRequest.java
@@ -67,14 +101,25 @@ edu_project/
 │   │   ├── JwtUtils.java                       # JWT 工具类
 │   │   ├── SecurityUtils.java                  # 安全工具类
 │   │   └── UserContext.java                    # 用户上下文对象
-│   └── entity/                                  # Entity 实体类
-│   │   ├── SysUser.java
-│   │   ├── BlogPost.java
-│   │   ├── BlogComment.java
-│   │   ├── BlogTag.java
-│   │   ├── BlogPostTag.java
-│   │   ├── BlogLike.java
-│   │   └── BlogCollect.java
+│   └── entity/                                  # Entity 实体类（18个）
+│       ├── SysUser.java
+│       ├── BlogPost.java
+│       ├── BlogComment.java
+│       ├── BlogTag.java
+│       ├── BlogPostTag.java
+│       ├── BlogLike.java
+│       ├── BlogCollect.java
+│       ├── BlogFollow.java
+│       ├── BlogNotification.java
+│       ├── BlogTrending.java
+│       ├── BlogDraft.java
+│       ├── BlogReport.java
+│       ├── CirclePost.java
+│       ├── CircleLike.java
+│       ├── CircleComment.java
+│       ├── CircleRepost.java
+│       ├── Media.java
+│       └── BlogPostMedia.java
 │   └── common/                                  # 公共类
 │       ├── result/
 │       │   └── Result.java                     # 统一响应结果类
@@ -95,9 +140,9 @@ edu_project/
 2. **blog_post** - 文章/帖子表（含 view_count、like_count、comment_count、collect_count）
 3. **blog_comment** - 评论表（支持嵌套回复）
 4. **blog_tag** - 标签表（含 post_count）
-5. **blog_post_tag** - 文章-标签关联表（联合主键）
-6. **blog_like** - 点赞记录表（联合主键）
-7. **blog_collect** - 收藏记录表（联合主键）
+5. **blog_post_tag** - 文章-标签关联表（自增主键）
+6. **blog_like** - 点赞记录表（自增主键）
+7. **blog_collect** - 收藏记录表（自增主键）
 
 ### 增强功能表（11张）
 8. **blog_follow** - 关注关系表
@@ -233,6 +278,7 @@ mvn spring-boot:run
 | :--- | :--- | :--- |
 | GET | `/api/trending/posts` | 获取热门文章列表（公开访问） |
 | GET | `/api/trending/hot-tags` | 获取热门标签（公开访问） |
+| POST | `/api/trending/update/{postId}` | 更新文章热度（需登录） |
 
 ### 草稿模块
 
@@ -249,6 +295,14 @@ mvn spring-boot:run
 | :--- | :--- | :--- |
 | POST | `/api/report` | 举报内容（需登录） |
 | GET | `/api/report/my` | 获取我的举报记录（需登录） |
+
+### 管理员举报模块
+
+| 方法 | 路径 | 说明 |
+| :--- | :--- | :--- |
+| GET | `/api/admin/reports/pending` | 获取待处理举报列表（需管理员） |
+| GET | `/api/admin/reports/{reportId}` | 获取举报详情（需管理员） |
+| PUT | `/api/admin/reports/{reportId}` | 处理举报（需管理员） |
 
 ### 校友圈模块
 
@@ -286,8 +340,11 @@ mvn spring-boot:run
 | :--- | :--- | :--- |
 | POST | `/api/media/upload` | 上传图片/视频（需登录，支持批量） |
 | GET | `/api/media/{id}` | 获取媒体详情（需登录） |
-| GET | `/api/media/my` | 获取我的媒体列表（需登录） |
+| GET | `/api/media/list` | 获取我的媒体列表（需登录） |
 | DELETE | `/api/media/{id}` | 删除媒体（需登录，仅作者） |
+| POST | `/api/media/upload/multiple` | 批量上传图片/视频（需登录） |
+| POST | `/api/media/bind/{postId}` | 绑定媒体到文章（需登录） |
+| GET | `/api/media/post/{postId}` | 获取文章的媒体列表（需登录） |
 
 ## 开发规范
 
@@ -315,7 +372,7 @@ mvn spring-boot:run
 
 - 逻辑删除：所有表都有 `isDeleted` 字段
 - 自动填充：`createTime` 和 `updateTime` 自动填充
-- 分页插件：待后续配置
+- 分页插件：已配置
 
 ## 下一步开发计划
 

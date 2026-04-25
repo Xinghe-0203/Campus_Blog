@@ -73,12 +73,6 @@ public class BlogReport implements Serializable {
     private LocalDateTime createTime;
 
     /**
-     * 更新时间
-     */
-    @TableField(fill = FieldFill.INSERT_UPDATE)
-    private LocalDateTime updateTime;
-
-    /**
      * 逻辑删除：0=正常，1=删除
      */
     @TableLogic

@@ -1,5 +1,6 @@
 package com.example.edu_project.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -13,11 +14,14 @@ import java.nio.file.Paths;
 @Configuration
 public class WebMvcConfig implements WebMvcConfigurer {
 
+    @Value("${upload.base-path:uploads}")
+    private String uploadBasePath;
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         // 获取项目根目录的绝对路径
         String projectRoot = System.getProperty("user.dir");
-        String uploadPath = Paths.get(projectRoot, "uploads").toString();
+        String uploadPath = Paths.get(projectRoot, uploadBasePath).toString();
 
         // 静态资源映射：/uploads/** -> 本地 uploads 目录
         registry.addResourceHandler("/uploads/**")

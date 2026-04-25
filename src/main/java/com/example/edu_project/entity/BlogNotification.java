@@ -44,6 +44,7 @@ public class BlogNotification implements Serializable {
     /**
      * 接收通知的用户ID（接收者）
      */
+    @TableField("user_id")
     private Long toUserId;
 
     /**

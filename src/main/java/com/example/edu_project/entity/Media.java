@@ -27,9 +27,15 @@ public class Media implements Serializable {
     private Long userId;
 
     /**
-     * 文件原始名称
+     * 文件名称
      */
+    @TableField("file_name")
     private String originalName;
+
+    /**
+     * 文件类型
+     */
+    private String fileType;
 
     /**
      * 存储路径

@@ -48,6 +48,9 @@ public class MediaServiceImpl extends ServiceImpl<MediaMapper, Media> implements
     @Autowired
     private BlogPostMediaMapper blogPostMediaMapper;
 
+    @Autowired
+    private com.example.edu_project.mapper.BlogPostMapper blogPostMapper;
+
     @Value("${upload.base-path:./uploads}")
     private String uploadPath;
 
@@ -278,9 +281,6 @@ public class MediaServiceImpl extends ServiceImpl<MediaMapper, Media> implements
         if (media == null) {
             throw new BusinessException(404, "媒体文件不存在");
         }
-        if (media.getStatus() == 0) {
-            throw new BusinessException(404, "媒体文件已删除");
-        }
 
         // 检查权限：上传者本人或管理员可以删除
         if (!media.getUserId().equals(userId) && !SecurityUtils.isCurrentUserAdmin()) {
@@ -293,16 +293,15 @@ public class MediaServiceImpl extends ServiceImpl<MediaMapper, Media> implements
             file.delete();
         }
 
-        // 更新状态
-        media.setStatus(0);
-        this.updateById(media);
+        // 使用 MyBatis Plus 逻辑删除（@TableLogic）
+        this.removeById(mediaId);
     }
 
     @Override
     @Transactional(readOnly = true)
     public MediaVO getMediaInfo(Long mediaId) {
         Media media = this.getById(mediaId);
-        if (media == null || media.getStatus() == 0) {
+        if (media == null) {
             throw new BusinessException(404, "媒体文件不存在");
         }
 
@@ -323,6 +322,20 @@ public class MediaServiceImpl extends ServiceImpl<MediaMapper, Media> implements
         if (postId == null) {
             throw new BusinessException(400, "文章ID不能为空");
         }
+
+        // 权限校验：只有文章作者或管理员才能绑定媒体
+        com.example.edu_project.entity.BlogPost post = blogPostMapper.selectById(postId);
+        if (post == null) {
+            throw new BusinessException(404, "文章不存在");
+        }
+        Long currentUserId = SecurityUtils.getCurrentUserIdOrNull();
+        if (currentUserId == null) {
+            throw new BusinessException(401, "请先登录");
+        }
+        if (!post.getUserId().equals(currentUserId) && !SecurityUtils.isCurrentUserAdmin()) {
+            throw new BusinessException(403, "无权操作此文章的媒体");
+        }
+
         if (mediaIds == null || mediaIds.isEmpty()) {
             // 如果媒体列表为空，则清除所有关联
             blogPostMediaMapper.deleteByPostId(postId);
@@ -346,7 +359,7 @@ public class MediaServiceImpl extends ServiceImpl<MediaMapper, Media> implements
         List<Media> mediaList = blogPostMediaMapper.selectByPostId(postId)
                 .stream()
                 .map(pm -> this.getById(pm.getMediaId()))
-                .filter(m -> m != null && m.getStatus() == 1)
+                .filter(m -> m != null)
                 .collect(Collectors.toList());
 
         return mediaList.stream().map(media -> {
@@ -389,8 +402,7 @@ public class MediaServiceImpl extends ServiceImpl<MediaMapper, Media> implements
 
         Page<Media> page = new Page<>(pageNum, pageSize);
         LambdaQueryWrapper<Media> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(Media::getUserId, userId)
-               .eq(Media::getStatus, 1);
+        wrapper.eq(Media::getUserId, userId);
 
         // 根据文件类型过滤
         if (StrUtil.isNotBlank(request.getFileType())) {

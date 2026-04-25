@@ -26,6 +26,11 @@ public class BlogTag implements Serializable {
     private String name;
 
     /**
+     * 文章数量
+     */
+    private Integer postCount;
+
+    /**
      * 逻辑删除：0-正常，1-删除
      */
     @TableLogic

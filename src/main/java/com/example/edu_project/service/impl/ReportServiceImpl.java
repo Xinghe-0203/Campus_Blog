@@ -16,6 +16,7 @@ import com.example.edu_project.mapper.BlogPostMapper;
 import com.example.edu_project.mapper.BlogReportMapper;
 import com.example.edu_project.mapper.SysUserMapper;
 import com.example.edu_project.service.ReportService;
+import com.example.edu_project.utils.SecurityUtils;
 import com.example.edu_project.vo.ReportVO;
 import com.example.edu_project.vo.UserVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -103,6 +104,10 @@ public class ReportServiceImpl extends ServiceImpl<BlogReportMapper, BlogReport>
     @Override
     @Transactional(readOnly = true)
     public IPage<ReportVO> getPendingReports(Long page, Long pageSize) {
+        // 管理员权限校验
+        if (!SecurityUtils.isCurrentUserAdmin()) {
+            throw new BusinessException(403, "需要管理员权限");
+        }
         Page<BlogReport> pageParam = new Page<>(page, pageSize);
         LambdaQueryWrapper<BlogReport> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(BlogReport::getStatus, 0) // 待处理状态
@@ -115,6 +120,10 @@ public class ReportServiceImpl extends ServiceImpl<BlogReportMapper, BlogReport>
     @Override
     @Transactional(readOnly = true)
     public ReportVO getReportDetail(Long reportId) {
+        // 管理员权限校验
+        if (!SecurityUtils.isCurrentUserAdmin()) {
+            throw new BusinessException(403, "需要管理员权限");
+        }
         BlogReport report = this.getById(reportId);
         if (report == null) {
             throw new BusinessException(404, "举报记录不存在");
@@ -125,6 +134,10 @@ public class ReportServiceImpl extends ServiceImpl<BlogReportMapper, BlogReport>
     @Override
     @Transactional(rollbackFor = Exception.class)
     public void handleReport(Long reportId, HandleReportRequest request, Long handlerId) {
+        // 管理员权限校验
+        if (!SecurityUtils.isCurrentUserAdmin()) {
+            throw new BusinessException(403, "需要管理员权限");
+        }
         // 参数校验
         if (request.getStatus() == null) {
             throw new BusinessException(400, "处理状态不能为空");

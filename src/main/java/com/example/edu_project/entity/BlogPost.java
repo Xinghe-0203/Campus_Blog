@@ -47,6 +47,11 @@ public class BlogPost implements Serializable {
     private String category;
 
     /**
+     * 封面图URL
+     */
+    private String coverUrl;
+
+    /**
      * 阅读量
      */
     private Integer viewCount;

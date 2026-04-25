@@ -36,7 +36,7 @@ public class CircleController {
      */
     @Operation(summary = "发布动态")
     @PostMapping("/post")
-    public Result<Long> createPost(@Valid CirclePostCreateRequest request) {
+    public Result<Long> createPost(@Valid @RequestBody CirclePostCreateRequest request) {
         Long userId = SecurityUtils.getCurrentUserIdOrNull();
         if (userId == null) {
             throw new BusinessException(401, "请先登录");

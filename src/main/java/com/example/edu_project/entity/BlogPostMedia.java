@@ -42,10 +42,4 @@ public class BlogPostMedia implements Serializable {
      */
     @TableField(fill = FieldFill.INSERT)
     private LocalDateTime createTime;
-
-    /**
-     * 逻辑删除标记
-     */
-    @TableLogic
-    private Integer isDeleted;
 }

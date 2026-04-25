@@ -29,7 +29,7 @@ public class BlogTrending implements Serializable {
     /**
      * 热度评分 (score = view*1 + like*5 + comment*10)
      */
-    private Integer score;
+    private Double score;
 
     /**
      * 阅读量快照
@@ -49,6 +49,7 @@ public class BlogTrending implements Serializable {
     /**
      * 统计日期
      */
+    @TableField("date")
     private LocalDateTime statDate;
 
     /**
@@ -58,8 +59,8 @@ public class BlogTrending implements Serializable {
     private LocalDateTime createTime;
 
     /**
-     * 逻辑删除：0-正常，1-删除
+     * 更新时间
      */
-    @TableLogic
-    private Integer isDeleted;
+    @TableField(fill = FieldFill.INSERT_UPDATE)
+    private LocalDateTime updateTime;
 }

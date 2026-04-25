@@ -99,33 +99,31 @@ public class TrendingServiceImpl extends ServiceImpl<BlogTrendingMapper, BlogTre
     @Override
     @Transactional(readOnly = true)
     public Object getHotTags() {
-        // 使用 Page 分页获取标签，避免 SQL 注入风险
-        Page<BlogTag> page = new Page<>(1, 20); // 默认获取前20个热门标签
-
-        // 查询所有标签，按关联文章数量降序
+        // 查询所有未删除的标签
         LambdaQueryWrapper<BlogTag> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(BlogTag::getIsDeleted, 0);
+        List<BlogTag> allTags = blogTagMapper.selectList(wrapper);
 
-        IPage<BlogTag> tagPage = blogTagMapper.selectPage(page, wrapper);
-
-        if (tagPage.getRecords().isEmpty()) {
-            return tagPage;
+        if (allTags.isEmpty()) {
+            Page<Map<String, Object>> emptyPage = new Page<>(1, 20, 0);
+            emptyPage.setRecords(new ArrayList<>());
+            return emptyPage;
         }
 
-        // 统计每个标签关联的文章数量
-        List<Long> tagIds = tagPage.getRecords().stream()
+        // 统计每个标签关联的文章数量（查询所有标签的文章关联）
+        List<Long> allTagIds = allTags.stream()
                 .map(BlogTag::getId)
                 .collect(Collectors.toList());
 
         LambdaQueryWrapper<BlogPostTag> postTagWrapper = new LambdaQueryWrapper<>();
-        postTagWrapper.in(BlogPostTag::getTagId, tagIds);
+        postTagWrapper.in(BlogPostTag::getTagId, allTagIds);
         List<BlogPostTag> postTags = blogPostTagMapper.selectList(postTagWrapper);
 
         Map<Long, Long> tagCountMap = postTags.stream()
                 .collect(Collectors.groupingBy(BlogPostTag::getTagId, Collectors.counting()));
 
         // 转换为响应数据，按文章数量降序
-        List<Map<String, Object>> result = tagPage.getRecords().stream()
+        List<Map<String, Object>> result = allTags.stream()
                 .map(tag -> {
                     Map<String, Object> item = new HashMap<>();
                     item.put("id", tag.getId());
@@ -136,9 +134,12 @@ public class TrendingServiceImpl extends ServiceImpl<BlogTrendingMapper, BlogTre
                 .sorted((a, b) -> Long.compare((Long) b.get("postCount"), (Long) a.get("postCount")))
                 .collect(Collectors.toList());
 
+        // 取前20个
+        List<Map<String, Object>> top20 = result.size() > 20 ? result.subList(0, 20) : result;
+
         // 返回分页结果
-        Page<Map<String, Object>> resultPage = new Page<>(1, 20, tagPage.getTotal());
-        resultPage.setRecords(result);
+        Page<Map<String, Object>> resultPage = new Page<>(1, 20, top20.size());
+        resultPage.setRecords(top20);
         return resultPage;
     }
 

@@ -396,8 +396,8 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
             CircleLike existingLike = circleLikeMapper.selectOne(wrapper);
 
             if (existingLike != null) {
-                // 取消点赞
-                circleLikeMapper.deleteById(existingLike.getId());
+                // 取消点赞：物理删除记录（解决软删除+唯一约束冲突）
+                circleLikeMapper.physicalDeleteById(existingLike.getId());
                 baseMapper.decrementLikeCount(postId);
             } else {
                 // 点赞：使用 try-catch 处理并发插入
@@ -412,7 +412,7 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
                     CircleLike concurrentLike = circleLikeMapper.selectOne(wrapper);
                     if (concurrentLike != null) {
                         // 如果已存在，说明另一个请求刚插入，我们执行取消
-                        circleLikeMapper.deleteById(concurrentLike.getId());
+                        circleLikeMapper.physicalDeleteById(concurrentLike.getId());
                         baseMapper.decrementLikeCount(postId);
                     }
                     // 否则忽略

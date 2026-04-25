@@ -71,18 +71,19 @@
 - Maven 项目结构搭建
 - 核心依赖配置（MyBatis Plus、MySQL、Knife4j、Lombok、Hutool）
 - 标准的包结构（controller、service、mapper、entity、config、common）
-- 7 个实体类（Entity）编写完成
-- 7 个 Mapper 接口编写完成
+- 18 个实体类（Entity）编写完成
+- 18 个 Mapper 接口编写完成
 - 统一响应结果封装（Result）
-- MyBatis Plus 配置（分页插件待启用）
+- MyBatis Plus 配置（分页插件已启用）
 - API 文档集成（Knife4j）
-- 测试 Controller 编写完成
+- 13 个 Controller 编写完成
+- 13 个 Service 接口 + 13 个 ServiceImpl 实现类
 
 #### ✅ 后端基础完善（2026-04-21）
 - 修复联合主键实体类配置（BlogPostTag、BlogCollect、BlogLike）
 - 为 BlogTag 和 BlogComment 添加 isDeleted 逻辑删除字段
 - 创建 MetaObjectHandler 自动填充处理器（自动填充 createTime、updateTime）
-- 创建完整的 Service 层（7 个 Service 接口 + 7 个 ServiceImpl 实现类）
+- 创建完整的 Service 层（13 个 Service 接口 + 13 个 ServiceImpl 实现类）
 - 创建全局异常处理器（GlobalExceptionHandler + BusinessException）
 
 #### ✅ 后端增强功能（v1.8 - v1.17）
@@ -419,44 +420,90 @@ src/main/java/com/example/edu_project/
 │   ├── MyMetaObjectHandler.java         # 自动填充处理器
 │   └── SecurityConfig.java              # Spring Security 配置
 │
-├── controller/                           # Controller 层（API 接口）
-│   └── SysUserController.java            # 用户控制器
+├── controller/                           # Controller 层（13个）
+│   ├── SysUserController.java            # 用户控制器
+│   ├── BlogPostController.java            # 文章控制器
+│   ├── BlogCommentController.java         # 评论控制器
+│   ├── BlogLikeController.java           # 点赞控制器
+│   ├── BlogCollectController.java       # 收藏控制器
+│   ├── BlogTagController.java            # 标签控制器
+│   ├── FollowController.java             # 关注控制器
+│   ├── NotificationController.java       # 通知控制器
+│   ├── TrendingController.java           # 热门控制器
+│   ├── ReportController.java             # 举报控制器
+│   ├── AdminReportController.java       # 管理员举报控制器
+│   ├── CircleController.java             # 校友圈控制器
+│   └── MediaController.java             # 媒体控制器
 │
-├── service/                              # Service 层（业务逻辑）
+├── service/                              # Service 层（13个）
 │   ├── SysUserService.java
 │   ├── BlogPostService.java
 │   ├── BlogCommentService.java
 │   ├── BlogTagService.java
 │   ├── BlogPostTagService.java
 │   ├── BlogLikeService.java
-│   └── BlogCollectService.java
+│   ├── BlogCollectService.java
+│   ├── FollowService.java
+│   ├── NotificationService.java
+│   ├── TrendingService.java
+│   ├── ReportService.java
+│   ├── CircleService.java
+│   └── MediaService.java
 │
-├── service/impl/                         # Service 实现类
+├── service/impl/                         # Service 实现类（13个）
 │   ├── SysUserServiceImpl.java
 │   ├── BlogPostServiceImpl.java
 │   ├── BlogCommentServiceImpl.java
 │   ├── BlogTagServiceImpl.java
 │   ├── BlogPostTagServiceImpl.java
 │   ├── BlogLikeServiceImpl.java
-│   └── BlogCollectServiceImpl.java
+│   ├── BlogCollectServiceImpl.java
+│   ├── FollowServiceImpl.java
+│   ├── NotificationServiceImpl.java
+│   ├── TrendingServiceImpl.java
+│   ├── ReportServiceImpl.java
+│   ├── CircleServiceImpl.java
+│   └── MediaServiceImpl.java
 │
-├── mapper/                               # Mapper 层（数据库操作）
+├── mapper/                               # Mapper 层（18个）
 │   ├── SysUserMapper.java
 │   ├── BlogPostMapper.java
 │   ├── BlogCommentMapper.java
 │   ├── BlogTagMapper.java
 │   ├── BlogPostTagMapper.java
 │   ├── BlogLikeMapper.java
-│   └── BlogCollectMapper.java
+│   ├── BlogCollectMapper.java
+│   ├── BlogFollowMapper.java
+│   ├── BlogNotificationMapper.java
+│   ├── BlogTrendingMapper.java
+│   ├── BlogDraftMapper.java
+│   ├── BlogReportMapper.java
+│   ├── CirclePostMapper.java
+│   ├── CircleLikeMapper.java
+│   ├── CircleCommentMapper.java
+│   ├── CircleRepostMapper.java
+│   ├── MediaMapper.java
+│   └── BlogPostMediaMapper.java
 │
-├── entity/                               # Entity 实体类
+├── entity/                               # Entity 实体类（18个）
 │   ├── SysUser.java
 │   ├── BlogPost.java
 │   ├── BlogComment.java
 │   ├── BlogTag.java
 │   ├── BlogPostTag.java
 │   ├── BlogLike.java
-│   └── BlogCollect.java
+│   ├── BlogCollect.java
+│   ├── BlogFollow.java
+│   ├── BlogNotification.java
+│   ├── BlogTrending.java
+│   ├── BlogDraft.java
+│   ├── BlogReport.java
+│   ├── CirclePost.java
+│   ├── CircleLike.java
+│   ├── CircleComment.java
+│   ├── CircleRepost.java
+│   ├── Media.java
+│   └── BlogPostMedia.java
 │
 └── common/                               # 公共类
     ├── result/
@@ -492,29 +539,31 @@ src/main/java/com/example/edu_project/
 
 ---
 
-## 7. API 接口设计（规划）
+## 7. API 接口设计（已完成）
 
 ### 7.1 用户模块
 
 | 接口 | 方法 | 路径 | 说明 |
 | :--- | :--- | :--- | :--- |
-| 根据ID查询用户 | GET | `/api/user/{id}` | ✅ 已实现 |
 | 用户注册 | POST | `/api/user/register` | ✅ 已实现 |
 | 用户登录 | POST | `/api/user/login` | ✅ 已实现 |
-| 获取用户信息 | GET | `/api/user/info` | ⏳ 待开发 |
-| 更新用户信息 | PUT | `/api/user/info` | ⏳ 待开发 |
+| 刷新Token | POST | `/api/user/refresh` | ✅ 已实现 |
+| 根据ID查询用户 | GET | `/api/user/{id}` | ✅ 已实现 |
+| 修改密码 | PUT | `/api/user/password` | ✅ 已实现 |
+| 搜索用户 | GET | `/api/user/search` | ✅ 已实现 |
 
 ### 7.2 文章模块
 
 | 接口 | 方法 | 路径 | 说明 |
 | :--- | :--- | :--- | :--- |
 | 发布文章 | POST | `/api/post` | ✅ 已实现 |
-| 获取文章详情 | GET | `/api/post/{id}` | ✅ 已实现 |
-| 获取文章列表 | GET | `/api/post/list` | ✅ 已实现 |
-| 搜索文章 | GET | `/api/post/search` | ⏳ 待开发 |
 | 更新文章 | PUT | `/api/post/{id}` | ✅ 已实现 |
 | 删除文章 | DELETE | `/api/post/{id}` | ✅ 已实现 |
+| 获取文章详情 | GET | `/api/post/{id}` | ✅ 已实现 |
+| 获取文章列表 | GET | `/api/post/list` | ✅ 已实现 |
 | 增加阅读量 | PUT | `/api/post/{id}/view` | ✅ 已实现 |
+| 高级搜索 | GET | `/api/post/search/advanced` | ✅ 已实现 |
+| 搜索建议 | GET | `/api/post/search/suggest` | ✅ 已实现 |
 
 ### 7.3 评论模块
 
@@ -536,7 +585,95 @@ src/main/java/com/example/edu_project/
 | 接口 | 方法 | 路径 | 说明 |
 | :--- | :--- | :--- | :--- |
 | 收藏/取消收藏 | POST | `/api/collect/{postId}` | ✅ 已实现 |
+| 检查收藏状态 | GET | `/api/collect/check/{postId}` | ✅ 已实现 |
 | 获取我的收藏 | GET | `/api/collect/my` | ✅ 已实现 |
+
+### 7.6 标签模块
+
+| 接口 | 方法 | 路径 | 说明 |
+| :--- | :--- | :--- | :--- |
+| 获取标签列表 | GET | `/api/tag/list` | ✅ 已实现 |
+
+### 7.7 关注模块
+
+| 接口 | 方法 | 路径 | 说明 |
+| :--- | :--- | :--- | :--- |
+| 关注用户 | POST | `/api/follow` | ✅ 已实现 |
+| 取消关注 | DELETE | `/api/follow/{targetUserId}` | ✅ 已实现 |
+| 检查关注状态 | GET | `/api/follow/check/{targetUserId}` | ✅ 已实现 |
+| 获取粉丝列表 | GET | `/api/follow/followers/{userId}` | ✅ 已实现 |
+| 获取关注列表 | GET | `/api/follow/following/{userId}` | ✅ 已实现 |
+| 获取粉丝/关注数量 | GET | `/api/follow/counts/{userId}` | ✅ 已实现 |
+
+### 7.8 通知模块
+
+| 接口 | 方法 | 路径 | 说明 |
+| :--- | :--- | :--- | :--- |
+| 获取通知列表 | GET | `/api/notification/list` | ✅ 已实现 |
+| 获取未读数量 | GET | `/api/notification/unread-count` | ✅ 已实现 |
+| 标记单条已读 | PUT | `/api/notification/{id}/read` | ✅ 已实现 |
+| 标记全部已读 | PUT | `/api/notification/read-all` | ✅ 已实现 |
+| 删除通知 | DELETE | `/api/notification/{id}` | ✅ 已实现 |
+
+### 7.9 热门/趋势模块
+
+| 接口 | 方法 | 路径 | 说明 |
+| :--- | :--- | :--- | :--- |
+| 获取热门文章 | GET | `/api/trending/posts` | ✅ 已实现 |
+| 获取热门标签 | GET | `/api/trending/hot-tags` | ✅ 已实现 |
+| 更新文章热度 | POST | `/api/trending/update/{postId}` | ✅ 已实现 |
+
+### 7.10 草稿模块
+
+| 接口 | 方法 | 路径 | 说明 |
+| :--- | :--- | :--- | :--- |
+| 保存草稿 | POST | `/api/post/draft` | ✅ 已实现 |
+| 获取最新草稿 | GET | `/api/post/draft/latest` | ✅ 已实现 |
+| 删除草稿 | DELETE | `/api/post/draft/{draftId}` | ✅ 已实现 |
+| 获取指定草稿 | GET | `/api/post/draft/{draftId}` | ✅ 已实现 |
+
+### 7.11 举报模块
+
+| 接口 | 方法 | 路径 | 说明 |
+| :--- | :--- | :--- | :--- |
+| 举报内容 | POST | `/api/report` | ✅ 已实现 |
+| 获取我的举报 | GET | `/api/report/my` | ✅ 已实现 |
+
+### 7.12 管理员举报模块
+
+| 接口 | 方法 | 路径 | 说明 |
+| :--- | :--- | :--- | :--- |
+| 获取待处理举报 | GET | `/api/admin/reports/pending` | ✅ 已实现 |
+| 获取举报详情 | GET | `/api/admin/reports/{reportId}` | ✅ 已实现 |
+| 处理举报 | PUT | `/api/admin/reports/{reportId}` | ✅ 已实现 |
+
+### 7.13 校友圈模块
+
+| 接口 | 方法 | 路径 | 说明 |
+| :--- | :--- | :--- | :--- |
+| 发布动态 | POST | `/api/circle/post` | ✅ 已实现 |
+| 获取推荐流 | GET | `/api/circle/feed/recommend` | ✅ 已实现 |
+| 获取关注流 | GET | `/api/circle/feed/following` | ✅ 已实现 |
+| 获取动态详情 | GET | `/api/circle/post/{postId}` | ✅ 已实现 |
+| 删除动态 | DELETE | `/api/circle/post/{postId}` | ✅ 已实现 |
+| 点赞/取消点赞 | POST | `/api/circle/like/{postId}` | ✅ 已实现 |
+| 检查点赞状态 | GET | `/api/circle/like/check/{postId}` | ✅ 已实现 |
+| 获取动态评论 | GET | `/api/circle/comment/{postId}` | ✅ 已实现 |
+| 发表评论 | POST | `/api/circle/comment` | ✅ 已实现 |
+| 删除评论 | DELETE | `/api/circle/comment/{commentId}` | ✅ 已实现 |
+| 转发动态 | POST | `/api/circle/repost/{postId}` | ✅ 已实现 |
+
+### 7.14 媒体上传模块
+
+| 接口 | 方法 | 路径 | 说明 |
+| :--- | :--- | :--- | :--- |
+| 上传图片/视频 | POST | `/api/media/upload` | ✅ 已实现 |
+| 获取媒体详情 | GET | `/api/media/{id}` | ✅ 已实现 |
+| 获取我的媒体 | GET | `/api/media/list` | ✅ 已实现 |
+| 删除媒体 | DELETE | `/api/media/{id}` | ✅ 已实现 |
+| 批量上传 | POST | `/api/media/upload/multiple` | ✅ 已实现 |
+| 绑定媒体到文章 | POST | `/api/media/bind/{postId}` | ✅ 已实现 |
+| 获取文章媒体 | GET | `/api/media/post/{postId}` | ✅ 已实现 |
 
 ---
 
@@ -687,24 +824,58 @@ edu_project/
     │   │   ├── MybatisPlusConfig.java
     │   │   ├── MyMetaObjectHandler.java
     │   │   └── SecurityConfig.java
-    │   ├── controller/
-    │   │   └── SysUserController.java
-    │   ├── entity/
+    │   ├── controller/                           # Controller 层（13个）
+    │   │   ├── SysUserController.java
+    │   │   ├── BlogPostController.java
+    │   │   ├── BlogCommentController.java
+    │   │   ├── BlogLikeController.java
+    │   │   ├── BlogCollectController.java
+    │   │   ├── BlogTagController.java
+    │   │   ├── FollowController.java
+    │   │   ├── NotificationController.java
+    │   │   ├── TrendingController.java
+    │   │   ├── ReportController.java
+    │   │   ├── AdminReportController.java
+    │   │   ├── CircleController.java
+    │   │   └── MediaController.java
+    │   ├── entity/                               # Entity 实体类（18个）
     │   │   ├── SysUser.java
     │   │   ├── BlogPost.java
     │   │   ├── BlogComment.java
     │   │   ├── BlogTag.java
     │   │   ├── BlogPostTag.java
     │   │   ├── BlogLike.java
-    │   │   └── BlogCollect.java
-    │   ├── mapper/
+    │   │   ├── BlogCollect.java
+    │   │   ├── BlogFollow.java
+    │   │   ├── BlogNotification.java
+    │   │   ├── BlogTrending.java
+    │   │   ├── BlogDraft.java
+    │   │   ├── BlogReport.java
+    │   │   ├── CirclePost.java
+    │   │   ├── CircleLike.java
+    │   │   ├── CircleComment.java
+    │   │   ├── CircleRepost.java
+    │   │   ├── Media.java
+    │   │   └── BlogPostMedia.java
+    │   ├── mapper/                               # Mapper 层（18个）
     │   │   ├── SysUserMapper.java
     │   │   ├── BlogPostMapper.java
     │   │   ├── BlogCommentMapper.java
     │   │   ├── BlogTagMapper.java
     │   │   ├── BlogPostTagMapper.java
     │   │   ├── BlogLikeMapper.java
-    │   │   └── BlogCollectMapper.java
+    │   │   ├── BlogCollectMapper.java
+    │   │   ├── BlogFollowMapper.java
+    │   │   ├── BlogNotificationMapper.java
+    │   │   ├── BlogTrendingMapper.java
+    │   │   ├── BlogDraftMapper.java
+    │   │   ├── BlogReportMapper.java
+    │   │   ├── CirclePostMapper.java
+    │   │   ├── CircleLikeMapper.java
+    │   │   ├── CircleCommentMapper.java
+    │   │   ├── CircleRepostMapper.java
+    │   │   ├── MediaMapper.java
+    │   │   └── BlogPostMediaMapper.java
     │   ├── dto/
     │   │   ├── UserRegisterRequest.java
     │   │   └── UserLoginRequest.java
@@ -712,22 +883,34 @@ edu_project/
     │   │   └── UserLoginResponse.java
     │   ├── utils/
     │   │   └── JwtUtils.java
-    │   └── service/
+    │   └── service/                              # Service 层（13个）
     │   │   ├── SysUserService.java
     │   │   ├── BlogPostService.java
     │   │   ├── BlogCommentService.java
     │   │   ├── BlogTagService.java
     │   │   ├── BlogPostTagService.java
     │   │   ├── BlogLikeService.java
-    │   │   └── BlogCollectService.java
-    │   ├── service/impl/
+    │   │   ├── BlogCollectService.java
+    │   │   ├── FollowService.java
+    │   │   ├── NotificationService.java
+    │   │   ├── TrendingService.java
+    │   │   ├── ReportService.java
+    │   │   ├── CircleService.java
+    │   │   └── MediaService.java
+    │   ├── service/impl/                         # ServiceImpl 层（13个）
     │   │   ├── SysUserServiceImpl.java
     │   │   ├── BlogPostServiceImpl.java
     │   │   ├── BlogCommentServiceImpl.java
     │   │   ├── BlogTagServiceImpl.java
     │   │   ├── BlogPostTagServiceImpl.java
     │   │   ├── BlogLikeServiceImpl.java
-    │   │   └── BlogCollectServiceImpl.java
+    │   │   ├── BlogCollectServiceImpl.java
+    │   │   ├── FollowServiceImpl.java
+    │   │   ├── NotificationServiceImpl.java
+    │   │   ├── TrendingServiceImpl.java
+    │   │   ├── ReportServiceImpl.java
+    │   │   ├── CircleServiceImpl.java
+    │   │   └── MediaServiceImpl.java
     │   └── common/
     │       ├── result/
     │       │   └── Result.java
