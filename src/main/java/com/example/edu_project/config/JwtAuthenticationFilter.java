@@ -61,7 +61,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     }
                 } catch (Exception e) {
                     // Token 无效或解析失败，继续过滤链（未认证）
-                    logger.warn("JWT Authentication failed: {}", e.getMessage());
+                    logger.warn("JWT Authentication failed: " + e.getMessage());
                 }
             }
         } catch (Exception e) {
