@@ -96,7 +96,7 @@ knife4j:
 
 # ==================== JWT 配置 ====================
 jwt:
-  # 【重要】生产环境必须通过环境变量配置：secret: ${JWT_SECRET}
-  # 本地开发示例：export JWT_SECRET=bXlTZWNyZXRLZXlGb3JDYW1wdXBCbG9nU3lzdGVtMjAyNFZlcnlMb25nQW5kU2VjdXJl
-  secret: ${JWT_SECRET}
+  # 【重要】生产环境必须通过环境变量 JWT_SECRET 配置
+  # 【警告】下方默认值为本地开发使用，生产环境部署时必须设置真实的 JWT_SECRET
+  secret: ${JWT_SECRET:bXlTZWNyZXRLZXlGb3JDYW1wdXBCbG9nU3lzdGVtMjAyNFZlcnlMb25nQW5kU2VjdXJl}
   expiration: 86400000           # 24小时（毫秒）
