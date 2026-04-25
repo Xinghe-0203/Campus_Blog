@@ -227,6 +227,19 @@ mvn spring-boot:run
 
 ## 更新日志
 
+### v1.16 (2026-04-25)
+- 🔧 BlogPost 新增 collectCount 字段，BlogCollectServiceImpl.toggleCollect() 正确更新收藏数
+- 🔧 getPostDetail 未发布文章返回"文章未发布"（区分不存在）
+- 🔧 移除 JwtUtils.getUserIdFromRequest() 和 SecurityUtils.getCurrentUserRole() 死代码
+- 🔧 移除 BlogCollectServiceImpl 未使用的 ConcurrentHashMap import
+
+### v1.15 (2026-04-25)
+- 🔒 修复 JWT 黑名单验证绕过漏洞：revokeToken() 先验证签名再加入黑名单
+- 🔒 修复 isTokenExpired() 异常处理：只有 ExpiredJwtException 算过期
+- 🔒 修复 JwtAuthenticationFilter：先验证签名再检查黑名单，role 为 null 时使用默认 ROLE_USER
+- 🔧 修复 refresh token rotation：刷新时返回新的 refresh token
+- 🔧 JwtAuthenticationFilter logger.warn 格式修复
+
 ### v1.14 (2026-04-25)
 - 🔒 修复点赞/收藏锁内存泄漏：getLock/getCollectLock 添加主动清理过期锁
 - 🔒 修复阅读量增加 TOCTOU 竞态条件：使用 CAS 操作替代直接 set

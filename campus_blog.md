@@ -10,7 +10,7 @@
 | **项目类型** | 全栈 Web 应用 |
 | **开发周期** | 校技能大赛周期 |
 | **开发人员** | 刘畅 |
-| **当前版本** | v1.14 |
+| **当前版本** | v1.16 |
 | **GitHub 仓库** | https://github.com/Xinghe-0203/Campus_Blog |
 
 ---
@@ -737,6 +737,8 @@ edu_project/
 
 ---
 
+| 2026-04-25 | v1.16 | BlogPost新增collectCount字段<br>BlogCollectServiceImpl.toggleCollect()正确更新收藏数<br>getPostDetail未发布文章返回"文章未发布"<br>移除JwtUtils.getUserIdFromRequest()和SecurityUtils.getCurrentUserRole()死代码 |
+| 2026-04-25 | v1.15 | 修复JWT黑名单验证绕过漏洞<br>修复isTokenExpired()异常处理<br>修复JwtAuthenticationFilter签名验证顺序<br>修复refresh token rotation<br>修复logger.warn格式 |
 | 2026-04-25 | v1.14 | 安全与并发修复<br>修复点赞/收藏锁内存泄漏（添加主动清理过期锁）<br>修复阅读量增加TOCTOU竞态条件（使用CAS操作）<br>统一密码最小长度为8<br>移除DotenvConfig硬编码路径<br>添加category字段XSS防护<br>移除所有Controller的@CrossOrigin注解 |
 | 2026-04-25 | v1.13 | .env配置支持与环境变量校验<br>新增DotenvConfig自动加载.env文件<br>新增EnvValidationConfig启动时校验环境变量<br>新增.env.example配置模板<br>添加.env到.gitignore<br>移除所有代码中的硬编码默认值 |
 | 2026-04-25 | v1.12 | 安全修复与文档更新<br>移除JWT/Database密码硬编码默认值<br>BlogLikeServiceImpl添加updatedPost空指针检查<br>BlogCommentServiceImpl添加评论递归深度限制<br>移除未使用的convertToDetailResponse死代码<br>移除未使用的generateToken和containsDangerousTags方法 |
@@ -747,5 +749,5 @@ edu_project/
 
 ---
 
-**文档版本**：v1.14
+**文档版本**：v1.16
 **最后更新**：2026-04-25
