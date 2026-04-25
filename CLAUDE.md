@@ -150,6 +150,7 @@ throw new BusinessException(code, message)  // business errors
 | `JwtAuthenticationFilter.java` | JWT request filter |
 | `JwtSchedulerConfig.java` | JWT blacklist cleanup scheduler |
 | `MyMetaObjectHandler.java` | Auto-fill createTime/updateTime |
+| `HtmlSanitizer.java` | XSS 防护，HTML 内容过滤 |
 
 ---
 

@@ -11,6 +11,7 @@ import com.example.edu_project.mapper.BlogCommentMapper;
 import com.example.edu_project.mapper.SysUserMapper;
 import com.example.edu_project.service.BlogCommentService;
 import com.example.edu_project.service.BlogPostService;
+import com.example.edu_project.utils.HtmlSanitizer;
 import com.example.edu_project.utils.SecurityUtils;
 import com.example.edu_project.vo.CommentVO;
 import org.springframework.beans.BeanUtils;
@@ -35,6 +36,9 @@ public class BlogCommentServiceImpl extends ServiceImpl<BlogCommentMapper, BlogC
     @Autowired
     private SysUserMapper sysUserMapper;
 
+    @Autowired
+    private HtmlSanitizer htmlSanitizer;
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Long createComment(CommentCreateRequest request, Long userId) {
@@ -57,11 +61,14 @@ public class BlogCommentServiceImpl extends ServiceImpl<BlogCommentMapper, BlogC
         }
 
         // 创建评论
+        // XSS 防护：评论使用严格策略，只保留纯文本，移除所有 HTML 标签
+        String sanitizedContent = htmlSanitizer.sanitizePlainText(request.getContent());
+
         BlogComment comment = new BlogComment();
         comment.setPostId(request.getPostId());
         comment.setUserId(userId);
         comment.setParentId(request.getParentId());
-        comment.setContent(request.getContent());
+        comment.setContent(sanitizedContent);
         this.save(comment);
 
         // 更新文章评论数

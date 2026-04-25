@@ -22,6 +22,7 @@ import com.example.edu_project.mapper.BlogPostTagMapper;
 import com.example.edu_project.mapper.BlogTagMapper;
 import com.example.edu_project.mapper.SysUserMapper;
 import com.example.edu_project.service.BlogPostService;
+import com.example.edu_project.utils.HtmlSanitizer;
 import com.example.edu_project.utils.SecurityUtils;
 import com.example.edu_project.vo.PostDetailResponse;
 import com.example.edu_project.vo.PostListResponse;
@@ -59,6 +60,9 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
     @Autowired
     private BlogCollectMapper blogCollectMapper;
 
+    @Autowired
+    private HtmlSanitizer htmlSanitizer;
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Long createPost(PostCreateRequest request, Long userId) {
@@ -76,6 +80,11 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
             throw new BusinessException(400, "文章内容不能超过50000字符");
         }
 
+        // XSS 防护：对用户输入进行 HTML 过滤
+        String sanitizedTitle = htmlSanitizer.sanitizeRichText(request.getTitle());
+        String sanitizedSummary = htmlSanitizer.sanitizeRichText(request.getSummary());
+        String sanitizedContent = htmlSanitizer.sanitizeRichText(request.getContent());
+
         // 校验标签ID有效性
         if (request.getTagIds() != null && !request.getTagIds().isEmpty()) {
             validateTagIds(request.getTagIds());
@@ -84,9 +93,9 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         // 创建文章
         BlogPost post = new BlogPost();
         post.setUserId(userId);
-        post.setTitle(request.getTitle());
-        post.setSummary(request.getSummary());
-        post.setContent(request.getContent());
+        post.setTitle(sanitizedTitle);
+        post.setSummary(sanitizedSummary);
+        post.setContent(sanitizedContent);
         post.setCategory(request.getCategory() != null ? request.getCategory() : "默认分类");
         post.setViewCount(0);
         post.setLikeCount(0);
@@ -125,6 +134,11 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
             validateTagIds(request.getTagIds());
         }
 
+        // XSS 防护：对用户输入进行 HTML 过滤
+        String sanitizedTitle = htmlSanitizer.sanitizeRichText(request.getTitle());
+        String sanitizedSummary = htmlSanitizer.sanitizeRichText(request.getSummary());
+        String sanitizedContent = htmlSanitizer.sanitizeRichText(request.getContent());
+
         BlogPost post = this.getById(request.getId());
         if (post == null) {
             throw new BusinessException(404, "文章不存在");
@@ -134,9 +148,9 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
             throw new BusinessException(403, "无权修改此文章");
         }
 
-        post.setTitle(request.getTitle());
-        post.setSummary(request.getSummary());
-        post.setContent(request.getContent());
+        post.setTitle(sanitizedTitle);
+        post.setSummary(sanitizedSummary);
+        post.setContent(sanitizedContent);
         if (request.getCategory() != null) {
             post.setCategory(request.getCategory());
         }

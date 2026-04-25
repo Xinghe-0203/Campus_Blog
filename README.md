@@ -232,6 +232,7 @@ $env:JWT_SECRET="your_jwt_secret_key_here"
 ### v1.10 (2026-04-25)
 - 🔒 修复用户枚举漏洞：注册时使用通用错误信息防止用户名/邮箱枚举攻击
 - 🔒 修复点赞/收藏竞态条件：使用细粒度锁（ConcurrentHashMap + synchronized）保证并发安全
+- 🔒 新增 XSS 防护：使用 OWASP HTML Sanitizer 过滤文章和评论内容
 - 🔧 完善@Transactional注解：所有只读方法添加readOnly=true优化性能
 - 📝 更新项目文档同步更新
 
