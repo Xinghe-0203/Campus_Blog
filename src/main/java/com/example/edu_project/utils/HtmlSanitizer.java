@@ -57,19 +57,4 @@ public class HtmlSanitizer {
         }
         return Jsoup.clean(text, STRICT_WHITELIST);
     }
-
-    /**
-     * 检查内容是否包含潜在危险标签
-     *
-     * @param html 待检查的 HTML 内容
-     * @return true 如果包含危险标签
-     */
-    public boolean containsDangerousTags(String html) {
-        if (html == null || html.isEmpty()) {
-            return false;
-        }
-        String sanitized = Jsoup.clean(html, RELAXED_WHITELIST);
-        // 如果 sanitized 与原内容差异过大，说明包含危险内容
-        return sanitized.length() < html.length() * 0.5;
-    }
 }

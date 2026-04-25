@@ -738,6 +738,7 @@ edu_project/
 
 ---
 
+| 2026-04-25 | v1.12 | 安全修复与文档更新<br>移除JWT/Database密码硬编码默认值<br>BlogLikeServiceImpl添加updatedPost空指针检查<br>BlogCommentServiceImpl添加评论递归深度限制<br>移除未使用的convertToDetailResponse死代码<br>移除未使用的generateToken和containsDangerousTags方法 |
 | 2026-04-25 | v1.11 | 安全与性能优化<br>JwtAuthenticationFilter添加Token撤销检查和权限列表<br>HtmlSanitizer移除data:协议防止XSS bypass<br>登录锁定信息通用化防用户枚举<br>CommentCreateRequest添加@NotNull校验<br>BlogCommentServiceImpl修复O(n²)查询为O(n) |
 | 2026-04-25 | v1.10 | 安全增强与代码完善<br>修复用户枚举漏洞（通用错误信息）<br>修复点赞/收藏竞态条件（细粒度锁 + DuplicateKeyException处理）<br>新增XSS防护（Jsoup过滤）<br>完善@Transactional注解<br>修复batchInsertPostTags事务缺失问题 |
 | 2026-04-25 | v1.9 | 安全增强与并发修复<br>修复IP伪造漏洞（IP+User-Agent指纹）<br>修复点赞竞态条件（DuplicateKeyException处理）<br>修复评论删除级联问题（递归删除子评论）<br>新增登录失败锁定机制（5次失败锁定15分钟，原子更新并发安全）<br>提升BCrypt强度至12轮<br>新增JWT Token黑名单机制（支持主动撤销Token）<br>新增JWT刷新Token机制（7天有效期+Rotation）<br>新增JWT黑名单定时清理（每小时）<br>新增刷新Token接口POST /api/user/refresh |
@@ -745,5 +746,5 @@ edu_project/
 
 ---
 
-**文档版本**：v1.11
+**文档版本**：v1.12
 **最后更新**：2026-04-25

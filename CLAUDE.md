@@ -26,9 +26,9 @@ This is a **campus blog forum system** - a full-stack web application built with
 
 ## Environment Setup
 
-Environment variables (optional for local dev, required for production):
-- `DB_PASSWORD` - Database password (default: `chaojiwudibangbangtang`)
-- `JWT_SECRET` - JWT signing key (default has a local dev value)
+Environment variables (**required for production**):
+- `DB_PASSWORD` - Database password
+- `JWT_SECRET` - JWT signing key (minimum 256-bit for HS256)
 
 ```bash
 # Linux/Mac

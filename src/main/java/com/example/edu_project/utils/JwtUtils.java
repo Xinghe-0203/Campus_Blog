@@ -41,16 +41,6 @@ public class JwtUtils {
     private final Set<String> tokenBlacklist = ConcurrentHashMap.newKeySet();
 
     /**
-     * 生成 Token
-     */
-    public String generateToken(Long userId, String username) {
-        Map<String, Object> claims = new HashMap<>();
-        claims.put("userId", userId);
-        claims.put("username", username);
-        return createToken(claims, username, expiration);
-    }
-
-    /**
      * 生成 Token（包含角色）
      */
     public String generateToken(Long userId, String username, String role) {
