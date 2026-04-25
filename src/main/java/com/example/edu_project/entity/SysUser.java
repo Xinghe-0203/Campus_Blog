@@ -62,6 +62,17 @@ public class SysUser implements Serializable {
     private Integer status;
 
     /**
+     * 登录失败次数
+     */
+    @TableField(fill = FieldFill.INSERT)
+    private Integer loginFailCount;
+
+    /**
+     * 账户锁定截止时间
+     */
+    private LocalDateTime lockUntil;
+
+    /**
      * 创建时间
      */
     @TableField(fill = FieldFill.INSERT)

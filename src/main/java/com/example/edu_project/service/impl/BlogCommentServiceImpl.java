@@ -71,6 +71,7 @@ public class BlogCommentServiceImpl extends ServiceImpl<BlogCommentMapper, BlogC
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<CommentVO> getCommentsByPostId(Long postId) {
         // 查询该文章的所有评论
         LambdaQueryWrapper<BlogComment> wrapper = new LambdaQueryWrapper<>();
@@ -153,10 +154,30 @@ public class BlogCommentServiceImpl extends ServiceImpl<BlogCommentMapper, BlogC
             throw new BusinessException(403, "无权删除此评论");
         }
 
-        // 删除评论（逻辑删除）
-        this.removeById(commentId);
+        // 查找所有要删除的评论ID（包括当前评论及其所有子评论）
+        List<Long> commentIdsToDelete = new ArrayList<>();
+        commentIdsToDelete.add(commentId);
+        collectChildCommentIds(commentId, commentIdsToDelete);
 
-        // 更新文章评论数
-        blogPostService.decrementCommentCount(comment.getPostId());
+        // 批量删除所有相关评论（逻辑删除）
+        this.removeByIds(commentIdsToDelete);
+
+        // 更新文章评论数（减去实际删除的数量）
+        blogPostService.decrementCommentCount(comment.getPostId(), commentIdsToDelete.size());
+    }
+
+    /**
+     * 递归收集所有子评论ID
+     */
+    private void collectChildCommentIds(Long parentId, List<Long> result) {
+        LambdaQueryWrapper<BlogComment> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(BlogComment::getParentId, parentId);
+        List<BlogComment> childComments = this.list(wrapper);
+
+        for (BlogComment child : childComments) {
+            result.add(child.getId());
+            // 递归收集子评论的子评论
+            collectChildCommentIds(child.getId(), result);
+        }
     }
 }

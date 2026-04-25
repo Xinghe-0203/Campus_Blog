@@ -10,7 +10,7 @@
 | **项目类型** | 全栈 Web 应用 |
 | **开发周期** | 校技能大赛周期 |
 | **开发人员** | 刘畅 |
-| **当前版本** | v1.4 |
+| **当前版本** | v1.10 |
 | **GitHub 仓库** | https://github.com/Xinghe-0203/Campus_Blog |
 
 ---
@@ -44,8 +44,10 @@
 | **✅ 版本兼容性修复** | ✅ 已完成 | 100% |
 | **🔐 用户认证模块** | ✅ 已完成 | 100% |
 | **📝 文章管理模块** | ✅ 已完成 | 100% |
-| **💬 评论互动模块** | ⏳ 待开发 | 0% |
-| **❤️ 点赞收藏模块** | ⏳ 待开发 | 0% |
+| **💬 评论互动模块** | ✅ 已完成 | 100% |
+| **❤️ 点赞收藏模块** | ✅ 已完成 | 100% |
+| **🏷️ 标签管理模块** | ✅ 已完成 | 100% |
+| **🔒 安全增强** | ✅ 已完成 | 100% |
 | **🎨 前端页面开发** | ⏳ 待开发 | 0% |
 | **🔗 前后端联调** | ⏳ 待开发 | 0% |
 
@@ -188,6 +190,8 @@
 | email | VARCHAR(100) | NULLABLE | 邮箱地址 |
 | role | VARCHAR(20) | DEFAULT 'user' | 用户角色：user/管理员 |
 | status | TINYINT(1) | DEFAULT 1 | 账号状态：1=正常，0=禁用 |
+| login_fail_count | INT | DEFAULT 0 | 登录失败次数 |
+| lock_until | DATETIME | NULLABLE | 账户锁定截止时间 |
 | create_time | DATETIME | DEFAULT NOW | 创建时间 |
 | update_time | DATETIME | AUTO UPDATE | 更新时间 |
 | is_deleted | TINYINT(1) | DEFAULT 0 | 逻辑删除：0=正常，1=删除 |
@@ -271,11 +275,14 @@
 
 | 字段名 | 类型 | 约束 | 说明 |
 | :--- | :--- | :--- | :--- |
-| post_id | BIGINT | PK, NOT NULL | 文章ID（外键） |
-| tag_id | BIGINT | PK, NOT NULL | 标签ID（外键） |
+| id | BIGINT | PK, AUTO_INCREMENT | 主键ID |
+| post_id | BIGINT | NOT NULL | 文章ID（外键） |
+| tag_id | BIGINT | NOT NULL | 标签ID（外键） |
 
 **索引**：
-- PRIMARY KEY (post_id, tag_id)
+- PRIMARY KEY (id)
+- INDEX idx_post_id (post_id)
+- INDEX idx_tag_id (tag_id)
 
 ---
 
@@ -285,12 +292,15 @@
 
 | 字段名 | 类型 | 约束 | 说明 |
 | :--- | :--- | :--- | :--- |
-| user_id | BIGINT | PK, NOT NULL | 用户ID（外键） |
-| post_id | BIGINT | PK, NOT NULL | 文章ID（外键） |
+| id | BIGINT | PK, AUTO_INCREMENT | 主键ID |
+| user_id | BIGINT | NOT NULL | 用户ID（外键） |
+| post_id | BIGINT | NOT NULL | 文章ID（外键） |
 | create_time | DATETIME | DEFAULT NOW | 点赞时间 |
+| is_deleted | TINYINT(1) | DEFAULT 0 | 逻辑删除：0=正常，1=删除 |
 
 **索引**：
-- PRIMARY KEY (user_id, post_id)
+- PRIMARY KEY (id)
+- INDEX idx_user_post (user_id, post_id) - 联合索引用于查询用户对文章的点赞状态
 - INDEX idx_post_id (post_id)
 
 ---
@@ -301,12 +311,15 @@
 
 | 字段名 | 类型 | 约束 | 说明 |
 | :--- | :--- | :--- | :--- |
-| user_id | BIGINT | PK, NOT NULL | 用户ID（外键） |
-| post_id | BIGINT | PK, NOT NULL | 文章ID（外键） |
+| id | BIGINT | PK, AUTO_INCREMENT | 主键ID |
+| user_id | BIGINT | NOT NULL | 用户ID（外键） |
+| post_id | BIGINT | NOT NULL | 文章ID（外键） |
 | create_time | DATETIME | DEFAULT NOW | 收藏时间 |
+| is_deleted | TINYINT(1) | DEFAULT 0 | 逻辑删除：0=正常，1=删除 |
 
 **索引**：
-- PRIMARY KEY (user_id, post_id)
+- PRIMARY KEY (id)
+- INDEX idx_user_post (user_id, post_id) - 联合索引用于查询用户对文章的收藏状态
 - INDEX idx_post_id (post_id)
 
 ---
@@ -321,11 +334,11 @@ sys_user (用户表)
     │           ├── 1:N ──> blog_like (点赞记录)
     │           └── 1:N ──> blog_collect (收藏记录)
     │
-    ├── 1:N ──> blog_comment (评论表)
+    ├── 1:N ──> blog_comment (评论表) [通过 user_id]
     │
-    ├── 1:N ──> blog_like (点赞记录)
+    ├── 1:N ──> blog_like (点赞记录) [通过 user_id]
     │
-    └── 1:N ──> blog_collect (收藏记录)
+    └── 1:N ──> blog_collect (收藏记录) [通过 user_id]
 ```
 
 ---
@@ -464,23 +477,23 @@ src/main/java/com/example/edu_project/
 
 | 接口 | 方法 | 路径 | 说明 |
 | :--- | :--- | :--- | :--- |
-| 发表评论 | POST | `/api/comment` | ⏳ 待开发 |
-| 获取文章评论 | GET | `/api/comment/post/{postId}` | ⏳ 待开发 |
-| 删除评论 | DELETE | `/api/comment/{id}` | ⏳ 待开发 |
+| 发表评论 | POST | `/api/comment` | ✅ 已实现 |
+| 获取文章评论 | GET | `/api/comment/post/{postId}` | ✅ 已实现 |
+| 删除评论 | DELETE | `/api/comment/{id}` | ✅ 已实现 |
 
 ### 7.4 点赞模块
 
 | 接口 | 方法 | 路径 | 说明 |
 | :--- | :--- | :--- | :--- |
-| 点赞/取消点赞 | POST | `/api/like/{postId}` | ⏳ 待开发 |
-| 检查是否已点赞 | GET | `/api/like/check/{postId}` | ⏳ 待开发 |
+| 点赞/取消点赞 | POST | `/api/like/{postId}` | ✅ 已实现 |
+| 检查是否已点赞 | GET | `/api/like/check/{postId}` | ✅ 已实现 |
 
 ### 7.5 收藏模块
 
 | 接口 | 方法 | 路径 | 说明 |
 | :--- | :--- | :--- | :--- |
-| 收藏/取消收藏 | POST | `/api/collect/{postId}` | ⏳ 待开发 |
-| 获取我的收藏 | GET | `/api/collect/my` | ⏳ 待开发 |
+| 收藏/取消收藏 | POST | `/api/collect/{postId}` | ✅ 已实现 |
+| 获取我的收藏 | GET | `/api/collect/my` | ✅ 已实现 |
 
 ---
 
@@ -574,8 +587,8 @@ $env:JWT_SECRET="your_jwt_secret_key_here"
 
 ### 10.4 访问地址
 
-- 应用地址：http://localhost:8080/api
-- API 文档：http://localhost:8080/api/doc.html
+- 应用地址：http://localhost/api
+- API 文档：http://localhost/api/doc.html
 
 ### 10.5 默认账号
 
@@ -595,12 +608,16 @@ $env:JWT_SECRET="your_jwt_secret_key_here"
 
 ### 11.2 安全配置（必需）
 
-- 密码使用 BCrypt 加密存储
+- 密码使用 BCrypt 加密存储（强度12轮）
 - JWT Token 身份认证
 - 敏感信息通过环境变量配置（禁止硬编码）
 - 防止 SQL 注入（使用 MyBatis Plus 参数化查询）
 - 防止 XSS 攻击（前端转义、后端过滤）
 - Entity 实体类密码字段添加 @JsonIgnore 防止序列化泄露
+- 登录失败锁定机制（连续5次失败锁定15分钟）
+- JWT Token 黑名单机制（支持主动撤销Token）
+- JWT 刷新Token机制（7天有效期的refreshToken）
+- 阅读量防刷：已登录用户用userId，未登录用户用IP+User-Agent哈希
 
 ### 11.3 性能优化（后续版本）
 
@@ -721,5 +738,16 @@ edu_project/
 
 ---
 
-**文档版本**：v1.6
-**最后更新**：2026-04-24
+| 2026-04-25 | v1.9 | 安全增强修复<br>修复IP伪造漏洞（IP+User-Agent指纹）<br>修复点赞竞态条件（DuplicateKeyException处理）<br>修复评论删除级联问题（递归删除子评论）<br>新增登录失败锁定机制（5次失败锁定15分钟）<br>提升BCrypt强度至12轮<br>新增JWT Token黑名单和刷新Token机制 |
+| 2026-04-25 | v1.8 | 新增点赞/收藏/评论模块<br>支持发表评论/回复/树形结构展示<br>支持点赞/取消点赞自动更新计数<br>支持收藏/取消收藏和我的收藏列表<br>管理员可删除任意评论 |
+| 2026-04-24 | v1.7 | 安全修复与功能增强<br>修复SecurityConfig路径匹配错误<br>修复阅读量防刷逻辑<br>修复BlogPostTag联合主键配置<br>新增管理员权限支持 |
+| 2026-04-24 | v1.6 | 全面安全加固<br>密码字段添加@JsonIgnore防泄露<br>getById返回UserVO替代SysUser<br>敏感信息改为环境变量<br>添加防刷机制和权限校验 |
+
+---
+
+| 2026-04-25 | v1.9 | 安全增强与并发修复<br>修复IP伪造漏洞（IP+User-Agent指纹）<br>修复点赞竞态条件（DuplicateKeyException处理）<br>修复评论删除级联问题（递归删除子评论）<br>新增登录失败锁定机制（5次失败锁定15分钟，原子更新并发安全）<br>提升BCrypt强度至12轮<br>新增JWT Token黑名单机制（支持主动撤销Token）<br>新增JWT刷新Token机制（7天有效期+Rotation）<br>新增JWT黑名单定时清理（每小时）<br>新增刷新Token接口POST /api/user/refresh |
+
+---
+
+**文档版本**：v1.10
+**最后更新**：2026-04-25

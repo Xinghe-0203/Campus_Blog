@@ -10,6 +10,9 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 /**
  * Spring Security 配置类
@@ -23,29 +26,41 @@ public class SecurityConfig {
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new BCryptPasswordEncoder(12);
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+        // 允许特定来源（开发环境可改为具体域名）
+        configuration.addAllowedOriginPattern("http://localhost:*");
+        configuration.addAllowedOriginPattern("http://127.0.0.1:*");
+        configuration.addAllowedHeader("*");
+        configuration.addAllowedMethod("*");
+        configuration.setAllowCredentials(true);
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            // 禁用 CSRF：前后端分离项目 JWT 无状态认证不需要 CSRF 防护
             .csrf(csrf -> csrf.disable())
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorize -> authorize
-                // 公开接口：用户注册、登录、文档
-                .requestMatchers("/api/user/register", "/api/user/login", "/api/doc.html", "/api/swagger-ui/**", "/api/v3/api-docs/**", "/api/swagger-resources/**", "/api/webjars/**").permitAll()
-                // 文章公开接口：列表、详情、阅读量
-                .requestMatchers(HttpMethod.GET, "/api/post/**").permitAll()
-                // 评论公开接口：获取评论列表
-                .requestMatchers(HttpMethod.GET, "/api/comment/post/**").permitAll()
-                // 点赞/收藏检查接口：无需登录也可查看状态
-                .requestMatchers(HttpMethod.GET, "/api/like/check/**", "/api/collect/check/**").permitAll()
-                // 文章管理接口需要认证（发布、更新、删除）
-                .requestMatchers(HttpMethod.POST, "/api/post/**").authenticated()
-                .requestMatchers(HttpMethod.PUT, "/api/post/**").authenticated()
-                .requestMatchers(HttpMethod.DELETE, "/api/post/**").authenticated()
-                // 其他接口需要认证
+                .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                .requestMatchers("/user/register", "/user/login", "/user/refresh").permitAll()
+                .requestMatchers("/doc.html", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/post/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/comment/post/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/like/check/**", "/collect/check/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/post/**").authenticated()
+                .requestMatchers(HttpMethod.PUT, "/post/**").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/post/**").authenticated()
                 .anyRequest().authenticated()
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

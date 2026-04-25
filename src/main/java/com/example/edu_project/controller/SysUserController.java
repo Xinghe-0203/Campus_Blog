@@ -7,6 +7,7 @@ import com.example.edu_project.dto.UserRegisterRequest;
 import com.example.edu_project.dto.UserRegisterResponse;
 import com.example.edu_project.entity.SysUser;
 import com.example.edu_project.service.SysUserService;
+import com.example.edu_project.utils.JwtUtils;
 import com.example.edu_project.utils.SecurityUtils;
 import com.example.edu_project.vo.UserLoginResponse;
 import com.example.edu_project.vo.UserVO;
@@ -15,8 +16,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 /**
  * 用户管理控制器
@@ -29,6 +28,9 @@ public class SysUserController {
 
     @Autowired
     private SysUserService sysUserService;
+
+    @Autowired
+    private JwtUtils jwtUtils;
 
     /**
      * 用户注册
@@ -76,5 +78,37 @@ public class SysUserController {
         userVO.setCreateTime(user.getCreateTime());
         userVO.setUpdateTime(user.getUpdateTime());
         return Result.success(userVO);
+    }
+
+    /**
+     * 刷新Token
+     */
+    @Operation(summary = "刷新Token")
+    @PostMapping("/refresh")
+    public Result<String> refreshToken(@RequestHeader("Authorization") String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            throw new BusinessException(400, "无效的Token");
+        }
+        String refreshToken = authHeader.substring(7);
+
+        // 验证刷新Token
+        if (!jwtUtils.isRefreshToken(refreshToken)) {
+            throw new BusinessException(401, "无效的刷新Token");
+        }
+        if (jwtUtils.isTokenExpired(refreshToken) || jwtUtils.isTokenRevoked(refreshToken)) {
+            throw new BusinessException(401, "刷新Token已过期或已撤销");
+        }
+
+        // 生成新的AccessToken
+        Long userId = jwtUtils.getUserIdFromToken(refreshToken);
+        String username = jwtUtils.getUsernameFromToken(refreshToken);
+        String role = jwtUtils.getRoleFromToken(refreshToken);
+
+        // 撤销旧刷新Token（实现refresh token rotation）
+        jwtUtils.revokeToken(refreshToken);
+
+        // 生成新的AccessToken
+        String newToken = jwtUtils.generateToken(userId, username, role);
+        return Result.success(newToken);
     }
 }

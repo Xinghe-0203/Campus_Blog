@@ -26,6 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -46,6 +47,12 @@ public class BlogCollectServiceImpl extends ServiceImpl<BlogCollectMapper, BlogC
     @Autowired
     private BlogTagMapper blogTagMapper;
 
+    /**
+     * 细粒度锁映射表：key="userId-postId"，value=锁对象
+     * 用于解决同一用户对同一文章的收藏/取消收藏操作的并发问题
+     */
+    private final ConcurrentHashMap<String, Object> collectLocks = new ConcurrentHashMap<>();
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public CollectResultVO toggleCollect(Long postId, Long userId) {
@@ -55,31 +62,37 @@ public class BlogCollectServiceImpl extends ServiceImpl<BlogCollectMapper, BlogC
             throw new BusinessException(404, "文章不存在");
         }
 
-        // 检查是否已收藏
-        LambdaQueryWrapper<BlogCollect> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(BlogCollect::getUserId, userId)
-              .eq(BlogCollect::getPostId, postId);
-        BlogCollect existingCollect = this.getOne(wrapper);
-
         CollectResultVO result = new CollectResultVO();
 
-        if (existingCollect != null) {
-            // 取消收藏：删除记录
-            this.removeById(existingCollect.getId());
-            result.setAction("uncollect");
-        } else {
-            // 收藏：添加记录
-            BlogCollect newCollect = new BlogCollect();
-            newCollect.setUserId(userId);
-            newCollect.setPostId(postId);
-            this.save(newCollect);
-            result.setAction("collect");
+        // 使用细粒度锁：同一用户对同一文章的收藏操作串行执行
+        String lockKey = userId + "-" + postId;
+        Object lock = collectLocks.computeIfAbsent(lockKey, k -> new Object());
+        synchronized (lock) {
+            // 检查是否已收藏
+            LambdaQueryWrapper<BlogCollect> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(BlogCollect::getUserId, userId)
+                  .eq(BlogCollect::getPostId, postId);
+            BlogCollect existingCollect = this.getOne(wrapper);
+
+            if (existingCollect != null) {
+                // 取消收藏：删除记录
+                this.removeById(existingCollect.getId());
+                result.setAction("uncollect");
+            } else {
+                // 收藏：添加记录
+                BlogCollect newCollect = new BlogCollect();
+                newCollect.setUserId(userId);
+                newCollect.setPostId(postId);
+                this.save(newCollect);
+                result.setAction("collect");
+            }
         }
 
         return result;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public CollectStatusVO checkCollectStatus(Long postId, Long userId) {
         CollectStatusVO status = new CollectStatusVO();
         if (userId == null) {
@@ -95,6 +108,7 @@ public class BlogCollectServiceImpl extends ServiceImpl<BlogCollectMapper, BlogC
     }
 
     @Override
+    @Transactional(readOnly = true)
     public IPage<CollectItemVO> getMyCollections(Long userId, Integer page, Integer pageSize) {
         // 分页查询收藏记录
         Page<BlogCollect> collectPage = new Page<>(page, pageSize);

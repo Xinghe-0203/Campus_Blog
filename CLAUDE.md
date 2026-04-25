@@ -4,6 +4,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
+## 默认行为配置
+
+**推理强度：默认开启最高强度推理模式**
+- 调用多个子代理并行深度检查项目
+- 全面分析架构、安全、业务逻辑等各个维度
+- 不遗漏任何潜在问题
+
+---
+
 ## Project Overview
 
 This is a **campus blog forum system** - a full-stack web application built with Spring Boot 3.0.12 (backend) and planned HTML5/CSS3/JavaScript (frontend). It's being developed for a school skills competition by 刘畅.
@@ -50,8 +59,8 @@ mvn test
 ```
 
 **Access:**
-- Application: http://localhost:8080/api
-- API Docs: http://localhost:8080/api/doc.html (Knife4j UI)
+- Application: http://localhost/api
+- API Docs: http://localhost/api/doc.html (Knife4j UI)
 - Default admin: `admin` / `admin123`
 
 ---
@@ -83,9 +92,9 @@ Controller → Service → Mapper → Entity
 
 | Table | Purpose | Notes |
 |-------|---------|-------|
-| `sys_user` | Users | BCrypt password, role-based access |
+| `sys_user` | Users | BCrypt password, role-based access, login fail lock |
 | `blog_post` | Articles | view/like/comment counts |
-| `blog_comment` | Comments | nested replies via `parentId` |
+| `blog_comment` | Comments | nested replies via `parentId`, cascade delete |
 | `blog_tag` | Tags | unique name |
 | `blog_post_tag` | Post-Tag relation | composite PK (postId, tagId) |
 | `blog_like` | Likes | composite PK (userId, postId) |
@@ -103,10 +112,13 @@ throw new BusinessException(code, message)  // business errors
 ```
 
 ### Security
-- Password stored with BCrypt, never returned in API responses
+- Password stored with BCrypt (strength 12), never returned in API responses
 - Use `UserVO` for user info responses (not `SysUser` directly)
 - JWT authentication via `JwtAuthenticationFilter`
 - `SecurityUtils.getCurrentUserIdOrNull()` gets current user from token
+- Login fail lock: 5 failures → 15min lock (atomic update, concurrent-safe)
+- JWT supports revocation via blacklist and refresh token
+- JWT refresh token rotation: old refresh token revoked after use
 
 ### Parameter Validation
 - Use `@Valid` on request body parameters
@@ -136,14 +148,15 @@ throw new BusinessException(code, message)  // business errors
 | `SecurityConfig.java` | Spring Security + JWT config |
 | `JwtUtils.java` | JWT token generation/validation |
 | `JwtAuthenticationFilter.java` | JWT request filter |
+| `JwtSchedulerConfig.java` | JWT blacklist cleanup scheduler |
 | `MyMetaObjectHandler.java` | Auto-fill createTime/updateTime |
 
 ---
 
 ## Development Status
 
-✅ **Completed**: User auth, article management, Spring Security + JWT, all entities/mappers/services, security hardening, entity validation, like/collect/comment functionality
-⏳ **Pending**: Frontend pages, frontend-backend integration
+✅ **Completed**: User auth, article management, Spring Security + JWT, all entities/mappers/services, security hardening, entity validation, like/collect/comment functionality, login lock, JWT blacklist/refresh
+⏳ **Pending**: Frontend pages, frontend-backend integration, XSS filter
 
 ---
 

@@ -136,7 +136,7 @@ $env:JWT_SECRET="your_jwt_secret_key_here"
 ### 6. 访问 API 文档
 
 项目启动成功后，访问：
-**http://localhost:8080/api/doc.html**
+**http://localhost/api/doc.html**
 
 ## 默认账号
 
@@ -150,7 +150,8 @@ $env:JWT_SECRET="your_jwt_secret_key_here"
 | 方法 | 路径 | 说明 |
 | :--- | :--- | :--- |
 | POST | `/api/user/register` | 用户注册（密码复杂度校验 + 用户名/邮箱唯一性校验） |
-| POST | `/api/user/login` | 用户登录（返回含角色信息的JWT Token） |
+| POST | `/api/user/login` | 用户登录（返回JWT Token + 刷新Token） |
+| POST | `/api/user/refresh` | 刷新Token（使用刷新Token获取新Token） |
 | GET | `/api/user/{id}` | 根据ID查询用户（管理员可查所有，普通用户仅查自己） |
 
 ### 文章模块
@@ -222,11 +223,35 @@ $env:JWT_SECRET="your_jwt_secret_key_here"
 3. ~~启用 Spring Security + JWT 认证~~ ✅ 已完成
 4. ~~代码安全加固与Bug修复~~ ✅ 已完成
 5. ~~实现评论、点赞、收藏功能~~ ✅ 已完成
-6. 实现登录限流与账号锁定机制
+6. ~~实现登录限流与账号锁定机制~~ ✅ 已完成
 7. 实现XSS防护过滤器
 8. 对接前端页面
 
 ## 更新日志
+
+### v1.10 (2026-04-25)
+- 🔒 修复用户枚举漏洞：注册时使用通用错误信息防止用户名/邮箱枚举攻击
+- 🔒 修复点赞/收藏竞态条件：使用细粒度锁（ConcurrentHashMap + synchronized）保证并发安全
+- 🔧 完善@Transactional注解：所有只读方法添加readOnly=true优化性能
+- 📝 更新项目文档同步更新
+
+### v1.9 (2026-04-25)
+- 🔒 修复IP伪造漏洞：未登录用户指纹改为IP+User-Agent哈希组合
+- 🔒 修复点赞竞态条件：使用try-catch处理DuplicateKeyException
+- 🔒 修复评论删除级联问题：递归删除子评论，正确更新评论计数
+- 🔒 新增登录失败锁定机制：连续5次失败锁定15分钟（原子更新，并发安全）
+- 🔒 提升BCrypt强度：10轮提升至12轮
+- 🔒 新增JWT Token黑名单机制：支持主动撤销Token
+- 🔒 新增JWT刷新Token机制：支持生成7天有效期的refreshToken
+- 🔒 实现Refresh Token Rotation：使用后自动撤销旧Token
+- 🔒 新增JWT黑名单定时清理：每小时清理过期Token
+- 🔧 新增SysUser字段：loginFailCount、lockUntil
+- 🔧 新增BlogPostMapper重载方法：decrementCommentCount支持批量减数
+- 🔧 新增用户登录返回refreshToken字段
+- 🔧 新增刷新Token接口：POST /api/user/refresh
+- 🔧 新增JwtSchedulerConfig定时任务配置类
+- 🔧 新增SysUserMapper.incrementLoginFailCount原子更新方法
+- 📝 更新文档：所有md文档同步更新
 
 ### v1.8 (2026-04-25)
 - ✨ 新增点赞模块：支持点赞/取消点赞，自动更新文章点赞数

@@ -229,6 +229,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
     }
 
     @Override
+    @Transactional(readOnly = true)
     public IPage<PostListResponse> getPostList(PostQueryRequest request) {
         Page<BlogPost> page = new Page<>(request.getPage(), request.getPageSize());
 
@@ -307,29 +308,40 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void incrementViewCount(Long postId) {
         // 直接执行 SQL 实现原子增加
         baseMapper.incrementViewCount(postId);
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void incrementLikeCount(Long postId) {
         baseMapper.incrementLikeCount(postId);
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void decrementLikeCount(Long postId) {
         baseMapper.decrementLikeCount(postId);
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void incrementCommentCount(Long postId) {
         baseMapper.incrementCommentCount(postId);
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void decrementCommentCount(Long postId) {
         baseMapper.decrementCommentCount(postId);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void decrementCommentCount(Long postId, int count) {
+        baseMapper.decrementCommentCount(postId, count);
     }
 
     private void savePostTags(Long postId, List<Long> tagIds) {

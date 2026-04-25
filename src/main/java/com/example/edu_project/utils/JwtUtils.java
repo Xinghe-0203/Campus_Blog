@@ -13,6 +13,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * JWT 工具类
@@ -26,8 +28,17 @@ public class JwtUtils {
     @Value("${jwt.expiration:86400000}")
     private Long expiration;
 
+    @Value("${jwt.refresh-expiration:604800000}")
+    private Long refreshExpiration; // 7天
+
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
+
+    /**
+     * Token黑名单：存储已撤销的Token
+     * 注意：生产环境应使用Redis实现分布式黑名单
+     */
+    private final Set<String> tokenBlacklist = ConcurrentHashMap.newKeySet();
 
     /**
      * 生成 Token
@@ -36,7 +47,7 @@ public class JwtUtils {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
         claims.put("username", username);
-        return createToken(claims, username);
+        return createToken(claims, username, expiration);
     }
 
     /**
@@ -47,18 +58,73 @@ public class JwtUtils {
         claims.put("userId", userId);
         claims.put("username", username);
         claims.put("role", role);
-        return createToken(claims, username);
+        return createToken(claims, username, expiration);
     }
 
-    private String createToken(Map<String, Object> claims, String subject) {
+    /**
+     * 生成刷新Token（用于获取新的访问Token）
+     */
+    public String generateRefreshToken(Long userId, String username, String role) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", userId);
+        claims.put("username", username);
+        claims.put("role", role);
+        claims.put("type", "refresh"); // 标记为刷新Token
+        return createToken(claims, username, refreshExpiration);
+    }
+
+    /**
+     * 验证刷新Token是否有效
+     */
+    public boolean isRefreshToken(String token) {
+        try {
+            Claims claims = parseToken(token);
+            return "refresh".equals(claims.get("type", String.class));
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private String createToken(Map<String, Object> claims, String subject, Long expirationMs) {
         SecretKey key = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
         return Jwts.builder()
                 .claims(claims)
                 .subject(subject)
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .expiration(new Date(System.currentTimeMillis() + expirationMs))
                 .signWith(key)
                 .compact();
+    }
+
+    /**
+     * 将Token加入黑名单（撤销Token）
+     */
+    public void revokeToken(String token) {
+        if (token != null && !isTokenExpired(token)) {
+            tokenBlacklist.add(token);
+        }
+    }
+
+    /**
+     * 检查Token是否已被撤销
+     */
+    public boolean isTokenRevoked(String token) {
+        return tokenBlacklist.contains(token);
+    }
+
+    /**
+     * 清理过期Token黑名单
+     * 注意：生产环境应使用Redis并设置TTL自动过期
+     */
+    public void cleanExpiredTokens() {
+        tokenBlacklist.removeIf(token -> {
+            try {
+                return isTokenExpired(token);
+            } catch (Exception e) {
+                // 无效Token直接移除
+                return true;
+            }
+        });
     }
 
     /**
@@ -85,7 +151,7 @@ public class JwtUtils {
             return null;
         }
         try {
-            if (isTokenExpired(token)) {
+            if (isTokenExpired(token) || isTokenRevoked(token)) {
                 return null;
             }
             return getUserIdFromToken(token);

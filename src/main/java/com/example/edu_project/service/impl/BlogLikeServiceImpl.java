@@ -11,8 +11,11 @@ import com.example.edu_project.service.BlogPostService;
 import com.example.edu_project.vo.LikeResultVO;
 import com.example.edu_project.vo.LikeStatusVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * 点赞服务实现类
@@ -23,6 +26,12 @@ public class BlogLikeServiceImpl extends ServiceImpl<BlogLikeMapper, BlogLike> i
     @Autowired
     private BlogPostService blogPostService;
 
+    /**
+     * 细粒度锁映射表：key="userId-postId"，value=锁对象
+     * 用于解决同一用户对同一文章的点赞/取消点赞操作的并发问题
+     */
+    private final ConcurrentHashMap<String, Object> likeLocks = new ConcurrentHashMap<>();
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public LikeResultVO toggleLike(Long postId, Long userId) {
@@ -32,39 +41,60 @@ public class BlogLikeServiceImpl extends ServiceImpl<BlogLikeMapper, BlogLike> i
             throw new BusinessException(404, "文章不存在");
         }
 
-        // 检查是否已点赞
-        LambdaQueryWrapper<BlogLike> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(BlogLike::getUserId, userId)
-              .eq(BlogLike::getPostId, postId);
-        BlogLike existingLike = this.getOne(wrapper);
-
         LikeResultVO result = new LikeResultVO();
 
-        if (existingLike != null) {
-            // 取消点赞：删除记录
-            this.removeById(existingLike.getId());
-            // 更新文章点赞数-1
-            blogPostService.decrementLikeCount(postId);
-            result.setAction("unlike");
-        } else {
-            // 点赞：添加记录
-            BlogLike newLike = new BlogLike();
-            newLike.setUserId(userId);
-            newLike.setPostId(postId);
-            this.save(newLike);
-            // 更新文章点赞数+1
-            blogPostService.incrementLikeCount(postId);
-            result.setAction("like");
-        }
+        // 使用细粒度锁：同一用户对同一文章的点赞操作串行执行
+        String lockKey = userId + "-" + postId;
+        Object lock = likeLocks.computeIfAbsent(lockKey, k -> new Object());
+        synchronized (lock) {
+            // 检查是否已点赞
+            LambdaQueryWrapper<BlogLike> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(BlogLike::getUserId, userId)
+                  .eq(BlogLike::getPostId, postId);
+            BlogLike existingLike = this.getOne(wrapper);
 
-        // 获取最新点赞数
-        BlogPost updatedPost = blogPostService.getById(postId);
-        result.setLikeCount(updatedPost.getLikeCount());
+            if (existingLike != null) {
+                // 取消点赞：删除记录
+                this.removeById(existingLike.getId());
+                // 更新文章点赞数-1
+                blogPostService.decrementLikeCount(postId);
+                result.setAction("unlike");
+            } else {
+                // 点赞：尝试添加记录，使用 try-catch 处理并发插入
+                BlogLike newLike = new BlogLike();
+                newLike.setUserId(userId);
+                newLike.setPostId(postId);
+                try {
+                    this.save(newLike);
+                    // 更新文章点赞数+1
+                    blogPostService.incrementLikeCount(postId);
+                    result.setAction("like");
+                } catch (DuplicateKeyException e) {
+                    // 并发情况下另一个请求已经插入了，直接视为取消点赞（再执行一次取消）
+                    // 查询当前状态
+                    BlogLike concurrentLike = this.getOne(wrapper);
+                    if (concurrentLike != null) {
+                        this.removeById(concurrentLike.getId());
+                        blogPostService.decrementLikeCount(postId);
+                        result.setAction("unlike");
+                    } else {
+                        // 极少数情况：记录刚被删了，那就当作点赞成功
+                        blogPostService.incrementLikeCount(postId);
+                        result.setAction("like");
+                    }
+                }
+            }
+
+            // 获取最新点赞数
+            BlogPost updatedPost = blogPostService.getById(postId);
+            result.setLikeCount(updatedPost.getLikeCount());
+        }
 
         return result;
     }
 
     @Override
+    @Transactional(readOnly = true)
     public LikeStatusVO checkLikeStatus(Long postId, Long userId) {
         LikeStatusVO status = new LikeStatusVO();
 
@@ -84,6 +114,7 @@ public class BlogLikeServiceImpl extends ServiceImpl<BlogLikeMapper, BlogLike> i
     }
 
     @Override
+    @Transactional(readOnly = true)
     public boolean hasLiked(Long postId, Long userId) {
         if (userId == null) {
             return false;

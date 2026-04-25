@@ -73,7 +73,7 @@ mybatis-plus:
 
 # ==================== 服务器配置 ====================
 server:
-  port: 8080  # 应用启动端口号
+  port: 80  # 应用启动端口号
   servlet:
     context-path: /api  # 应用访问路径前缀（所有接口以 /api 开头）
   mvc:

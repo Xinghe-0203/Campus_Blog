@@ -31,4 +31,7 @@ public class UserLoginResponse {
 
     @Schema(description = "JWT Token")
     private String token;
+
+    @Schema(description = "刷新Token（7天有效期）")
+    private String refreshToken;
 }

@@ -43,19 +43,31 @@ public class BlogPostController {
     private static final long VIEW_COUNT_INTERVAL_MS = 60000; // 1分钟内只计算一次
 
     /**
-     * 获取用户标识：优先用userId，未登录用IP
+     * 获取用户标识：优先用userId，未登录用指纹（IP + User-Agent组合）
+     * 注意：IP可能被伪造，但结合User-Agent会增加伪造成本
      */
     private String getUserIdentifier(HttpServletRequest request) {
         Long userId = SecurityUtils.getCurrentUserIdOrNull();
         if (userId != null) {
             return "user-" + userId;
         }
-        // 未登录用户使用IP地址
+        // 未登录用户使用指纹：IP + User-Agent 组合
         String ip = request.getRemoteAddr();
         if (ip == null || ip.isEmpty()) {
             ip = "unknown";
         }
-        return "ip-" + ip;
+        // 不直接信任 X-Forwarded-For，它容易被伪造
+        // 只从 request.getRemoteAddr() 获取
+
+        // 使用 User-Agent 作为辅助标识
+        String userAgent = request.getHeader("User-Agent");
+        if (userAgent == null || userAgent.isEmpty()) {
+            userAgent = "unknown";
+        }
+        // 对 User-Agent 简短哈希以减少存储长度
+        int userAgentHash = userAgent.hashCode();
+
+        return "guest-" + ip + "-" + userAgentHash;
     }
 
     /**
