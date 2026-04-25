@@ -5,6 +5,7 @@ import com.example.edu_project.entity.BlogPostTag;
 import com.example.edu_project.mapper.BlogPostTagMapper;
 import com.example.edu_project.service.BlogPostTagService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 
@@ -15,6 +16,7 @@ import java.util.Collections;
 public class BlogPostTagServiceImpl extends ServiceImpl<BlogPostTagMapper, BlogPostTag> implements BlogPostTagService {
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void batchInsertPostTags(Long postId, java.util.List<Long> tagIds) {
         if (tagIds == null || tagIds.isEmpty()) {
             return;

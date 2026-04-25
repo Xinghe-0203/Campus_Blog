@@ -1,6 +1,7 @@
 package com.example.edu_project.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import org.springframework.dao.DuplicateKeyException;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -79,12 +80,25 @@ public class BlogCollectServiceImpl extends ServiceImpl<BlogCollectMapper, BlogC
                 this.removeById(existingCollect.getId());
                 result.setAction("uncollect");
             } else {
-                // 收藏：添加记录
+                // 收藏：尝试添加记录，使用 try-catch 处理并发插入
                 BlogCollect newCollect = new BlogCollect();
                 newCollect.setUserId(userId);
                 newCollect.setPostId(postId);
-                this.save(newCollect);
-                result.setAction("collect");
+                try {
+                    this.save(newCollect);
+                    result.setAction("collect");
+                } catch (DuplicateKeyException e) {
+                    // 并发情况下另一个请求已经插入了，直接视为取消收藏（再执行一次取消）
+                    // 查询当前状态
+                    BlogCollect concurrentCollect = this.getOne(wrapper);
+                    if (concurrentCollect != null) {
+                        this.removeById(concurrentCollect.getId());
+                        result.setAction("uncollect");
+                    } else {
+                        // 极少数情况：记录刚被删了，那就当作收藏成功
+                        result.setAction("collect");
+                    }
+                }
             }
         }
 
