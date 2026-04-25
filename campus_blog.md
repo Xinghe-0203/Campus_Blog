@@ -10,7 +10,7 @@
 | **项目类型** | 全栈 Web 应用 |
 | **开发周期** | 校技能大赛周期 |
 | **开发人员** | 刘畅 |
-| **当前版本** | v1.10 |
+| **当前版本** | v1.11 |
 | **GitHub 仓库** | https://github.com/Xinghe-0203/Campus_Blog |
 
 ---
@@ -738,13 +738,12 @@ edu_project/
 
 ---
 
+| 2026-04-25 | v1.11 | 安全与性能优化<br>JwtAuthenticationFilter添加Token撤销检查和权限列表<br>HtmlSanitizer移除data:协议防止XSS bypass<br>登录锁定信息通用化防用户枚举<br>CommentCreateRequest添加@NotNull校验<br>BlogCommentServiceImpl修复O(n²)查询为O(n) |
 | 2026-04-25 | v1.10 | 安全增强与代码完善<br>修复用户枚举漏洞（通用错误信息）<br>修复点赞/收藏竞态条件（细粒度锁 + DuplicateKeyException处理）<br>新增XSS防护（Jsoup过滤）<br>完善@Transactional注解<br>修复batchInsertPostTags事务缺失问题 |
 | 2026-04-25 | v1.9 | 安全增强与并发修复<br>修复IP伪造漏洞（IP+User-Agent指纹）<br>修复点赞竞态条件（DuplicateKeyException处理）<br>修复评论删除级联问题（递归删除子评论）<br>新增登录失败锁定机制（5次失败锁定15分钟，原子更新并发安全）<br>提升BCrypt强度至12轮<br>新增JWT Token黑名单机制（支持主动撤销Token）<br>新增JWT刷新Token机制（7天有效期+Rotation）<br>新增JWT黑名单定时清理（每小时）<br>新增刷新Token接口POST /api/user/refresh |
 | 2026-04-25 | v1.8 | 新增点赞/收藏/评论模块<br>支持发表评论/回复/树形结构展示<br>支持点赞/取消点赞自动更新计数<br>支持收藏/取消收藏和我的收藏列表<br>管理员可删除任意评论 |
-| 2026-04-24 | v1.7 | 安全修复与功能增强<br>修复SecurityConfig路径匹配错误<br>修复阅读量防刷逻辑<br>修复BlogPostTag联合主键配置<br>新增管理员权限支持 |
-| 2026-04-24 | v1.6 | 全面安全加固<br>密码字段添加@JsonIgnore防泄露<br>getById返回UserVO替代SysUser<br>敏感信息改为环境变量<br>添加防刷机制和权限校验 |
 
 ---
 
-**文档版本**：v1.10
+**文档版本**：v1.11
 **最后更新**：2026-04-25

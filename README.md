@@ -229,12 +229,19 @@ $env:JWT_SECRET="your_jwt_secret_key_here"
 
 ## 更新日志
 
+### v1.11 (2026-04-25)
+- 🔒 JwtAuthenticationFilter: 添加 Token 撤销检查 + 修复权限列表
+- 🔒 HtmlSanitizer: 移除 img 标签 data: 协议防止 XSS bypass
+- 🔒 SysUserServiceImpl: 登录锁定信息通用化防用户枚举
+- 🔧 CommentCreateRequest: postId 添加 @NotNull 校验
+- 🔧 BlogCommentServiceImpl: 修复 O(n²) 父评论查找为 O(n)
+- 🔧 EduProjectApplication: System.out.println 改为 SLF4J 日志
+
 ### v1.10 (2026-04-25)
 - 🔒 修复用户枚举漏洞：注册时使用通用错误信息防止用户名/邮箱枚举攻击
-- 🔒 修复点赞竞态条件：使用细粒度锁 + DuplicateKeyException 处理保证并发安全
-- 🔒 修复收藏竞态条件：使用细粒度锁 + DuplicateKeyException 处理保证并发安全
-- 🔒 新增 XSS 防护：使用 Jsoup 过滤文章和评论内容（文章用宽松策略，评论用严格策略）
-- 🔧 完善@Transactional注解：所有只读方法添加readOnly=true，写操作添加rollbackFor
+- 🔒 修复点赞/收藏竞态条件：使用细粒度锁 + DuplicateKeyException 处理保证并发安全
+- 🔒 新增 XSS 防护：使用 Jsoup 过滤文章和评论内容
+- 🔧 完善@Transactional注解：所有只读方法添加readOnly=true
 - 🔧 修复batchInsertPostTags缺少@Transactional注解问题
 - 📝 更新数据库表结构文档（blog_post_tag、blog_like、blog_collect）
 - 📝 修复访问端口（改为80而非8080）
