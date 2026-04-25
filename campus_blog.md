@@ -10,7 +10,7 @@
 | **项目类型** | 全栈 Web 应用 |
 | **开发周期** | 校技能大赛周期 |
 | **开发人员** | 刘畅 |
-| **当前版本** | v1.16 |
+| **当前版本** | v1.17 |
 | **GitHub 仓库** | https://github.com/Xinghe-0203/Campus_Blog |
 
 ---
@@ -737,6 +737,7 @@ edu_project/
 
 ---
 
+| 2026-04-25 | v1.17 | 新增标签查询功能<br>添加BlogTagService接口和BlogTagController GET /tag/list<br>SecurityConfig添加/tag/**的permitAll规则 |
 | 2026-04-25 | v1.16 | BlogPost新增collectCount字段<br>BlogCollectServiceImpl.toggleCollect()正确更新收藏数<br>getPostDetail未发布文章返回"文章未发布"<br>移除JwtUtils.getUserIdFromRequest()和SecurityUtils.getCurrentUserRole()死代码 |
 | 2026-04-25 | v1.15 | 修复JWT黑名单验证绕过漏洞<br>修复isTokenExpired()异常处理<br>修复JwtAuthenticationFilter签名验证顺序<br>修复refresh token rotation<br>修复logger.warn格式 |
 | 2026-04-25 | v1.14 | 安全与并发修复<br>修复点赞/收藏锁内存泄漏（添加主动清理过期锁）<br>修复阅读量增加TOCTOU竞态条件（使用CAS操作）<br>统一密码最小长度为8<br>移除DotenvConfig硬编码路径<br>添加category字段XSS防护<br>移除所有Controller的@CrossOrigin注解 |
@@ -749,5 +750,5 @@ edu_project/
 
 ---
 
-**文档版本**：v1.16
+**文档版本**：v1.17
 **最后更新**：2026-04-25

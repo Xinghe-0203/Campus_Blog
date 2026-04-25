@@ -227,6 +227,11 @@ mvn spring-boot:run
 
 ## 更新日志
 
+### v1.17 (2026-04-25)
+- 🎨 新增标签查询功能：添加 BlogTagService 接口和 BlogTagController GET /tag/list
+- 🔧 BlogPost 新增 collectCount 字段，BlogCollectServiceImpl.toggleCollect() 正确更新收藏数
+- 🔧 getPostDetail 未发布文章返回"文章未发布"（区分不存在）
+
 ### v1.16 (2026-04-25)
 - 🔧 BlogPost 新增 collectCount 字段，BlogCollectServiceImpl.toggleCollect() 正确更新收藏数
 - 🔧 getPostDetail 未发布文章返回"文章未发布"（区分不存在）
