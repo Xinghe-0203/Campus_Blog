@@ -57,6 +57,10 @@ local.properties
 .loadpath
 .recommenders/
 
+# Claude
+.claude/
+CLAUDE.md
+
 # Environment variables (contains sensitive data)
 .env
 .env.local
