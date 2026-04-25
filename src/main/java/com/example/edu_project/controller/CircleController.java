@@ -198,6 +198,22 @@ public class CircleController {
         return Result.success(newPostId);
     }
 
+    // ==================== 搜索相关接口 ====================
+
+    /**
+     * 搜索动态
+     */
+    @Operation(summary = "搜索动态")
+    @GetMapping("/search")
+    public Result<List<CirclePostVO>> searchPosts(
+            @RequestParam String keyword,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "20") int pageSize) {
+        Long userId = SecurityUtils.getCurrentUserIdOrNull();
+        List<CirclePostVO> results = circleService.searchPosts(keyword, page, pageSize, userId);
+        return Result.success(results);
+    }
+
     // ==================== 私有方法 ====================
 
     private Long getCurrentUserId() {

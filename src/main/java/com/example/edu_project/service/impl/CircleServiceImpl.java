@@ -707,4 +707,34 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
                .eq(CircleRepost::getIsDeleted, 0);
         return circleRepostMapper.selectCount(wrapper) > 0;
     }
+
+    // ==================== 搜索相关方法 ====================
+
+    /**
+     * 搜索动态
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<CirclePostVO> searchPosts(String keyword, int page, int pageSize, Long currentUserId) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return Collections.emptyList();
+        }
+        // 限制搜索关键词长度，防止数据库性能问题
+        if (keyword.length() > 200) {
+            throw new BusinessException(400, "搜索关键词不能超过200字符");
+        }
+
+        LambdaQueryWrapper<CirclePost> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(CirclePost::getStatus, 1) // 只查询正常状态的动态
+                .like(CirclePost::getContent, keyword.trim()) // 搜索内容
+                .orderByDesc(CirclePost::getCreateTime); // 按时间排序
+
+        // 分页查询
+        List<CirclePost> posts = this.page(
+                new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(page, pageSize),
+                wrapper
+        ).getRecords();
+
+        return convertToVOList(posts, currentUserId);
+    }
 }

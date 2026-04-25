@@ -309,9 +309,9 @@ mvn spring-boot:run
 | 方法 | 路径 | 说明 |
 | :--- | :--- | :--- |
 | POST | `/api/circle/post` | 发布动态（需登录） |
-| GET | `/api/circle/feed/recommend` | 获取推荐流（需登录） |
+| GET | `/api/circle/feed/recommend` | 获取推荐流（公开访问） |
 | GET | `/api/circle/feed/following` | 获取关注流（需登录） |
-| GET | `/api/circle/post/{postId}` | 获取动态详情（需登录） |
+| GET | `/api/circle/post/{postId}` | 获取动态详情（公开访问） |
 | DELETE | `/api/circle/post/{postId}` | 删除动态（需登录，仅作者） |
 | POST | `/api/circle/like/{postId}` | 点赞/取消点赞（需登录） |
 | GET | `/api/circle/like/check/{postId}` | 检查是否已点赞（需登录） |
@@ -319,6 +319,7 @@ mvn spring-boot:run
 | POST | `/api/circle/comment` | 发表评论（需登录） |
 | DELETE | `/api/circle/comment/{commentId}` | 删除评论（需登录，仅作者） |
 | POST | `/api/circle/repost/{postId}` | 转发动态（需登录） |
+| GET | `/api/circle/search` | 搜索动态（公开访问，keyword, page, pageSize） |
 
 ### 用户模块扩展
 
@@ -386,6 +387,12 @@ mvn spring-boot:run
 8. 对接前端页面
 
 ## 更新日志
+
+### v1.21 (2026-04-26)
+- ✨ 新增校友圈搜索功能：GET /api/circle/search（关键词搜索动态）
+- 🐛 修复 FollowServiceImpl 潜在 NPE：follow/unfollow 方法添加 targetUserId 和 currentUserId null 检查
+- 🐛 修复搜索关键词无长度限制问题：限制最大 200 字符
+- 📝 文档更新：README.md 更新至 v1.21
 
 ### v1.20 (2026-04-26)
 - 🔒 安全修复：ReportServiceImpl 添加管理员权限校验

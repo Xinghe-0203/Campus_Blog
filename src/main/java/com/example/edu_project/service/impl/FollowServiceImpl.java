@@ -68,6 +68,13 @@ public class FollowServiceImpl extends ServiceImpl<BlogFollowMapper, BlogFollow>
     @Override
     @Transactional(rollbackFor = Exception.class)
     public FollowStatusVO follow(Long targetUserId, Long currentUserId) {
+        // 参数校验
+        if (currentUserId == null) {
+            throw new BusinessException(401, "请先登录");
+        }
+        if (targetUserId == null) {
+            throw new BusinessException(400, "目标用户ID不能为空");
+        }
         // 不能关注自己
         if (targetUserId.equals(currentUserId)) {
             throw new BusinessException(400, "不能关注自己");
@@ -135,6 +142,13 @@ public class FollowServiceImpl extends ServiceImpl<BlogFollowMapper, BlogFollow>
     @Override
     @Transactional(rollbackFor = Exception.class)
     public FollowStatusVO unfollow(Long targetUserId, Long currentUserId) {
+        // 参数校验
+        if (currentUserId == null) {
+            throw new BusinessException(401, "请先登录");
+        }
+        if (targetUserId == null) {
+            throw new BusinessException(400, "目标用户ID不能为空");
+        }
         // 不能取消关注自己
         if (targetUserId.equals(currentUserId)) {
             throw new BusinessException(400, "不能取消关注自己");

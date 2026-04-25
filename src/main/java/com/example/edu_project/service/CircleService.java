@@ -119,4 +119,16 @@ public interface CircleService extends IService<CirclePost> {
      * @return 是否已转发
      */
     Boolean checkRepostStatus(Long postId, Long userId);
+
+    // ==================== 搜索相关方法 ====================
+
+    /**
+     * 搜索动态
+     * @param keyword 关键词
+     * @param page 页码
+     * @param pageSize 每页数量
+     * @param currentUserId 当前用户ID（可为空）
+     * @return 动态列表
+     */
+    List<CirclePostVO> searchPosts(String keyword, int page, int pageSize, Long currentUserId);
 }
