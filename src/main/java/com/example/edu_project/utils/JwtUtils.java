@@ -22,14 +22,14 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class JwtUtils {
 
-    @Value("${jwt.secret:bXlTZWNyZXRLZXlGb3JDYW1wdXBCbG9nU3lzdGVtMjAyNFZlcnlMb25nQW5kU2VjdXJl}")
+    @Value("${jwt.secret}")
     private String secret;
 
-    @Value("${jwt.expiration:86400000}")
+    @Value("${jwt.expiration}")
     private Long expiration;
 
-    @Value("${jwt.refresh-expiration:604800000}")
-    private Long refreshExpiration; // 7天
+    @Value("${jwt.refresh-expiration}")
+    private Long refreshExpiration;
 
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";

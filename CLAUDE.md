@@ -26,11 +26,29 @@ This is a **campus blog forum system** - a full-stack web application built with
 
 ## Environment Setup
 
-Environment variables (optional for local dev, **required for production**):
-- `DB_PASSWORD` - Database password (default: `chaojiwudibangbangtang` for local dev)
-- `JWT_SECRET` - JWT signing key (default provided for local dev only)
+**所有敏感配置必须通过 .env 文件管理，不允许硬编码在代码中！**
 
-**⚠️ WARNING: Default values are for development only. Production must set real secrets!**
+1. **复制环境变量模板**
+   ```bash
+   cp .env.example .env
+   ```
+
+2. **修改 .env 文件配置实际值**
+
+### 必需的环境变量
+
+| 变量 | 说明 |
+|------|------|
+| `DB_HOST` | 数据库主机地址 |
+| `DB_PORT` | 数据库端口 |
+| `DB_NAME` | 数据库名称 |
+| `DB_USERNAME` | 数据库用户名 |
+| `DB_PASSWORD` | 数据库密码 |
+| `JWT_SECRET` | JWT 密钥（至少 32 位） |
+| `JWT_EXPIRATION` | Token 过期时间(ms) |
+| `JWT_REFRESH_EXPIRATION` | 刷新Token过期时间(ms) |
+
+**⚠️ .env 文件不会提交到 Git（已在 .gitignore 中）**
 
 ```bash
 # Linux/Mac

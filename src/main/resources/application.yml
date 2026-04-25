@@ -21,15 +21,15 @@ spring:
     driver-class-name: com.mysql.cj.jdbc.Driver
 
     # 数据库连接 URL
-    # 支持通过环境变量配置：DB_HOST, DB_PORT, DB_NAME
-    url: jdbc:mysql://${DB_HOST:38.147.185.141}:${DB_PORT:3306}/${DB_NAME:campus_blog}?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false
+    # 【重要】请在 .env 文件中配置 DB_HOST, DB_PORT, DB_NAME
+    url: jdbc:mysql://${DB_HOST}:${DB_PORT}/${DB_NAME}?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false
 
     # 数据库用户名
-    username: ${DB_USERNAME:campus_blog}
+    username: ${DB_USERNAME}
 
     # 数据库密码
-    # 【重要】生产环境请在 .env 文件中设置 DB_PASSWORD
-    password: ${DB_PASSWORD:chaojiwudibangbangtang}
+    # 【重要】请在 .env 文件中配置 DB_PASSWORD
+    password: ${DB_PASSWORD}
 
     # HikariCP 连接池配置（Spring Boot 默认连接池，性能最优）
     hikari:
@@ -93,8 +93,7 @@ knife4j:
 
 # ==================== JWT 配置 ====================
 jwt:
-  # 【重要】生产环境请在 .env 文件中设置 JWT_SECRET
-  # 【警告】下方默认值为本地开发使用，生产环境部署时必须设置真实的 JWT_SECRET
-  secret: ${JWT_SECRET:bXlTZWNyZXRLZXlGb3JDYW1wdXBCbG9nU3lzdGVtMjAyNFZlcnlMb25nQW5kU2VjdXJl}
-  expiration: ${JWT_EXPIRATION:86400000}           # 24小时（毫秒）
-  refresh-expiration: ${JWT_REFRESH_EXPIRATION:604800000}  # 7天（毫秒）
+  # 【重要】请在 .env 文件中配置 JWT_SECRET
+  secret: ${JWT_SECRET}
+  expiration: ${JWT_EXPIRATION}           # 24小时（毫秒）
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION}  # 7天（毫秒）
