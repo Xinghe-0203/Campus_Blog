@@ -20,7 +20,6 @@ import com.example.edu_project.service.BlogCollectService;
 import com.example.edu_project.vo.CollectItemVO;
 import com.example.edu_project.vo.CollectResultVO;
 import com.example.edu_project.vo.CollectStatusVO;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 
 /**
@@ -51,8 +51,38 @@ public class BlogCollectServiceImpl extends ServiceImpl<BlogCollectMapper, BlogC
     /**
      * 细粒度锁映射表：key="userId-postId"，value=锁对象
      * 用于解决同一用户对同一文章的收藏/取消收藏操作的并发问题
+     * 使用带过期时间的LRU缓存，避免内存泄漏
      */
-    private final ConcurrentHashMap<String, Object> collectLocks = new ConcurrentHashMap<>();
+    private static final int MAX_LOCKS_SIZE = 10000;
+    private static final long LOCK_EXPIRE_MS = 300000; // 5分钟
+    private final ConcurrentMap<String, LockEntry> collectLocks = new ConcurrentHashMap<>();
+
+    private static class LockEntry {
+        final Object lock;
+        final long createTime;
+
+        LockEntry(Object lock) {
+            this.lock = lock;
+            this.createTime = System.currentTimeMillis();
+        }
+
+        boolean isExpired() {
+            return System.currentTimeMillis() - createTime > LOCK_EXPIRE_MS;
+        }
+    }
+
+    /**
+     * 获取锁，如果锁已过期则移除并返回新锁
+     */
+    private Object getCollectLock(String lockKey) {
+        LockEntry entry = collectLocks.compute(lockKey, (key, existing) -> {
+            if (existing == null || existing.isExpired()) {
+                return new LockEntry(new Object());
+            }
+            return existing;
+        });
+        return entry.lock;
+    }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -67,8 +97,7 @@ public class BlogCollectServiceImpl extends ServiceImpl<BlogCollectMapper, BlogC
 
         // 使用细粒度锁：同一用户对同一文章的收藏操作串行执行
         String lockKey = userId + "-" + postId;
-        Object lock = collectLocks.computeIfAbsent(lockKey, k -> new Object());
-        synchronized (lock) {
+        synchronized (getCollectLock(lockKey)) {
             // 检查是否已收藏
             LambdaQueryWrapper<BlogCollect> wrapper = new LambdaQueryWrapper<>();
             wrapper.eq(BlogCollect::getUserId, userId)

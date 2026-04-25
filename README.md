@@ -131,7 +131,7 @@ mvn spring-boot:run
 
 运行 `EduProjectApplication.java` 的 `main` 方法。
 
-### 6. 访问 API 文档
+### 5. 访问 API 文档
 
 项目启动成功后，访问：
 **http://localhost/api/doc.html**

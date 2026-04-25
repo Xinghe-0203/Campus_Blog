@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * 点赞服务实现类
@@ -29,8 +30,38 @@ public class BlogLikeServiceImpl extends ServiceImpl<BlogLikeMapper, BlogLike> i
     /**
      * 细粒度锁映射表：key="userId-postId"，value=锁对象
      * 用于解决同一用户对同一文章的点赞/取消点赞操作的并发问题
+     * 使用带过期时间的LRU缓存，避免内存泄漏
      */
-    private final ConcurrentHashMap<String, Object> likeLocks = new ConcurrentHashMap<>();
+    private static final int MAX_LOCKS_SIZE = 10000;
+    private static final long LOCK_EXPIRE_MS = 300000; // 5分钟
+    private final ConcurrentMap<String, LockEntry> likeLocks = new ConcurrentHashMap<>();
+
+    private static class LockEntry {
+        final Object lock;
+        final long createTime;
+
+        LockEntry(Object lock) {
+            this.lock = lock;
+            this.createTime = System.currentTimeMillis();
+        }
+
+        boolean isExpired() {
+            return System.currentTimeMillis() - createTime > LOCK_EXPIRE_MS;
+        }
+    }
+
+    /**
+     * 获取锁，如果锁已过期则移除并返回新锁
+     */
+    private Object getLock(String lockKey) {
+        LockEntry entry = likeLocks.compute(lockKey, (key, existing) -> {
+            if (existing == null || existing.isExpired()) {
+                return new LockEntry(new Object());
+            }
+            return existing;
+        });
+        return entry.lock;
+    }
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -45,8 +76,7 @@ public class BlogLikeServiceImpl extends ServiceImpl<BlogLikeMapper, BlogLike> i
 
         // 使用细粒度锁：同一用户对同一文章的点赞操作串行执行
         String lockKey = userId + "-" + postId;
-        Object lock = likeLocks.computeIfAbsent(lockKey, k -> new Object());
-        synchronized (lock) {
+        synchronized (getLock(lockKey)) {
             // 检查是否已点赞
             LambdaQueryWrapper<BlogLike> wrapper = new LambdaQueryWrapper<>();
             wrapper.eq(BlogLike::getUserId, userId)

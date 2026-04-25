@@ -16,6 +16,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -34,8 +37,17 @@ public class BlogPostController {
     /**
      * 阅读量防刷缓存：key="用户标识-文章ID"，value=上次访问时间
      * 用户标识：已登录用户用userId，未登录用户用IP地址
+     * 使用带容量限制的LRU缓存，避免内存泄漏
      */
-    private final ConcurrentHashMap<String, AtomicLong> viewCountCache = new ConcurrentHashMap<>();
+    private static final int MAX_VIEW_COUNT_CACHE_SIZE = 10000;
+    private final Map<String, AtomicLong> viewCountCache = Collections.synchronizedMap(
+        new LinkedHashMap<String, AtomicLong>(16, 0.75f, true) {
+            @Override
+            protected boolean removeEldestEntry(Map.Entry<String, AtomicLong> eldest) {
+                return size() > MAX_VIEW_COUNT_CACHE_SIZE;
+            }
+        }
+    );
 
     /**
      * 阅读量增加间隔时间（毫秒），防止同一用户频繁刷新

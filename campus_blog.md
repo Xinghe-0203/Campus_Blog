@@ -10,7 +10,7 @@
 | **项目类型** | 全栈 Web 应用 |
 | **开发周期** | 校技能大赛周期 |
 | **开发人员** | 刘畅 |
-| **当前版本** | v1.11 |
+| **当前版本** | v1.13 |
 | **GitHub 仓库** | https://github.com/Xinghe-0203/Campus_Blog |
 
 ---
@@ -454,7 +454,6 @@ src/main/java/com/example/edu_project/
 
 | 接口 | 方法 | 路径 | 说明 |
 | :--- | :--- | :--- | :--- |
-| 查询所有用户 | GET | `/api/user/list` | ✅ 已实现 |
 | 根据ID查询用户 | GET | `/api/user/{id}` | ✅ 已实现 |
 | 用户注册 | POST | `/api/user/register` | ✅ 已实现 |
 | 用户登录 | POST | `/api/user/login` | ✅ 已实现 |
