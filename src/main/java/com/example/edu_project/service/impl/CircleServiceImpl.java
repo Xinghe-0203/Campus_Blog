@@ -187,10 +187,10 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
             baseMapper.decrementRepostCount(post.getRepostId());
         }
 
-        // 级联删除关联数据（物理删除）
-        circleCommentMapper.deleteByPostId(postId);
-        circleLikeMapper.deleteByPostId(postId);
-        circleRepostMapper.deleteByOriginalPostId(postId);
+        // 级联删除关联数据（逻辑删除）
+        circleCommentMapper.logicalDeleteByPostId(postId);
+        circleLikeMapper.logicalDeleteByPostId(postId);
+        circleRepostMapper.logicalDeleteByOriginalPostId(postId);
 
         // 软删除：设置 status = 2
         post.setStatus(2);
@@ -481,8 +481,8 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
             CircleLike existingLike = circleLikeMapper.selectOne(wrapper);
 
             if (existingLike != null) {
-                // 取消点赞：物理删除记录（解决软删除+唯一约束冲突）
-                circleLikeMapper.physicalDeleteById(existingLike.getId());
+                // 取消点赞：逻辑删除记录（解决软删除+唯一约束冲突）
+                circleLikeMapper.logicalDeleteById(existingLike.getId());
                 baseMapper.decrementLikeCount(postId);
             } else {
                 // 点赞：使用 try-catch 处理并发插入
@@ -497,7 +497,7 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
                     CircleLike concurrentLike = circleLikeMapper.selectOne(wrapper);
                     if (concurrentLike != null) {
                         // 如果已存在，说明另一个请求刚插入，我们执行取消
-                        circleLikeMapper.physicalDeleteById(concurrentLike.getId());
+                        circleLikeMapper.logicalDeleteById(concurrentLike.getId());
                         baseMapper.decrementLikeCount(postId);
                     }
                     // 否则忽略

@@ -95,8 +95,8 @@ public class BlogLikeServiceImpl extends ServiceImpl<BlogLikeMapper, BlogLike> i
             BlogLike existingLike = this.getOne(wrapper);
 
             if (existingLike != null) {
-                // 取消点赞：物理删除记录（解决软删除+唯一约束冲突）
-                ((BlogLikeMapper) this.baseMapper).physicalDeleteById(existingLike.getId());
+                // 取消点赞：逻辑删除记录（解决软删除+唯一约束冲突）
+                ((BlogLikeMapper) this.baseMapper).logicalDeleteById(existingLike.getId());
                 // 更新文章点赞数-1
                 blogPostService.decrementLikeCount(postId);
                 result.setAction("unlike");
@@ -117,8 +117,8 @@ public class BlogLikeServiceImpl extends ServiceImpl<BlogLikeMapper, BlogLike> i
                     // 查询当前状态
                     BlogLike concurrentLike = this.getOne(wrapper);
                     if (concurrentLike != null) {
-                        // 物理删除记录（解决软删除+唯一约束冲突）
-                        ((BlogLikeMapper) this.baseMapper).physicalDeleteById(concurrentLike.getId());
+                        // 逻辑删除记录（解决软删除+唯一约束冲突）
+                        ((BlogLikeMapper) this.baseMapper).logicalDeleteById(concurrentLike.getId());
                         blogPostService.decrementLikeCount(postId);
                         result.setAction("unlike");
                     } else {

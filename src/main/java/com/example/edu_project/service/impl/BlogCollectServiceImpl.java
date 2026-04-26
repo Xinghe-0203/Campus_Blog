@@ -115,8 +115,8 @@ public class BlogCollectServiceImpl extends ServiceImpl<BlogCollectMapper, BlogC
             BlogCollect existingCollect = this.getOne(wrapper);
 
             if (existingCollect != null) {
-                // 取消收藏：物理删除记录（解决软删除+唯一约束冲突）
-                ((BlogCollectMapper) this.baseMapper).physicalDeleteById(existingCollect.getId());
+                // 取消收藏：逻辑删除记录（解决软删除+唯一约束冲突）
+                ((BlogCollectMapper) this.baseMapper).logicalDeleteById(existingCollect.getId());
                 blogPostService.decrementCollectCount(postId);
                 result.setAction("uncollect");
             } else {
@@ -133,8 +133,8 @@ public class BlogCollectServiceImpl extends ServiceImpl<BlogCollectMapper, BlogC
                     // 查询当前状态
                     BlogCollect concurrentCollect = this.getOne(wrapper);
                     if (concurrentCollect != null) {
-                        // 物理删除记录（解决软删除+唯一约束冲突）
-                        ((BlogCollectMapper) this.baseMapper).physicalDeleteById(concurrentCollect.getId());
+                        // 逻辑删除记录（解决软删除+唯一约束冲突）
+                        ((BlogCollectMapper) this.baseMapper).logicalDeleteById(concurrentCollect.getId());
                         blogPostService.decrementCollectCount(postId);
                         result.setAction("uncollect");
                     } else {

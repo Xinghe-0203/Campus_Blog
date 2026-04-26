@@ -41,7 +41,7 @@ public class NotificationEventListener {
             String notifyTitle = event.isReply() ? "有人回复了你的评论" : "有人评论了你的文章";
             String notifyContent = event.isReply()
                     ? "用户回复了你的评论：" + event.getContent()
-                    : "用户评论了你的文章：" + event.getPostTitle();
+                    : "用户评论了你的文章";
 
             notificationService.sendNotification(
                     notifyType,

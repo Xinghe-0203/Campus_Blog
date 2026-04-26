@@ -183,8 +183,8 @@ public class FollowServiceImpl extends ServiceImpl<BlogFollowMapper, BlogFollow>
                 result.setFollowing(false);
                 result.setAction("not_following");
             } else {
-                // 取消关注：物理删除记录（解决软删除+唯一约束冲突）
-                ((BlogFollowMapper) this.baseMapper).physicalDeleteById(existingFollow.getId());
+                // 取消关注：逻辑删除记录（解决软删除+唯一约束冲突）
+                ((BlogFollowMapper) this.baseMapper).logicalDeleteById(existingFollow.getId());
                 // 原子更新计数
                 sysUserMapper.decrementFollowerCount(targetUserId);
                 sysUserMapper.decrementFollowingCount(currentUserId);
