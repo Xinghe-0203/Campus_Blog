@@ -316,7 +316,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
 
         // 批量查询用户信息
         Map<Long, SysUser> userMap = sysUserMapper.selectBatchIds(userIds).stream()
-                .collect(Collectors.toMap(SysUser::getId, u -> u));
+                .collect(Collectors.toMap(SysUser::getId, u -> u, (a, b) -> a));
 
         // 批量查询标签信息
         Map<Long, List<PostDetailResponse.TagVO>> postTagsMap = getTagsMapByPostIds(postIds);
@@ -419,7 +419,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         // 批量查询标签信息
         List<BlogTag> tags = blogTagMapper.selectBatchIds(tagIds);
         Map<Long, String> tagNameMap = tags.stream()
-                .collect(Collectors.toMap(BlogTag::getId, BlogTag::getName));
+                .collect(Collectors.toMap(BlogTag::getId, BlogTag::getName, (a, b) -> a));
 
         // 按文章ID分组
         return postTags.stream()
@@ -678,7 +678,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
                 .collect(Collectors.toList());
 
         Map<Long, SysUser> userMap = sysUserMapper.selectBatchIds(userIds).stream()
-                .collect(Collectors.toMap(SysUser::getId, u -> u));
+                .collect(Collectors.toMap(SysUser::getId, u -> u, (a, b) -> a));
         Map<Long, List<PostDetailResponse.TagVO>> postTagsMap = getTagsMapByPostIds(postIds);
 
         IPage<PostListResponse> result = new Page<>(postPage.getCurrent(), postPage.getSize(), postPage.getTotal());

@@ -11,13 +11,13 @@ import com.example.edu_project.mapper.BlogCommentMapper;
 import com.example.edu_project.mapper.SysUserMapper;
 import com.example.edu_project.service.BlogCommentService;
 import com.example.edu_project.service.BlogPostService;
-import com.example.edu_project.service.NotificationService;
 import com.example.edu_project.utils.HtmlSanitizer;
 import com.example.edu_project.utils.SecurityUtils;
+import com.example.edu_project.event.CommentCreatedEvent;
 import com.example.edu_project.vo.CommentVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -42,8 +42,7 @@ public class BlogCommentServiceImpl extends ServiceImpl<BlogCommentMapper, BlogC
     private HtmlSanitizer htmlSanitizer;
 
     @Autowired
-    @Qualifier("notificationServiceImpl")
-    private NotificationService notificationService;
+    private ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -61,7 +60,7 @@ public class BlogCommentServiceImpl extends ServiceImpl<BlogCommentMapper, BlogC
                 throw new BusinessException(404, "父评论不存在");
             }
             // 检查父评论是否属于同一篇文章
-            if (!parentComment.getPostId().equals(request.getPostId())) {
+            if (!request.getPostId().equals(parentComment.getPostId())) {
                 throw new BusinessException(400, "父评论不属于该文章");
             }
         }
@@ -80,11 +79,15 @@ public class BlogCommentServiceImpl extends ServiceImpl<BlogCommentMapper, BlogC
         // 更新文章评论数
         blogPostService.incrementCommentCount(request.getPostId());
 
-        // 发送评论通知
-        String notifyType = request.getParentId() != null ? "reply" : "comment";
-        String notifyTitle = request.getParentId() != null ? "有人回复了你的评论" : "有人评论了你的文章";
-        String notifyContent = request.getParentId() != null ? "用户回复了你的评论：" + sanitizedContent : "用户评论了你的文章：" + post.getTitle();
-        notificationService.sendNotification(notifyType, notifyTitle, notifyContent, userId, post.getUserId(), "post", request.getPostId());
+        // 发布评论创建事件，事务提交后异步发送通知
+        eventPublisher.publishEvent(new CommentCreatedEvent(
+                comment.getId(),
+                userId,
+                post.getUserId(),
+                request.getPostId(),
+                sanitizedContent,
+                request.getParentId() != null
+        ));
 
         return comment.getId();
     }

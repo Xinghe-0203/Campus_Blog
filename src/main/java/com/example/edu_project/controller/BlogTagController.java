@@ -1,9 +1,11 @@
 package com.example.edu_project.controller;
 
+import com.example.edu_project.common.exception.BusinessException;
 import com.example.edu_project.common.result.Result;
 import com.example.edu_project.dto.TagCreateRequest;
 import com.example.edu_project.entity.BlogTag;
 import com.example.edu_project.service.BlogTagService;
+import com.example.edu_project.utils.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -39,6 +41,13 @@ public class BlogTagController {
     @Operation(summary = "创建标签")
     @PostMapping
     public Result<BlogTag> createTag(@Valid @RequestBody TagCreateRequest request) {
+        Long userId = SecurityUtils.getCurrentUserIdOrNull();
+        if (userId == null) {
+            throw new BusinessException(401, "请先登录");
+        }
+        if (!SecurityUtils.isCurrentUserAdmin()) {
+            throw new BusinessException(403, "仅管理员可执行此操作");
+        }
         BlogTag tag = blogTagService.createTag(request.getName());
         return Result.success(tag);
     }

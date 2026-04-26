@@ -5,15 +5,15 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.edu_project.common.exception.BusinessException;
 import com.example.edu_project.entity.BlogFollow;
 import com.example.edu_project.entity.SysUser;
+import com.example.edu_project.event.FollowCreatedEvent;
 import com.example.edu_project.mapper.BlogFollowMapper;
 import com.example.edu_project.mapper.SysUserMapper;
 import com.example.edu_project.service.FollowService;
-import com.example.edu_project.service.NotificationService;
 import com.example.edu_project.vo.FollowStatusVO;
 import com.example.edu_project.vo.UserVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,8 +33,7 @@ public class FollowServiceImpl extends ServiceImpl<BlogFollowMapper, BlogFollow>
     private SysUserMapper sysUserMapper;
 
     @Autowired
-    @Qualifier("notificationServiceImpl")
-    private NotificationService notificationService;
+    private ApplicationEventPublisher eventPublisher;
 
     /**
      * 细粒度锁映射表：key="followerId-followingId"，value=锁对象
@@ -119,8 +118,8 @@ public class FollowServiceImpl extends ServiceImpl<BlogFollowMapper, BlogFollow>
                     sysUserMapper.incrementFollowingCount(currentUserId);
                     result.setFollowing(true);
                     result.setAction("follow");
-                    // 发送关注通知
-                    notificationService.sendNotification("follow", "有人关注了你", "用户关注了你", currentUserId, targetUserId, "user", targetUserId);
+                    // 发布关注事件，事务提交后异步发送通知
+                    eventPublisher.publishEvent(new FollowCreatedEvent(currentUserId, targetUserId));
                 } catch (DuplicateKeyException e) {
                     // 并发情况下另一个请求已经插入了
                     BlogFollow concurrentFollow = this.getOne(wrapper);

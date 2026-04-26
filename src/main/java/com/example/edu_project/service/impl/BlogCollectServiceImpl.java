@@ -188,7 +188,7 @@ public class BlogCollectServiceImpl extends ServiceImpl<BlogCollectMapper, BlogC
         // 批量查询文章
         List<BlogPost> posts = blogPostMapper.selectBatchIds(postIds);
         Map<Long, BlogPost> postMap = posts.stream()
-                .collect(Collectors.toMap(BlogPost::getId, p -> p));
+                .collect(Collectors.toMap(BlogPost::getId, p -> p, (a, b) -> a));
 
         // 获取所有作者ID
         List<Long> userIds = posts.stream()
@@ -197,7 +197,7 @@ public class BlogCollectServiceImpl extends ServiceImpl<BlogCollectMapper, BlogC
                 .collect(Collectors.toList());
         List<SysUser> users = sysUserMapper.selectBatchIds(userIds);
         Map<Long, SysUser> userMap = users.stream()
-                .collect(Collectors.toMap(SysUser::getId, u -> u));
+                .collect(Collectors.toMap(SysUser::getId, u -> u, (a, b) -> a));
 
         // 获取所有文章标签
         LambdaQueryWrapper<BlogPostTag> tagWrapper = new LambdaQueryWrapper<>();
@@ -211,7 +211,7 @@ public class BlogCollectServiceImpl extends ServiceImpl<BlogCollectMapper, BlogC
                 .collect(Collectors.toList());
         List<BlogTag> tags = tagIds.isEmpty() ? List.of() : blogTagMapper.selectBatchIds(tagIds);
         Map<Long, String> tagNameMap = tags.stream()
-                .collect(Collectors.toMap(BlogTag::getId, BlogTag::getName));
+                .collect(Collectors.toMap(BlogTag::getId, BlogTag::getName, (a, b) -> a));
 
         // 按文章分组标签
         Map<Long, List<String>> postTagsMap = postTags.stream()

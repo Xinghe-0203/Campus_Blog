@@ -15,8 +15,12 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Spring Security 配置类
@@ -25,15 +29,17 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
+    private static final Logger log = LoggerFactory.getLogger(SecurityConfig.class);
+
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
     /**
      * CORS 允许的来源列表
      * 可通过环境变量 CORS_ALLOWED_ORIGINS 配置，多个来源用逗号分隔
-     * 示例: http://localhost:*,http://127.0.0.1:*,https://campus-blog.com
+     * 示例: http://localhost:8080,http://127.0.0.1:8080,https://campus-blog.com
      */
-    @Value("${cors.allowed-origins:http://localhost:*,http://127.0.0.1:*}")
+    @Value("${cors.allowed-origins:http://localhost:8080,http://127.0.0.1:8080}")
     private String allowedOrigins;
 
     @Bean
@@ -46,9 +52,15 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
         // 从环境变量读取 CORS 来源配置
         List<String> origins = Arrays.asList(allowedOrigins.split(","));
+        List<String> validatedOrigins = new ArrayList<>();
         for (String origin : origins) {
             String trimmed = origin.trim();
             if (!trimmed.isEmpty()) {
+                // 验证 origin 格式，拒绝过于宽泛的 pattern
+                if (trimmed.endsWith("*")) {
+                    log.warn("CORS 配置包含通配符，建议使用具体端口: {}", trimmed);
+                }
+                validatedOrigins.add(trimmed);
                 configuration.addAllowedOriginPattern(trimmed);
             }
         }

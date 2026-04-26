@@ -5,14 +5,14 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.edu_project.common.exception.BusinessException;
 import com.example.edu_project.entity.BlogLike;
 import com.example.edu_project.entity.BlogPost;
+import com.example.edu_project.event.LikeCreatedEvent;
 import com.example.edu_project.mapper.BlogLikeMapper;
 import com.example.edu_project.service.BlogLikeService;
 import com.example.edu_project.service.BlogPostService;
-import com.example.edu_project.service.NotificationService;
 import com.example.edu_project.vo.LikeResultVO;
 import com.example.edu_project.vo.LikeStatusVO;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,8 +30,7 @@ public class BlogLikeServiceImpl extends ServiceImpl<BlogLikeMapper, BlogLike> i
     private BlogPostService blogPostService;
 
     @Autowired
-    @Qualifier("notificationServiceImpl")
-    private NotificationService notificationService;
+    private ApplicationEventPublisher eventPublisher;
 
     /**
      * 细粒度锁映射表：key="userId-postId"，value=锁对象
@@ -111,8 +110,8 @@ public class BlogLikeServiceImpl extends ServiceImpl<BlogLikeMapper, BlogLike> i
                     // 更新文章点赞数+1
                     blogPostService.incrementLikeCount(postId);
                     result.setAction("like");
-                    // 发送点赞通知
-                    notificationService.sendNotification("like", "有人点赞了你的文章", "用户点赞了你的文章：" + post.getTitle(), userId, post.getUserId(), "post", postId);
+                    // 发布点赞事件，事务提交后异步发送通知
+                    eventPublisher.publishEvent(new LikeCreatedEvent(userId, post.getUserId(), postId, post.getTitle()));
                 } catch (DuplicateKeyException e) {
                     // 并发情况下另一个请求已经插入了，直接视为取消点赞（再执行一次取消）
                     // 查询当前状态
