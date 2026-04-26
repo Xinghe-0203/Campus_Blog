@@ -15,6 +15,7 @@ import com.example.edu_project.utils.HtmlSanitizer;
 import com.example.edu_project.utils.SecurityUtils;
 import com.example.edu_project.event.CommentCreatedEvent;
 import com.example.edu_project.vo.CommentVO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
 /**
  * 评论服务实现类
  */
+@Slf4j
 @Service
 public class BlogCommentServiceImpl extends ServiceImpl<BlogCommentMapper, BlogComment> implements BlogCommentService {
 
@@ -89,6 +91,7 @@ public class BlogCommentServiceImpl extends ServiceImpl<BlogCommentMapper, BlogC
                 request.getParentId() != null
         ));
 
+        log.info("评论创建成功: commentId={}, postId={}, userId={}", comment.getId(), request.getPostId(), userId);
         return comment.getId();
     }
 

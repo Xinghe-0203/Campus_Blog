@@ -63,7 +63,8 @@ public class NotificationServiceImpl extends ServiceImpl<BlogNotificationMapper,
         if (notification == null) {
             throw new BusinessException(404, "通知不存在");
         }
-        if (!notification.getToUserId().equals(userId)) {
+        // 允许管理员或通知接收者标记为已读
+        if (!notification.getToUserId().equals(userId) && !SecurityUtils.isCurrentUserAdmin()) {
             throw new BusinessException(403, "无权操作此通知");
         }
         notification.setIsRead(1);

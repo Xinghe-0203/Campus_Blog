@@ -108,6 +108,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         SysUser user = this.getOne(wrapper);
 
         if (user == null) {
+            log.warn("用户登录失败: username={}, 原因=用户不存在", request.getUsername());
             throw new BusinessException(401, "用户名或密码错误");
         }
 
@@ -123,11 +124,13 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
         // 验证密码
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            log.warn("用户登录失败: username={}, 原因=密码错误", request.getUsername());
             // 密码错误，使用原子操作增加失败计数
             handleLoginFailAtomic(user.getId());
             // 重新查询获取最新锁定状态
             SysUser updatedUser = this.getById(user.getId());
             if (updatedUser.getLockUntil() != null && updatedUser.getLockUntil().isAfter(LocalDateTime.now())) {
+                log.warn("用户登录失败: username={}, 原因=账号已被锁定至{}", request.getUsername(), updatedUser.getLockUntil());
                 throw new BusinessException(403, "登录失败次数过多，请稍后再试");
             }
             throw new BusinessException(401, "用户名或密码错误");
@@ -194,6 +197,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
 
         // 验证旧密码
         if (!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            log.warn("用户修改密码失败: userId={}, 原因=旧密码错误", userId);
             throw new BusinessException(400, "旧密码不正确");
         }
 
@@ -210,6 +214,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         // 更新密码
         user.setPassword(passwordEncoder.encode(newPassword));
         this.updateById(user);
+        log.info("用户修改密码成功: userId={}", userId);
     }
 
     @Override

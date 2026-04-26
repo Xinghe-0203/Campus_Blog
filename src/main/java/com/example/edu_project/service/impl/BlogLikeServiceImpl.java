@@ -11,6 +11,7 @@ import com.example.edu_project.service.BlogLikeService;
 import com.example.edu_project.service.BlogPostService;
 import com.example.edu_project.vo.LikeResultVO;
 import com.example.edu_project.vo.LikeStatusVO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DuplicateKeyException;
@@ -23,6 +24,7 @@ import java.util.concurrent.ConcurrentMap;
 /**
  * 点赞服务实现类
  */
+@Slf4j
 @Service
 public class BlogLikeServiceImpl extends ServiceImpl<BlogLikeMapper, BlogLike> implements BlogLikeService {
 

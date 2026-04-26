@@ -506,6 +506,13 @@ java -jar target/edu_project-0.0.1-SNAPSHOT.jar
 
 ## 更新日志
 
+### v1.30 (2026-04-26)
+- 🔧 **High 修复**：添加登录失败日志（密码错误、用户不存在、账号锁定）
+- 🔧 **High 修复**：添加密码修改日志
+- 🔧 **High 修复**：添加评论创建日志
+- 🔧 **High 修复**：NotificationServiceImpl markAsRead 增加管理员权限校验
+- 🔧 **Medium 修复**：修复分页参数在DTO层校验（@Max(100)限制）
+
 ### v1.29 (2026-04-26)
 - 🔧 **Critical 修复**：安全漏洞 - 移除登录响应中的邮箱/角色字段
 - 🔧 **Critical 修复**：安全漏洞 - 用户详情接口仅用户本人或管理员可见邮箱/角色
