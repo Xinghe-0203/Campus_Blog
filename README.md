@@ -12,7 +12,7 @@
 | **MyBatis Plus** | 3.5.5 | ORM 持久层框架（MyBatis 增强） |
 | **MySQL** | 8.0+ | 关系型数据库（云端部署） |
 | **Knife4j** | 4.5.0 | API 文档（基于 Swagger） |
-| **Lombok** | 由父工程管理 | 简化 Java 代码 |
+| **Lombok** | 1.18.36 | 简化 Java 代码 |
 | **Hutool** | 5.8.38 | Java 工具类库 |
 | **JWT (JJWT)** | 0.12.3 | JSON Web Token 认证 |
 | **Spring Security** | 由父工程管理 | 安全认证框架 |
@@ -150,11 +150,11 @@ edu_project/
 10. **blog_trending** - 热度统计表
 11. **blog_draft** - 文章草稿表
 12. **blog_report** - 内容举报表
-13. **circle_post** - 校友圈动态表
-14. **circle_like** - 校友圈点赞表
-15. **circle_comment** - 校友圈评论表
-16. **circle_repost** - 校友圈转发表
-17. **media** - 媒体资源表
+13. **blog_circle_post** - 校友圈动态表
+14. **blog_circle_like** - 校友圈点赞表
+15. **blog_circle_comment** - 校友圈评论表
+16. **blog_circle_repost** - 校友圈转发表
+17. **blog_media** - 媒体资源表
 18. **blog_post_media** - 文章媒体关联表
 
 ## 快速开始
