@@ -250,6 +250,7 @@ mvn spring-boot:run
 | 方法 | 路径 | 说明 |
 | :--- | :--- | :--- |
 | GET | `/api/tag/list` | 获取标签列表（公开访问） |
+| POST | `/api/tag` | 创建标签（需登录，body: `{"name": "标签名"}`） |
 
 ### 关注模块
 
@@ -387,6 +388,10 @@ mvn spring-boot:run
 8. 对接前端页面
 
 ## 更新日志
+
+### v1.23 (2026-04-26)
+- ✨ 新增：标签创建功能 POST /api/tag，支持创建新标签
+- 📝 文档：API 接口文档添加标签创建接口
 
 ### v1.22 (2026-04-26)
 - 🔒 安全修复：MediaController.getMediaInfo/getPostMedia 添加登录校验，防止越权访问
