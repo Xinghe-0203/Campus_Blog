@@ -148,6 +148,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
                 user.getNickname(),
                 user.getEmail(),
                 user.getRole(),
+                user.getAvatar(),
                 token,
                 refreshToken
         );

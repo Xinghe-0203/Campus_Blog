@@ -29,6 +29,9 @@ public class UserLoginResponse {
     @Schema(description = "角色")
     private String role;
 
+    @Schema(description = "头像URL")
+    private String avatar;
+
     @Schema(description = "JWT Token")
     private String token;
 

@@ -31,6 +31,9 @@ public class CirclePostVO {
     @Schema(description = "转发的原动态")
     private CirclePostVO repostPost;
 
+    @Schema(description = "转发的原动态是否已隐藏（无权查看）")
+    private Boolean originalPostHidden;
+
     @Schema(description = "位置信息")
     private String location;
 
@@ -57,6 +60,15 @@ public class CirclePostVO {
 
     @Schema(description = "是否置顶")
     private Boolean isTop;
+
+    @Schema(description = "可见性：0=公开，1=仅关注者，2=仅自己")
+    private Integer visibility;
+
+    @Schema(description = "是否允许评论：1=允许，0=不允许")
+    private Integer allowComment;
+
+    @Schema(description = "是否允许转发：1=允许，0=不允许")
+    private Integer allowRepost;
 
     @Schema(description = "创建时间")
     private LocalDateTime createTime;

@@ -92,7 +92,8 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Long createPost(String content, List<String> images, String location, Long repostId,
-                           List<String> tags, Long userId) {
+                           List<String> tags, Long userId,
+                           Integer visibility, Integer allowComment, Integer allowRepost) {
         // 参数校验
         if (StrUtil.isBlank(content) && (images == null || images.isEmpty()) && repostId == null) {
             throw new BusinessException(400, "动态内容不能为空");
@@ -111,9 +112,21 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
             if (originalPost == null || originalPost.getStatus() == 2) {
                 throw new BusinessException(404, "原动态不存在");
             }
+            // 检查原动态是否允许转发
+            if (originalPost.getAllowRepost() != null && originalPost.getAllowRepost() == 0) {
+                throw new BusinessException(403, "该动态禁止转发");
+            }
+            // 检查是否有权限查看原动态（才能转发）
+            if (!canViewPost(originalPost, userId)) {
+                throw new BusinessException(403, "无权转发此动态");
+            }
+            // 如果原动态是仅自己可见，转发时自动设为仅关注者可见
+            if (originalPost.getVisibility() != null && originalPost.getVisibility() == 2) {
+                visibility = 1;
+            }
             contentType = 3; // 转发
         } else if (images != null && !images.isEmpty()) {
-            contentType = 1; // 图文
+            contentType = 1; // 纯文本
         }
 
         // 创建动态
@@ -129,6 +142,10 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
         post.setRepostCount(0);
         post.setIsTop(0);
         post.setStatus(1);
+        // 可见性设置
+        post.setVisibility(visibility != null ? visibility : 0);
+        post.setAllowComment(allowComment != null ? allowComment : 1);
+        post.setAllowRepost(allowRepost != null ? allowRepost : 1);
 
         // 图片列表转为 JSON
         if (images != null && !images.isEmpty()) {
@@ -170,6 +187,11 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
             baseMapper.decrementRepostCount(post.getRepostId());
         }
 
+        // 级联删除关联数据（物理删除）
+        circleCommentMapper.deleteByPostId(postId);
+        circleLikeMapper.deleteByPostId(postId);
+        circleRepostMapper.deleteByOriginalPostId(postId);
+
         // 软删除：设置 status = 2
         post.setStatus(2);
         this.updateById(post);
@@ -180,6 +202,11 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
     public List<CirclePostVO> getRecommendFeed(int page, int pageSize, Long currentUserId) {
         LambdaQueryWrapper<CirclePost> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(CirclePost::getStatus, 1) // 只查询正常状态的动态
+                // 可见性过滤：公开动态(visibility=0) 或 作者本人查看自己的公开动态
+                .and(w -> w.eq(CirclePost::getVisibility, 0) // 公开
+                        .or() // 或者作者本人查看自己公开的
+                        .and(w2 -> w2.eq(CirclePost::getUserId, currentUserId)
+                                    .eq(CirclePost::getVisibility, 0)))
                 .orderByDesc(CirclePost::getIsTop) // 置顶优先
                 .orderByDesc(CirclePost::getCreateTime); // 然后按时间
 
@@ -205,10 +232,19 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
                 .map(UserVO::getId)
                 .collect(Collectors.toList());
 
-        // 查询关注用户的动态
+        // 查询关注用户的动态，考虑可见性：
+        // - 公开(visibility=0)：所有人都可见
+        // - 仅关注者(visibility=1)：需要关注才能看
+        // - 仅自己(visibility=2)：只有作者自己能看
         LambdaQueryWrapper<CirclePost> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(CirclePost::getStatus, 1) // 只查询正常状态的动态
-                .in(CirclePost::getUserId, followingUserIds)
+                .in(CirclePost::getUserId, followingUserIds) // 关注的人的动态
+                .and(w -> w
+                        .eq(CirclePost::getVisibility, 0) // 公开动态
+                        .or() // 或者
+                        .eq(CirclePost::getVisibility, 1) // 仅关注者可见的
+                        .or() // 或者
+                        .eq(CirclePost::getVisibility, 2).eq(CirclePost::getUserId, userId)) // 仅自己可见但作者是自己
                 .orderByDesc(CirclePost::getIsTop) // 置顶优先
                 .orderByDesc(CirclePost::getCreateTime); // 然后按时间
 
@@ -229,6 +265,11 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
             throw new BusinessException(404, "动态不存在");
         }
 
+        // 可见性检查
+        if (!canViewPost(post, currentUserId)) {
+            throw new BusinessException(403, "无权查看此动态");
+        }
+
         // 增加阅读量
         baseMapper.incrementViewCount(postId);
         post.setViewCount(post.getViewCount() + 1);
@@ -236,6 +277,32 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
         List<CirclePost> posts = Collections.singletonList(post);
         List<CirclePostVO> voList = convertToVOList(posts, currentUserId);
         return voList.isEmpty() ? null : voList.get(0);
+    }
+
+    /**
+     * 检查当前用户是否有权查看该动态
+     */
+    private boolean canViewPost(CirclePost post, Long currentUserId) {
+        // 作者本人总是可以看
+        if (currentUserId != null && post.getUserId() != null && post.getUserId().equals(currentUserId)) {
+            return true;
+        }
+
+        // 公开动态谁都可以看
+        if (post.getVisibility() == null || post.getVisibility() == 0) {
+            return true;
+        }
+
+        // 仅关注者可见，需要检查是否关注了作者
+        if (post.getVisibility() == 1) {
+            if (currentUserId == null) {
+                return false;
+            }
+            return followService.isFollowing(post.getUserId(), currentUserId);
+        }
+
+        // 仅自己可见，只有作者能看（已在上面处理）
+        return false;
     }
 
     /**
@@ -285,6 +352,9 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
             vo.setIsTop(post.getIsTop() == 1);
             vo.setIsLiked(finalLikedPostIds.contains(post.getId()));
             vo.setIsReposted(finalRepostedPostIds.contains(post.getId()));
+            vo.setVisibility(post.getVisibility());
+            vo.setAllowComment(post.getAllowComment());
+            vo.setAllowRepost(post.getAllowRepost());
             vo.setCreateTime(post.getCreateTime());
             vo.setTimeAgo(calculateTimeAgo(post.getCreateTime()));
 
@@ -313,35 +383,45 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
                 vo.setUser(userVO);
             }
 
-            // 如果是转发，获取原动态信息
+            // 如果是转发，获取原动态信息（需检查可见性）
             if (post.getRepostId() != null) {
                 CirclePost repostPost = this.getById(post.getRepostId());
                 if (repostPost != null && repostPost.getStatus() != 2) {
-                    CirclePostVO repostVO = new CirclePostVO();
-                    repostVO.setId(repostPost.getId());
-                    repostVO.setContent(repostPost.getContent());
-                    repostVO.setContentType(repostPost.getContentType());
+                    // 检查是否有权限查看原动态
+                    if (canViewPost(repostPost, currentUserId)) {
+                        CirclePostVO repostVO = new CirclePostVO();
+                        repostVO.setId(repostPost.getId());
+                        repostVO.setContent(repostPost.getContent());
+                        repostVO.setContentType(repostPost.getContentType());
+                        repostVO.setVisibility(repostPost.getVisibility());
+                        repostVO.setAllowComment(repostPost.getAllowComment());
+                        repostVO.setAllowRepost(repostPost.getAllowRepost());
 
-                    // 原动态作者信息
-                    SysUser repostUser = sysUserMapper.selectById(repostPost.getUserId());
-                    if (repostUser != null) {
-                        UserVO repostUserVO = new UserVO();
-                        repostUserVO.setId(repostUser.getId());
-                        repostUserVO.setUsername(repostUser.getUsername());
-                        repostUserVO.setNickname(repostUser.getNickname());
-                        repostUserVO.setAvatar(repostUser.getAvatar());
-                        repostVO.setUser(repostUserVO);
+                        // 原动态作者信息
+                        SysUser repostUser = sysUserMapper.selectById(repostPost.getUserId());
+                        if (repostUser != null) {
+                            UserVO repostUserVO = new UserVO();
+                            repostUserVO.setId(repostUser.getId());
+                            repostUserVO.setUsername(repostUser.getUsername());
+                            repostUserVO.setNickname(repostUser.getNickname());
+                            repostUserVO.setAvatar(repostUser.getAvatar());
+                            repostVO.setUser(repostUserVO);
+                        }
+
+                        // 原动态图片
+                        if (StrUtil.isNotBlank(repostPost.getImageUrls())) {
+                            repostVO.setImageUrls(cn.hutool.json.JSONUtil.toList(repostPost.getImageUrls(), String.class));
+                        }
+
+                        repostVO.setCreateTime(repostPost.getCreateTime());
+                        repostVO.setTimeAgo(calculateTimeAgo(repostPost.getCreateTime()));
+
+                        vo.setRepostPost(repostVO);
+                    } else {
+                        // 无权查看原动态，设置一个标记，前端可据此显示"此动态已不可见"
+                        vo.setRepostPost(null);
+                        vo.setOriginalPostHidden(true);
                     }
-
-                    // 原动态图片
-                    if (StrUtil.isNotBlank(repostPost.getImageUrls())) {
-                        repostVO.setImageUrls(cn.hutool.json.JSONUtil.toList(repostPost.getImageUrls(), String.class));
-                    }
-
-                    repostVO.setCreateTime(repostPost.getCreateTime());
-                    repostVO.setTimeAgo(calculateTimeAgo(repostPost.getCreateTime()));
-
-                    vo.setRepostPost(repostVO);
                 }
             }
 
@@ -384,6 +464,11 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
         CirclePost post = this.getById(postId);
         if (post == null || post.getStatus() != 1) {
             throw new BusinessException(404, "动态不存在");
+        }
+
+        // 检查可见性权限
+        if (!canViewPost(post, userId)) {
+            throw new BusinessException(403, "无权操作此动态");
         }
 
         // 使用细粒度锁
@@ -451,6 +536,11 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
             throw new BusinessException(404, "动态不存在");
         }
 
+        // 检查评论权限
+        if (post.getAllowComment() != null && post.getAllowComment() == 0) {
+            throw new BusinessException(403, "该动态禁止评论");
+        }
+
         // 参数校验
         if (content == null || content.trim().isEmpty()) {
             throw new BusinessException(400, "评论内容不能为空");
@@ -495,7 +585,16 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
      */
     @Override
     @Transactional(readOnly = true)
-    public List<CircleCommentVO> getComments(Long postId) {
+    public List<CircleCommentVO> getComments(Long postId, Long currentUserId) {
+        // 检查动态是否存在且用户有权限查看
+        CirclePost post = this.getById(postId);
+        if (post == null || post.getStatus() != 1) {
+            throw new BusinessException(404, "动态不存在");
+        }
+        if (!canViewPost(post, currentUserId)) {
+            throw new BusinessException(403, "无权查看此动态的评论");
+        }
+
         // 查询该动态的所有评论
         LambdaQueryWrapper<CircleComment> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(CircleComment::getPostId, postId)
@@ -661,6 +760,16 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
             throw new BusinessException(404, "原动态不存在");
         }
 
+        // 检查是否允许转发
+        if (originalPost.getAllowRepost() != null && originalPost.getAllowRepost() == 0) {
+            throw new BusinessException(403, "该动态禁止转发");
+        }
+
+        // 检查是否有权限查看原动态（才能转发）
+        if (!canViewPost(originalPost, userId)) {
+            throw new BusinessException(403, "无权转发此动态");
+        }
+
         // XSS 防护
         String sanitizedContent = content != null ? htmlSanitizer.sanitizePlainText(content) : null;
 
@@ -670,12 +779,18 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
         newPost.setContent(sanitizedContent != null ? sanitizedContent : "");
         newPost.setContentType(3); // 转发类型
         newPost.setRepostId(originalPostId);
+        // 转发时记录被转发者的用户ID
+        newPost.setRepostUserId(originalPost.getUserId());
         newPost.setLikeCount(0);
         newPost.setCommentCount(0);
         newPost.setRepostCount(0);
         newPost.setViewCount(0);
         newPost.setIsTop(0);
         newPost.setStatus(1);
+        // 转发默认公开可见，但继承原动态的评论/转发限制
+        newPost.setVisibility(0); // 默认公开
+        newPost.setAllowComment(originalPost.getAllowComment()); // 继承原动态的评论设置
+        newPost.setAllowRepost(originalPost.getAllowRepost()); // 继承原动态的转发设置
 
         this.save(newPost);
 
@@ -726,6 +841,11 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
 
         LambdaQueryWrapper<CirclePost> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(CirclePost::getStatus, 1) // 只查询正常状态的动态
+                // 可见性过滤：公开动态 或 作者本人查看自己的公开动态
+                .and(w -> w.eq(CirclePost::getVisibility, 0) // 公开
+                        .or() // 或者作者本人查看自己公开的
+                        .and(w2 -> w2.eq(CirclePost::getUserId, currentUserId)
+                                    .eq(CirclePost::getVisibility, 0))) // 作者本人的公开动态
                 .like(CirclePost::getContent, keyword.trim()) // 搜索内容
                 .orderByDesc(CirclePost::getCreateTime); // 按时间排序
 

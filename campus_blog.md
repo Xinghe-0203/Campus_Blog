@@ -10,7 +10,7 @@
 | **项目类型** | 全栈 Web 应用 |
 | **开发周期** | 校技能大赛周期 |
 | **开发人员** | 刘畅 |
-| **当前版本** | v1.23 |
+| **当前版本** | v1.25 |
 | **GitHub 仓库** | https://github.com/Xinghe-0203/Campus_Blog |
 
 ---
@@ -55,7 +55,7 @@
 | **🚨 举报管理** | ✅ 已完成 | 100% |
 | **🌐 校友圈动态** | ✅ 已完成 | 100% |
 | **📷 媒体上传** | ✅ 已完成 | 100% |
-| **🎨 前端页面开发** | ⏳ 待开发 | 0% |
+| **🎨 前端页面开发** | ✅ 文档已完成 | 100%（文档） |
 | **🔗 前后端联调** | ⏳ 待开发 | 0% |
 
 ### 2.1 已完成的工作
@@ -154,13 +154,14 @@
 | :--- | :--- | :--- |
 | **HTML5** | - | 页面结构标记语言 |
 | **CSS3** | - | 页面样式设计 |
-| **JavaScript (ES6+)** | - | 前端交互逻辑 |
+| **JavaScript (ES6+)** | ES Modules | 前端交互逻辑（模块化） |
 | **Bootstrap** | 5.x | UI 组件框架，提供响应式布局和现成组件 |
-| **jQuery** | - | DOM 操作和 AJAX 请求（可选） |
-| **Axios** | - | HTTP 请求库，用于前后端数据交互 |
+| **Axios** | 1.x | HTTP 请求库，用于前后端数据交互 |
+| **Marked.js** | 9.x | Markdown 解析 |
+| **Highlight.js** | 11.x | 代码高亮 |
+| **DOMPurify** | 3.x | HTML 净化（XSS 防护） |
 | **Font Awesome** | - | 图标库 |
-| **Editor.md / Vditor** | - | Markdown 编辑器，支持实时预览 |
-| **ECharts** | - | 数据可视化图表库 |
+| **ECharts** | - | 数据可视化图表库（可选） |
 
 ### 4.4 开发工具
 
@@ -418,7 +419,12 @@ src/main/java/com/example/edu_project/
 ├── config/                               # 配置类
 │   ├── MybatisPlusConfig.java          # MyBatis Plus 配置
 │   ├── MyMetaObjectHandler.java         # 自动填充处理器
-│   └── SecurityConfig.java              # Spring Security 配置
+│   ├── SecurityConfig.java              # Spring Security 配置
+│   ├── JwtSchedulerConfig.java          # JWT 黑名单定时清理
+│   ├── JwtAuthenticationFilter.java     # JWT 认证过滤器
+│   ├── EnvValidationConfig.java          # 环境变量校验
+│   ├── DotenvConfig.java                # .env 自动加载
+│   └── WebMvcConfig.java                # 静态资源映射
 │
 ├── controller/                           # Controller 层（13个）
 │   ├── SysUserController.java            # 用户控制器
@@ -535,6 +541,7 @@ src/main/java/com/example/edu_project/
 - `401` = 未登录
 - `403` = 无权限
 - `404` = 资源不存在
+- `409` = 数据已存在，操作冲突
 - `500` = 服务器内部错误
 
 ---
@@ -663,6 +670,7 @@ src/main/java/com/example/edu_project/
 | 发表评论 | POST | `/api/circle/comment` | ✅ 已实现 |
 | 删除评论 | DELETE | `/api/circle/comment/{commentId}` | ✅ 已实现 |
 | 转发动态 | POST | `/api/circle/repost/{postId}` | ✅ 已实现 |
+| 搜索动态 | GET | `/api/circle/search` | ✅ 已实现 |
 
 ### 7.14 媒体上传模块
 
@@ -769,8 +777,8 @@ $env:JWT_SECRET="your_jwt_secret_key_here"
 
 ### 10.4 访问地址
 
-- 应用地址：http://localhost/api
-- API 文档：http://localhost/api/doc.html
+- 应用地址：http://localhost:8825/api
+- API 文档：http://localhost:8825/api/doc.html
 
 ### 10.5 默认账号
 
@@ -883,7 +891,10 @@ edu_project/
     │   ├── vo/
     │   │   └── UserLoginResponse.java
     │   ├── utils/
-    │   │   └── JwtUtils.java
+    │   │   ├── JwtUtils.java              # JWT 工具类
+    │   │   ├── SecurityUtils.java         # 安全工具类
+    │   │   ├── UserContext.java          # 用户上下文
+    │   │   └── HtmlSanitizer.java        # XSS 防护
     │   └── service/                              # Service 层（13个）
     │   │   ├── SysUserService.java
     │   │   ├── BlogPostService.java
@@ -981,10 +992,10 @@ edu_project/
 | 2026-04-25 | v1.10 | 安全增强与代码完善<br>修复用户枚举漏洞（通用错误信息）<br>修复点赞/收藏竞态条件（细粒度锁 + DuplicateKeyException处理）<br>新增XSS防护（Jsoup过滤）<br>完善@Transactional注解<br>修复batchInsertPostTags事务缺失问题 |
 | 2026-04-25 | v1.9 | 安全增强与并发修复<br>修复IP伪造漏洞（IP+User-Agent指纹）<br>修复点赞竞态条件（DuplicateKeyException处理）<br>修复评论删除级联问题（递归删除子评论）<br>新增登录失败锁定机制（5次失败锁定15分钟，原子更新并发安全）<br>提升BCrypt强度至12轮<br>新增JWT Token黑名单机制（支持主动撤销Token）<br>新增JWT刷新Token机制（7天有效期+Rotation）<br>新增JWT黑名单定时清理（每小时）<br>新增刷新Token接口POST /api/user/refresh |
 | 2026-04-25 | v1.8 | 新增点赞/收藏/评论模块<br>支持发表评论/回复/树形结构展示<br>支持点赞/取消点赞自动更新计数<br>支持收藏/取消收藏和我的收藏列表<br>管理员可删除任意评论 |
-| 2026-04-26 | v1.23 | ✨ 新增：标签创建功能 POST /api/tag，支持创建新标签 |
+| 2026-04-26 | v1.25 | 🔧 安全审计修复：CircleLikeMapper表名错误(circle_like→blog_circle_like)<br>🔧 安全审计修复：deletePost级联删除关联数据<br>🔧 安全审计修复：toggleLike可见性权限检查<br>🔧 安全审计修复：getRecommendFeed/searchPosts可见性过滤漏洞<br>🔧 安全审计修复：canViewPost添加NPE防护<br>🔧 API修复：Token刷新响应格式文档修正<br>🔧 API修复：登录响应新增avatar字段<br>🔧 API修复：refreshToken前端示例添加Authorization header<br>🔧 数据库增强：为实体添加唯一约束注解(实际由数据库保证) |
 | 2026-04-26 | v1.22 | 🔒 安全修复：MediaController添加getMediaInfo/getPostMedia登录校验<br>🔒 安全修复：GlobalExceptionHandler兜底异常不返回异常类名<br>🔧 增强：NotificationController分页参数添加@Min/@Max验证<br>🔧 增强：MediaController.bindPostMedia添加@Size验证<br>🔧 增强：CORS配置支持环境变量CORS_ALLOWED_ORIGINS<br>🐛 修复：BlogTrending.statDate类型改为LocalDate<br>🐛 修复：CirclePost添加缺失字段repostUserId/repostContent/mentions |
 
 ---
 
-**文档版本**：v1.23
+**文档版本**：v1.25
 **最后更新**：2026-04-26

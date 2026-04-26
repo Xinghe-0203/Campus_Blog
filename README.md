@@ -193,7 +193,7 @@ mvn spring-boot:run
 ### 5. 访问 API 文档
 
 项目启动成功后，访问：
-**http://localhost/api/doc.html**
+**http://localhost:8825/api/doc.html**
 
 ## 默认账号
 
@@ -327,7 +327,7 @@ mvn spring-boot:run
 | 方法 | 路径 | 说明 |
 | :--- | :--- | :--- |
 | PUT | `/api/user/password` | 修改密码（需登录，body: `{"oldPassword": "", "newPassword": ""}`） |
-| GET | `/api/user/search` | 搜索用户（需登录，query: `keyword`） |
+| GET | `/api/user/search` | 搜索用户（需登录，参数: `keyword`, `page`, `pageSize`） |
 
 ### 文章搜索模块
 
@@ -389,9 +389,52 @@ mvn spring-boot:run
 
 ## 更新日志
 
+### v1.25 (2026-04-26)
+- 🔧 **安全审计修复**：CircleLikeMapper 表名错误 (circle_like → blog_circle_like)
+- 🔧 **安全审计修复**：deletePost 删除时缺少级联删除关联数据
+- 🔧 **安全审计修复**：toggleLike 缺少可见性权限检查
+- 🔧 **安全审计修复**：getRecommendFeed 和 searchPosts 可见性过滤漏洞
+- 🔧 **安全审计修复**：canViewPost 添加 NPE 防护
+- 🔧 **API 修复**：Token 刷新响应格式文档修正
+- 🔧 **API 修复**：登录响应新增 avatar 字段
+- 🔧 **API 修复**：前端 refreshToken 示例代码缺少 Authorization header
+- 🔧 **数据库增强**：为 BlogLike/BlogCollect/BlogFollow/CircleLike/BlogTrending 添加 @TableUnique 注解
+- 📝 文档：CORS 配置添加生产环境安全警告
+- 📝 文档：所有文档版本号更新至 v1.25
+
+### v1.24 (2026-04-26)
+- 🌐 **校友圈权限升级**：新增 visibility/allowComment/allowRepost 字段
+- 🌐 **可见性控制**：0=公开，1=仅关注者，2=仅自己
+- 🌐 **评论/转发权限**：可以关闭评论或禁止转发
+- 🌐 **Feed 权限过滤**：推荐流/关注流/搜索/详情页都做了权限校验
+- 🌐 **转发权限检查**：转发时验证用户是否有权查看原动态
+- 🌐 **评论列表检查**：获取评论前验证用户是否有权查看动态
+- 🌐 **转发原动态隐藏**：当转发的原动态无权查看时返回 originalPostHidden 标记
+- 🔧 **端口变更**：默认端口从 80 改为 8825，可通过环境变量 SERVER_PORT 覆盖
+- 📝 前端开发文档同步更新：校友圈 API 新增字段说明
+- 📝 端口变更：所有文档中的 localhost:8080 改为 localhost:8825
+
 ### v1.23 (2026-04-26)
 - ✨ 新增：标签创建功能 POST /api/tag，支持创建新标签
 - 📝 文档：API 接口文档添加标签创建接口
+- 📝 前端开发文档：完善至完整版 v1.23，覆盖全部 13 个 Controller 接口
+- 📝 补充缺失接口：关注、通知、草稿、举报、校友圈、媒体、热门/趋势、标签
+- 📝 新增状态管理方案：发布-订阅模式的全局状态管理
+- 📝 新增错误处理：Toast 提示组件、表单前端校验
+- 📝 完善 Token 刷新：集成到 Axios 拦截器自动处理
+- 📝 新增页面清单：个人中心、校友圈、通知中心、管理员后台等完整页面列表
+- 📝 新增开发指南：环境配置、移动端适配、安全注意事项、调试技巧
+- 📝 更新技术栈：Marked.js 9.x、Highlight.js 11.x、DOMPurify 3.x
+
+### v1.22 (2026-04-26)
+- 📝 前端开发文档：完善至完整版 v1.23，覆盖全部 13 个 Controller 接口
+- 📝 补充缺失接口：关注、通知、草稿、举报、校友圈、媒体、热门/趋势、标签
+- 📝 新增状态管理方案：发布-订阅模式的全局状态管理
+- 📝 新增错误处理：Toast 提示组件、表单前端校验
+- 📝 完善 Token 刷新：集成到 Axios 拦截器自动处理
+- 📝 新增页面清单：个人中心、校友圈、通知中心、管理员后台等完整页面列表
+- 📝 新增开发指南：环境配置、移动端适配、安全注意事项、调试技巧
+- 📝 更新技术栈：Marked.js 9.x、Highlight.js 11.x、DOMPurify 3.x
 
 ### v1.22 (2026-04-26)
 - 🔒 安全修复：MediaController.getMediaInfo/getPostMedia 添加登录校验，防止越权访问

@@ -619,6 +619,12 @@ CREATE TABLE `blog_circle_post` (
 
     `is_top`            TINYINT(1)     DEFAULT 0                     COMMENT '是否置顶：0=否，1=是',
 
+    `visibility`        TINYINT(1)     DEFAULT 0                     COMMENT '可见性：0=公开，1=仅关注者，2=仅自己',
+
+    `allow_comment`     TINYINT(1)     DEFAULT 1                     COMMENT '是否允许评论：1=允许，0=不允许',
+
+    `allow_repost`      TINYINT(1)     DEFAULT 1                     COMMENT '是否允许转发：1=允许，0=不允许',
+
     `status`            TINYINT(1)     DEFAULT 1                     COMMENT '状态：1=正常，0=隐藏，2=删除',
 
     `create_time`       DATETIME        DEFAULT CURRENT_TIMESTAMP    COMMENT '创建时间',

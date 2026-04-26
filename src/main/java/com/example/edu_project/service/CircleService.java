@@ -20,9 +20,13 @@ public interface CircleService extends IService<CirclePost> {
      * @param repostId 转发来源ID
      * @param tags 标签列表
      * @param userId 发布用户ID
+     * @param visibility 可见性：0=公开，1=仅关注者，2=仅自己
+     * @param allowComment 是否允许评论：1=允许，0=不允许
+     * @param allowRepost 是否允许转发：1=允许，0=不允许
      * @return 创建的动态ID
      */
-    Long createPost(String content, List<String> images, String location, Long repostId, List<String> tags, Long userId);
+    Long createPost(String content, List<String> images, String location, Long repostId,
+                    List<String> tags, Long userId, Integer visibility, Integer allowComment, Integer allowRepost);
 
     /**
      * 删除动态
@@ -90,9 +94,10 @@ public interface CircleService extends IService<CirclePost> {
     /**
      * 获取动态评论列表（树形结构）
      * @param postId 动态ID
+     * @param currentUserId 当前用户ID（用于权限检查）
      * @return 评论列表
      */
-    List<CircleCommentVO> getComments(Long postId);
+    List<CircleCommentVO> getComments(Long postId, Long currentUserId);
 
     /**
      * 删除评论

@@ -48,7 +48,10 @@ public class CircleController {
                 request.getLocation(),
                 request.getRepostId(),
                 request.getTags(),
-                userId
+                userId,
+                request.getVisibility(),
+                request.getAllowComment(),
+                request.getAllowRepost()
         );
 
         return Result.success(postId);
@@ -142,7 +145,8 @@ public class CircleController {
     @Operation(summary = "获取动态评论列表")
     @GetMapping("/comment/{postId}")
     public Result<List<CircleCommentVO>> getComments(@PathVariable Long postId) {
-        List<CircleCommentVO> comments = circleService.getComments(postId);
+        Long userId = SecurityUtils.getCurrentUserIdOrNull();
+        List<CircleCommentVO> comments = circleService.getComments(postId, userId);
         return Result.success(comments);
     }
 

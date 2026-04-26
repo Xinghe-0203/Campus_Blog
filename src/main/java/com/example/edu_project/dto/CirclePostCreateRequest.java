@@ -1,6 +1,8 @@
 package com.example.edu_project.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -31,4 +33,19 @@ public class CirclePostCreateRequest {
 
     @Schema(description = "标签列表")
     private List<String> tags;
+
+    @Schema(description = "可见性：0=公开，1=仅关注者，2=仅自己", example = "0")
+    @Min(value = 0, message = "可见性取值范围为0-2")
+    @Max(value = 2, message = "可见性取值范围为0-2")
+    private Integer visibility = 0;
+
+    @Schema(description = "是否允许评论：1=允许，0=不允许", example = "1")
+    @Min(value = 0, message = "allowComment取值范围为0-1")
+    @Max(value = 1, message = "allowComment取值范围为0-1")
+    private Integer allowComment = 1;
+
+    @Schema(description = "是否允许转发：1=允许，0=不允许", example = "1")
+    @Min(value = 0, message = "allowRepost取值范围为0-1")
+    @Max(value = 1, message = "allowRepost取值范围为0-1")
+    private Integer allowRepost = 1;
 }

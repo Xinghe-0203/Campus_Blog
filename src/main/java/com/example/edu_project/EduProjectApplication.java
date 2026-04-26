@@ -32,7 +32,7 @@ public class EduProjectApplication {
         log.info("========================================");
         SpringApplication.run(EduProjectApplication.class, args);
         log.info("   校园博客论坛系统启动成功！");
-        log.info("   API文档地址：http://localhost:80/api/doc.html");
+        log.info("   API文档地址：http://localhost:8825/api/doc.html");
         log.info("========================================");
     }
 

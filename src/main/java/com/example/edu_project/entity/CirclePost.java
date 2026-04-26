@@ -98,6 +98,21 @@ public class CirclePost implements Serializable {
     private Integer isTop;
 
     /**
+     * 可见性：0=公开，1=仅关注者，2=仅自己
+     */
+    private Integer visibility;
+
+    /**
+     * 是否允许评论：1=允许，0=不允许
+     */
+    private Integer allowComment;
+
+    /**
+     * 是否允许转发：1=允许，0=不允许
+     */
+    private Integer allowRepost;
+
+    /**
      * 动态状态：1=正常，0=隐藏，2=已删除
      */
     private Integer status;
