@@ -334,7 +334,7 @@ mvn spring-boot:run
 | 方法 | 路径 | 说明 |
 | :--- | :--- | :--- |
 | GET | `/api/post/search/advanced` | 文章高级搜索（需登录） |
-| GET | `/api/post/search/suggest` | 获取搜索建议（公开访问） |
+| GET | `/api/post/search/suggest` | 获取搜索建议（需登录） |
 
 ### 媒体上传模块
 

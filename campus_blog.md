@@ -10,7 +10,7 @@
 | **项目类型** | 全栈 Web 应用 |
 | **开发周期** | 校技能大赛周期 |
 | **开发人员** | 刘畅 |
-| **当前版本** | v1.22 |
+| **当前版本** | v1.23 |
 | **GitHub 仓库** | https://github.com/Xinghe-0203/Campus_Blog |
 
 ---
@@ -592,6 +592,7 @@ src/main/java/com/example/edu_project/
 
 | 接口 | 方法 | 路径 | 说明 |
 | :--- | :--- | :--- | :--- |
+| 创建标签 | POST | `/api/tag` | ✅ 已实现 |
 | 获取标签列表 | GET | `/api/tag/list` | ✅ 已实现 |
 
 ### 7.7 关注模块
@@ -980,8 +981,10 @@ edu_project/
 | 2026-04-25 | v1.10 | 安全增强与代码完善<br>修复用户枚举漏洞（通用错误信息）<br>修复点赞/收藏竞态条件（细粒度锁 + DuplicateKeyException处理）<br>新增XSS防护（Jsoup过滤）<br>完善@Transactional注解<br>修复batchInsertPostTags事务缺失问题 |
 | 2026-04-25 | v1.9 | 安全增强与并发修复<br>修复IP伪造漏洞（IP+User-Agent指纹）<br>修复点赞竞态条件（DuplicateKeyException处理）<br>修复评论删除级联问题（递归删除子评论）<br>新增登录失败锁定机制（5次失败锁定15分钟，原子更新并发安全）<br>提升BCrypt强度至12轮<br>新增JWT Token黑名单机制（支持主动撤销Token）<br>新增JWT刷新Token机制（7天有效期+Rotation）<br>新增JWT黑名单定时清理（每小时）<br>新增刷新Token接口POST /api/user/refresh |
 | 2026-04-25 | v1.8 | 新增点赞/收藏/评论模块<br>支持发表评论/回复/树形结构展示<br>支持点赞/取消点赞自动更新计数<br>支持收藏/取消收藏和我的收藏列表<br>管理员可删除任意评论 |
+| 2026-04-26 | v1.23 | ✨ 新增：标签创建功能 POST /api/tag，支持创建新标签 |
+| 2026-04-26 | v1.22 | 🔒 安全修复：MediaController添加getMediaInfo/getPostMedia登录校验<br>🔒 安全修复：GlobalExceptionHandler兜底异常不返回异常类名<br>🔧 增强：NotificationController分页参数添加@Min/@Max验证<br>🔧 增强：MediaController.bindPostMedia添加@Size验证<br>🔧 增强：CORS配置支持环境变量CORS_ALLOWED_ORIGINS<br>🐛 修复：BlogTrending.statDate类型改为LocalDate<br>🐛 修复：CirclePost添加缺失字段repostUserId/repostContent/mentions |
 
 ---
 
-**文档版本**：v1.21
-**最后更新**：2026-04-25
+**文档版本**：v1.23
+**最后更新**：2026-04-26
