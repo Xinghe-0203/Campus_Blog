@@ -20,4 +20,10 @@ public interface BlogTagService extends IService<BlogTag> {
      * @return 创建的标签
      */
     BlogTag createTag(String name);
+
+    /**
+     * 删除标签（仅管理员可操作）
+     * @param tagId 标签ID
+     */
+    void deleteTag(Long tagId);
 }

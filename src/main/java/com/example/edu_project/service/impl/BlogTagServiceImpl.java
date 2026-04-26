@@ -7,6 +7,7 @@ import com.example.edu_project.entity.BlogTag;
 import com.example.edu_project.mapper.BlogTagMapper;
 import com.example.edu_project.service.BlogTagService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -24,6 +25,7 @@ public class BlogTagServiceImpl extends ServiceImpl<BlogTagMapper, BlogTag> impl
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public BlogTag createTag(String name) {
         if (name == null || name.trim().isEmpty()) {
             throw new BusinessException(400, "标签名称不能为空");
@@ -43,5 +45,16 @@ public class BlogTagServiceImpl extends ServiceImpl<BlogTagMapper, BlogTag> impl
         tag.setName(trimmedName);
         this.save(tag);
         return tag;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void deleteTag(Long tagId) {
+        BlogTag tag = this.getById(tagId);
+        if (tag == null) {
+            throw new BusinessException(404, "标签不存在");
+        }
+        // 删除标签（软删除）
+        this.removeById(tagId);
     }
 }

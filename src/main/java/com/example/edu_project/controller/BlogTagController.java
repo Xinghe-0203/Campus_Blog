@@ -48,4 +48,21 @@ public class BlogTagController {
         BlogTag tag = blogTagService.createTag(request.getName());
         return Result.success(tag);
     }
+
+    /**
+     * 删除标签（仅管理员可操作）
+     */
+    @Operation(summary = "删除标签")
+    @DeleteMapping("/{tagId}")
+    public Result<Void> deleteTag(@PathVariable Long tagId) {
+        Long userId = SecurityUtils.getCurrentUserIdOrNull();
+        if (userId == null) {
+            throw new BusinessException(401, "请先登录");
+        }
+        if (!SecurityUtils.isCurrentUserAdmin()) {
+            throw new BusinessException(403, "仅管理员可执行此操作");
+        }
+        blogTagService.deleteTag(tagId);
+        return Result.success(null);
+    }
 }

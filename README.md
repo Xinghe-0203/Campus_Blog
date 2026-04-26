@@ -367,6 +367,7 @@ java -jar target/edu_project-0.0.1-SNAPSHOT.jar
 | :--- | :--- | :--- |
 | GET | `/api/tag/list` | 获取标签列表（公开访问） |
 | POST | `/api/tag` | 创建标签（需登录，body: `{"name": "标签名"}`，使用 TagCreateRequest DTO） |
+| DELETE | `/api/tag/{tagId}` | 删除标签（需管理员） |
 
 ### 关注模块
 
@@ -512,7 +513,8 @@ java -jar target/edu_project-0.0.1-SNAPSHOT.jar
 - 🔧 **High 修复**：getPostDetail添加@Transactional(readOnly=true)
 - 🔧 **High 修复**：parentComment.getPostId() NPE修复
 - 🔧 **High 修复**：CORS配置默认端口从通配符改为具体端口8080
-- 🔧 **API 调整**：创建标签接口改为仅需登录（移除管理员权限）
+- 🔧 **API 调整**：创建标签接口改为仅需登录
+- ✨ **新增功能**：删除标签接口 DELETE /api/tag/{tagId}（仅管理员）
 - ✨ 新增事件机制：CommentCreatedEvent、LikeCreatedEvent、FollowCreatedEvent
 - ✨ 新增 NotificationEventListener：事务提交后异步发送通知
 
