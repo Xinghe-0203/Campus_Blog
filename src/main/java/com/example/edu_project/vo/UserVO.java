@@ -29,10 +29,14 @@ public class UserVO {
     @Schema(description = "头像URL")
     private String avatar;
 
-    @Schema(description = "邮箱")
+    /**
+     * 邮箱（仅用户本人或管理员可见）
+     */
     private String email;
 
-    @Schema(description = "角色")
+    /**
+     * 角色（仅用户本人或管理员可见）
+     */
     private String role;
 
     @Schema(description = "账号状态：1=正常，0=禁用")

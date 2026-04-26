@@ -1,5 +1,7 @@
 package com.example.edu_project.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.example.edu_project.entity.BlogFollow;
 import com.example.edu_project.vo.FollowStatusVO;
@@ -35,6 +37,24 @@ public interface FollowService extends IService<BlogFollow> {
      * @return 是否关注
      */
     boolean isFollowing(Long targetUserId, Long currentUserId);
+
+    /**
+     * 获取粉丝列表（分页）
+     * @param userId 用户ID
+     * @param page 页码
+     * @param pageSize 每页数量
+     * @return 粉丝分页列表
+     */
+    IPage<UserVO> getFollowers(Long userId, Integer page, Integer pageSize);
+
+    /**
+     * 获取关注列表（分页）
+     * @param userId 用户ID
+     * @param page 页码
+     * @param pageSize 每页数量
+     * @return 关注分页列表
+     */
+    IPage<UserVO> getFollowing(Long userId, Integer page, Integer pageSize);
 
     /**
      * 获取粉丝列表

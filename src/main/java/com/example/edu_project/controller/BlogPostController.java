@@ -232,15 +232,11 @@ public class BlogPostController {
     }
 
     /**
-     * 文章高级搜索
+     * 文章高级搜索（公开接口）
      */
     @Operation(summary = "文章高级搜索")
     @GetMapping("/search/advanced")
     public Result<IPage<PostListResponse>> advancedSearch(@Valid PostAdvancedSearchRequest request) {
-        Long userId = SecurityUtils.getCurrentUserIdOrNull();
-        if (userId == null) {
-            throw new BusinessException(401, "请先登录");
-        }
         IPage<PostListResponse> result = blogPostService.advancedSearch(request);
         return Result.success(result);
     }

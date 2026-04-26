@@ -95,6 +95,16 @@ public class BlogCommentServiceImpl extends ServiceImpl<BlogCommentMapper, BlogC
     @Override
     @Transactional(readOnly = true)
     public List<CommentVO> getCommentsByPostId(Long postId) {
+        // 先检查文章是否存在且已发布
+        BlogPost post = blogPostService.getById(postId);
+        if (post == null) {
+            throw new BusinessException(404, "文章不存在");
+        }
+        // 只有已发布的文章才能查看评论
+        if (post.getStatus() == null || post.getStatus() != 1) {
+            throw new BusinessException(403, "文章未发布或已下架");
+        }
+
         // 查询该文章的所有评论
         LambdaQueryWrapper<BlogComment> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(BlogComment::getPostId, postId)

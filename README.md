@@ -506,6 +506,15 @@ java -jar target/edu_project-0.0.1-SNAPSHOT.jar
 
 ## 更新日志
 
+### v1.29 (2026-04-26)
+- 🔧 **High 修复**：举报下架文章 status 从 0 改为 2（1=已发布，0=草稿，2=已下架）
+- 🔧 **High 修复**：refreshToken 增加用户状态校验（验证用户存在/未禁用/未锁定）
+- 🔧 **High 修复**：MediaController getMediaInfo/getPostMedia 增加权限校验
+- 🔧 **Medium 修复**：BlogCommentServiceImpl getCommentsByPostId 增加文章 status==1 校验
+- 🔧 **Medium 修复**：BlogCollectServiceImpl getMyCollections 过滤 status!=1 的文章
+- 🔧 **Medium 修复**：ReportServiceImpl.convertToUserVO 增加空值保护
+- 🔧 **Low 优化**：FollowController 粉丝/关注列表增加分页支持（page/pageSize 参数）
+
 ### v1.28 (2026-04-26)
 - 🔧 **Critical 修复**：6个Mapper物理删除改为逻辑删除（is_deleted=1）
 - 🔧 **Critical 修复**：通知发送改为事件机制（@TransactionalEventListener）

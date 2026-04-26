@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "通知管理", description = "通知相关接口")
 @RestController
 @RequestMapping("/notification")
+@Validated
 public class NotificationController {
 
     @Autowired

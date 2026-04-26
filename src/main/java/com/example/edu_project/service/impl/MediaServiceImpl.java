@@ -300,9 +300,19 @@ public class MediaServiceImpl extends ServiceImpl<MediaMapper, Media> implements
     @Override
     @Transactional(readOnly = true)
     public MediaVO getMediaInfo(Long mediaId) {
+        Long currentUserId = SecurityUtils.getCurrentUserIdOrNull();
+
         Media media = this.getById(mediaId);
         if (media == null) {
             throw new BusinessException(404, "媒体文件不存在");
+        }
+
+        // 权限校验：上传者本人、管理员可查看，或者公开媒体（此处简化为需登录）
+        if (currentUserId == null) {
+            throw new BusinessException(401, "请先登录");
+        }
+        if (!media.getUserId().equals(currentUserId) && !SecurityUtils.isCurrentUserAdmin()) {
+            throw new BusinessException(403, "无权查看此媒体文件");
         }
 
         MediaVO vo = new MediaVO();
@@ -354,6 +364,16 @@ public class MediaServiceImpl extends ServiceImpl<MediaMapper, Media> implements
     public List<MediaVO> getPostMedia(Long postId) {
         if (postId == null) {
             throw new BusinessException(400, "文章ID不能为空");
+        }
+
+        // 检查文章是否存在且已发布
+        com.example.edu_project.entity.BlogPost post = blogPostMapper.selectById(postId);
+        if (post == null) {
+            throw new BusinessException(404, "文章不存在");
+        }
+        // 只有已发布的文章才能查看媒体
+        if (post.getStatus() == null || post.getStatus() != 1) {
+            throw new BusinessException(403, "文章未发布或已下架");
         }
 
         List<Media> mediaList = blogPostMediaMapper.selectByPostId(postId)

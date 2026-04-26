@@ -15,6 +15,7 @@ import com.example.edu_project.service.SysUserService;
 import com.example.edu_project.utils.JwtUtils;
 import com.example.edu_project.vo.UserLoginResponse;
 import com.example.edu_project.vo.UserVO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
@@ -26,6 +27,7 @@ import java.time.LocalDateTime;
 /**
  * 用户服务实现类
  */
+@Slf4j
 @Service
 public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> implements SysUserService {
 
@@ -88,6 +90,7 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
             throw new BusinessException(400, "注册失败，请稍后重试");
         }
 
+        log.info("用户注册成功: username={}, userId={}", user.getUsername(), user.getId());
         return new UserRegisterResponse(user.getId(), user.getUsername());
     }
 
@@ -142,12 +145,11 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         // 生成刷新Token（7天有效期）
         String refreshToken = jwtUtils.generateRefreshToken(user.getId(), user.getUsername(), user.getRole());
 
+        log.info("用户登录成功: username={}, userId={}", user.getUsername(), user.getId());
         return new UserLoginResponse(
                 user.getId(),
                 user.getUsername(),
                 user.getNickname(),
-                user.getEmail(),
-                user.getRole(),
                 user.getAvatar(),
                 token,
                 refreshToken

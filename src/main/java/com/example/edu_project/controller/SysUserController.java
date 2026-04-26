@@ -69,11 +69,19 @@ public class SysUserController {
         userVO.setUsername(user.getUsername());
         userVO.setNickname(user.getNickname());
         userVO.setAvatar(user.getAvatar());
-        userVO.setEmail(user.getEmail());
-        userVO.setRole(user.getRole());
         userVO.setStatus(user.getStatus());
         userVO.setCreateTime(user.getCreateTime());
         userVO.setUpdateTime(user.getUpdateTime());
+
+        // 仅用户本人或管理员可见敏感信息（邮箱、角色）
+        Long currentUserId = SecurityUtils.getCurrentUserIdOrNull();
+        boolean isOwner = currentUserId != null && currentUserId.equals(id);
+        boolean isAdmin = SecurityUtils.isCurrentUserAdmin();
+        if (isOwner || isAdmin) {
+            userVO.setEmail(user.getEmail());
+            userVO.setRole(user.getRole());
+        }
+
         return Result.success(userVO);
     }
 
@@ -100,6 +108,19 @@ public class SysUserController {
         Long userId = jwtUtils.getUserIdFromToken(refreshToken);
         String username = jwtUtils.getUsernameFromToken(refreshToken);
         String role = jwtUtils.getRoleFromToken(refreshToken);
+
+        // 校验用户当前状态：避免被禁用/锁定/删除的用户继续刷新Token
+        SysUser currentUser = sysUserService.getUserById(userId);
+        if (currentUser == null) {
+            throw new BusinessException(401, "用户不存在或已注销");
+        }
+        if (currentUser.getStatus() != null && currentUser.getStatus() == 0) {
+            throw new BusinessException(403, "账号已被禁用");
+        }
+        if (currentUser.getLockUntil() != null
+                && currentUser.getLockUntil().isAfter(java.time.LocalDateTime.now())) {
+            throw new BusinessException(403, "账号已被锁定");
+        }
 
         // 撤销旧刷新Token（实现refresh token rotation）
         jwtUtils.revokeToken(refreshToken);

@@ -10,11 +10,14 @@ import com.example.edu_project.vo.CirclePostVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -26,6 +29,7 @@ import java.util.List;
 @Tag(name = "校友圈", description = "校友圈动态相关接口")
 @RestController
 @RequestMapping("/circle")
+@Validated
 public class CircleController {
 
     @Autowired
@@ -78,8 +82,8 @@ public class CircleController {
     @Operation(summary = "获取推荐流")
     @GetMapping("/feed/recommend")
     public Result<List<CirclePostVO>> getRecommendFeed(
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "20") int pageSize) {
+            @RequestParam(defaultValue = "1") @Min(1) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int pageSize) {
         Long userId = SecurityUtils.getCurrentUserIdOrNull();
         List<CirclePostVO> feed = circleService.getRecommendFeed(page, pageSize, userId);
         return Result.success(feed);
@@ -91,8 +95,8 @@ public class CircleController {
     @Operation(summary = "获取关注流")
     @GetMapping("/feed/following")
     public Result<List<CirclePostVO>> getFollowingFeed(
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "20") int pageSize) {
+            @RequestParam(defaultValue = "1") @Min(1) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int pageSize) {
         Long userId = SecurityUtils.getCurrentUserIdOrNull();
         if (userId == null) {
             throw new BusinessException(401, "请先登录");
@@ -211,8 +215,8 @@ public class CircleController {
     @GetMapping("/search")
     public Result<List<CirclePostVO>> searchPosts(
             @RequestParam String keyword,
-            @RequestParam(defaultValue = "1") int page,
-            @RequestParam(defaultValue = "20") int pageSize) {
+            @RequestParam(defaultValue = "1") @Min(1) int page,
+            @RequestParam(defaultValue = "20") @Min(1) @Max(100) int pageSize) {
         Long userId = SecurityUtils.getCurrentUserIdOrNull();
         List<CirclePostVO> results = circleService.searchPosts(keyword, page, pageSize, userId);
         return Result.success(results);

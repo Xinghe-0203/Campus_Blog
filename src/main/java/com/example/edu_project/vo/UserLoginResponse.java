@@ -23,12 +23,6 @@ public class UserLoginResponse {
     @Schema(description = "昵称")
     private String nickname;
 
-    @Schema(description = "邮箱")
-    private String email;
-
-    @Schema(description = "角色")
-    private String role;
-
     @Schema(description = "头像URL")
     private String avatar;
 

@@ -30,6 +30,7 @@ import com.example.edu_project.utils.HtmlSanitizer;
 import com.example.edu_project.utils.SecurityUtils;
 import com.example.edu_project.vo.PostDetailResponse;
 import com.example.edu_project.vo.PostListResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -43,6 +44,7 @@ import java.util.stream.Collectors;
 /**
  * 文章服务实现类
  */
+@Slf4j
 @Service
 public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> implements BlogPostService {
 
@@ -117,6 +119,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
             savePostTags(post.getId(), request.getTagIds());
         }
 
+        log.info("文章创建成功: postId={}, userId={}, title={}", post.getId(), userId, post.getTitle());
         return post.getId();
     }
 
@@ -202,6 +205,7 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         wrapper.eq(BlogPostTag::getPostId, postId);
         blogPostTagMapper.delete(wrapper);
 
+        log.info("文章删除成功: postId={}, userId={}, title={}", postId, userId, post.getTitle());
         // 保留关联数据（评论、点赞、收藏），
         // 评论/点赞/收藏保留便于数据恢复或审计，关联的文章ID在展示时做判断即可
     }
@@ -217,7 +221,8 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         if (post.getIsDeleted() != null && post.getIsDeleted() == 1) {
             throw new BusinessException(404, "文章不存在");
         }
-        if (post.getStatus() != 1) {
+        // 检查文章是否已发布（status为1）
+        if (post.getStatus() == null || post.getStatus() != 1) {
             throw new BusinessException(404, "文章未发布");
         }
 

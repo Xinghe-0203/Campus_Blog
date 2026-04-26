@@ -10,7 +10,10 @@ import com.example.edu_project.vo.ReportVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -19,6 +22,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "管理员-举报管理", description = "管理员举报管理接口")
 @RestController
 @RequestMapping("/admin/reports")
+@Validated
 public class AdminReportController {
 
     @Autowired

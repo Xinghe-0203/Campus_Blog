@@ -1,5 +1,6 @@
 package com.example.edu_project.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.example.edu_project.common.exception.BusinessException;
 import com.example.edu_project.common.result.Result;
 import com.example.edu_project.dto.FollowRequest;
@@ -8,9 +9,13 @@ import com.example.edu_project.utils.SecurityUtils;
 import com.example.edu_project.vo.FollowStatusVO;
 import com.example.edu_project.vo.UserVO;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,6 +26,7 @@ import java.util.List;
 @Tag(name = "关注管理", description = "关注相关接口")
 @RestController
 @RequestMapping("/follow")
+@Validated
 public class FollowController {
 
     @Autowired
@@ -79,22 +85,28 @@ public class FollowController {
     }
 
     /**
-     * 获取粉丝列表
+     * 获取粉丝列表（分页）
      */
-    @Operation(summary = "获取粉丝列表")
+    @Operation(summary = "获取粉丝列表（分页）")
     @GetMapping("/followers/{userId}")
-    public Result<List<UserVO>> getFollowers(@PathVariable Long userId) {
-        List<UserVO> followers = followService.getFollowers(userId);
+    public Result<IPage<UserVO>> getFollowers(
+            @Parameter(description = "用户ID") @PathVariable Long userId,
+            @Parameter(description = "页码，默认1") @RequestParam(defaultValue = "1") @Min(1) Integer page,
+            @Parameter(description = "每页数量，默认10") @RequestParam(defaultValue = "10") @Min(1) @Max(100) Integer pageSize) {
+        IPage<UserVO> followers = followService.getFollowers(userId, page, pageSize);
         return Result.success(followers);
     }
 
     /**
-     * 获取关注列表
+     * 获取关注列表（分页）
      */
-    @Operation(summary = "获取关注列表")
+    @Operation(summary = "获取关注列表（分页）")
     @GetMapping("/following/{userId}")
-    public Result<List<UserVO>> getFollowing(@PathVariable Long userId) {
-        List<UserVO> following = followService.getFollowing(userId);
+    public Result<IPage<UserVO>> getFollowing(
+            @Parameter(description = "用户ID") @PathVariable Long userId,
+            @Parameter(description = "页码，默认1") @RequestParam(defaultValue = "1") @Min(1) Integer page,
+            @Parameter(description = "每页数量，默认10") @RequestParam(defaultValue = "10") @Min(1) @Max(100) Integer pageSize) {
+        IPage<UserVO> following = followService.getFollowing(userId, page, pageSize);
         return Result.success(following);
     }
 

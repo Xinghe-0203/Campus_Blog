@@ -11,7 +11,10 @@ import com.example.edu_project.vo.ReportVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "举报管理", description = "举报相关接口")
 @RestController
 @RequestMapping("/report")
+@Validated
 public class ReportController {
 
     @Autowired
@@ -45,8 +49,8 @@ public class ReportController {
     @Operation(summary = "获取我的举报记录")
     @GetMapping("/my")
     public Result<IPage<ReportVO>> getMyReports(
-            @RequestParam(defaultValue = "1") Long page,
-            @RequestParam(defaultValue = "10") Long pageSize) {
+            @RequestParam(defaultValue = "1") @Min(1) Long page,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(100) Long pageSize) {
         Long userId = SecurityUtils.getCurrentUserIdOrNull();
         if (userId == null) {
             throw new BusinessException(401, "请先登录");

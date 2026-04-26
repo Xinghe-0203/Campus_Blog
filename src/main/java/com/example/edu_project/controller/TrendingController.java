@@ -6,7 +6,10 @@ import com.example.edu_project.service.TrendingService;
 import com.example.edu_project.utils.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -15,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "趋势/热门", description = "热门文章和标签相关接口")
 @RestController
 @RequestMapping("/trending")
+@Validated
 public class TrendingController {
 
     @Autowired
@@ -26,8 +30,8 @@ public class TrendingController {
     @Operation(summary = "获取热门文章列表")
     @GetMapping("/posts")
     public Result<Object> getHotPosts(
-            @RequestParam(defaultValue = "1") int pageNum,
-            @RequestParam(defaultValue = "10") int pageSize) {
+            @RequestParam(defaultValue = "1") @Min(1) int pageNum,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(100) int pageSize) {
         Object result = trendingService.getHotPosts(pageNum, pageSize);
         return Result.success(result);
     }

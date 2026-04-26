@@ -187,6 +187,10 @@ public class BlogCollectServiceImpl extends ServiceImpl<BlogCollectMapper, BlogC
 
         // 批量查询文章
         List<BlogPost> posts = blogPostMapper.selectBatchIds(postIds);
+        // 过滤掉未发布的文章（status != 1 表示草稿或已下架）
+        posts = posts.stream()
+                .filter(p -> p.getStatus() != null && p.getStatus() == 1)
+                .collect(Collectors.toList());
         Map<Long, BlogPost> postMap = posts.stream()
                 .collect(Collectors.toMap(BlogPost::getId, p -> p, (a, b) -> a));
 
