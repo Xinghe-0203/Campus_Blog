@@ -325,7 +325,7 @@ java -jar target/edu_project-0.0.1-SNAPSHOT.jar
 | POST | `/api/user/register` | 用户注册（密码复杂度校验 + 用户名/邮箱唯一性校验） |
 | POST | `/api/user/login` | 用户登录（返回JWT Token + 刷新Token） |
 | POST | `/api/user/refresh` | 刷新Token（使用刷新Token获取新Token） |
-| GET | `/api/user/{id}` | 根据ID查询用户（管理员可查所有，普通用户仅查自己） |
+| GET | `/api/user/{id}` | 根据ID查询用户（公开访问，任何人可查看） |
 
 ### 文章模块
 
@@ -366,7 +366,7 @@ java -jar target/edu_project-0.0.1-SNAPSHOT.jar
 | 方法 | 路径 | 说明 |
 | :--- | :--- | :--- |
 | GET | `/api/tag/list` | 获取标签列表（公开访问） |
-| POST | `/api/tag` | 创建标签（需登录，body: `{"name": "标签名"}`） |
+| POST | `/api/tag` | 创建标签（需登录，body: `{"name": "标签名"}`，使用 TagCreateRequest DTO） |
 
 ### 关注模块
 
@@ -387,7 +387,7 @@ java -jar target/edu_project-0.0.1-SNAPSHOT.jar
 | GET | `/api/notification/unread-count` | 获取未读通知数量（需登录） |
 | PUT | `/api/notification/{id}/read` | 标记单条通知已读（需登录） |
 | PUT | `/api/notification/read-all` | 标记全部已读（需登录） |
-| DELETE | `/api/notification/{id}` | 删除通知（需登录） |
+| DELETE | `/api/notification/{id}` | 删除通知（需登录，管理员可删除任意通知） |
 
 ### 热门/趋势模块
 
@@ -504,6 +504,13 @@ java -jar target/edu_project-0.0.1-SNAPSHOT.jar
 8. 对接前端页面
 
 ## 更新日志
+
+### v1.27 (2026-04-26)
+- 🔧 **API 调整**：GET /api/user/{id} 改为公开访问，任何人可查看用户信息
+- 🔧 **通知系统增强**：管理员可删除任意用户的通知
+- 🔧 **DTO 规范化**：BlogTagController 使用 TagCreateRequest DTO 替代 Map
+- 🔧 **API 调整**：粉丝/关注列表接口（followers/following/counts）改为公开访问
+- 📝 新增 TagCreateRequest.java DTO 类
 
 ### v1.26 (2026-04-26)
 - 🔧 **通知系统修复**：集成 sendNotification 到点赞/评论/关注服务，通知系统正式启用

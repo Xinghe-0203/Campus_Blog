@@ -9,6 +9,7 @@ import com.example.edu_project.entity.SysUser;
 import com.example.edu_project.mapper.BlogNotificationMapper;
 import com.example.edu_project.mapper.SysUserMapper;
 import com.example.edu_project.service.NotificationService;
+import com.example.edu_project.utils.SecurityUtils;
 import com.example.edu_project.vo.NotificationVO;
 import com.example.edu_project.vo.UserVO;
 import org.springframework.beans.BeanUtils;
@@ -88,7 +89,8 @@ public class NotificationServiceImpl extends ServiceImpl<BlogNotificationMapper,
         if (notification == null) {
             throw new BusinessException(404, "通知不存在");
         }
-        if (!notification.getToUserId().equals(userId)) {
+        // 允许管理员删除任意通知，或通知所有者删除自己的通知
+        if (!notification.getToUserId().equals(userId) && !SecurityUtils.isCurrentUserAdmin()) {
             throw new BusinessException(403, "无权删除此通知");
         }
         // 逻辑删除

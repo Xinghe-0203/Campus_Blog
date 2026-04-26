@@ -1,15 +1,16 @@
 package com.example.edu_project.controller;
 
 import com.example.edu_project.common.result.Result;
+import com.example.edu_project.dto.TagCreateRequest;
 import com.example.edu_project.entity.BlogTag;
 import com.example.edu_project.service.BlogTagService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * 标签管理控制器
@@ -37,9 +38,8 @@ public class BlogTagController {
      */
     @Operation(summary = "创建标签")
     @PostMapping
-    public Result<BlogTag> createTag(@RequestBody Map<String, String> request) {
-        String name = request.get("name");
-        BlogTag tag = blogTagService.createTag(name);
+    public Result<BlogTag> createTag(@Valid @RequestBody TagCreateRequest request) {
+        BlogTag tag = blogTagService.createTag(request.getName());
         return Result.success(tag);
     }
 }

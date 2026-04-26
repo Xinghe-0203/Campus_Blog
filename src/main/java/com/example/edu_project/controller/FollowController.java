@@ -84,10 +84,6 @@ public class FollowController {
     @Operation(summary = "获取粉丝列表")
     @GetMapping("/followers/{userId}")
     public Result<List<UserVO>> getFollowers(@PathVariable Long userId) {
-        Long currentUserId = SecurityUtils.getCurrentUserIdOrNull();
-        if (currentUserId == null) {
-            throw new BusinessException(401, "请先登录");
-        }
         List<UserVO> followers = followService.getFollowers(userId);
         return Result.success(followers);
     }
@@ -98,10 +94,6 @@ public class FollowController {
     @Operation(summary = "获取关注列表")
     @GetMapping("/following/{userId}")
     public Result<List<UserVO>> getFollowing(@PathVariable Long userId) {
-        Long currentUserId = SecurityUtils.getCurrentUserIdOrNull();
-        if (currentUserId == null) {
-            throw new BusinessException(401, "请先登录");
-        }
         List<UserVO> following = followService.getFollowing(userId);
         return Result.success(following);
     }
@@ -112,10 +104,6 @@ public class FollowController {
     @Operation(summary = "获取粉丝/关注数量")
     @GetMapping("/counts/{userId}")
     public Result<FollowService.FollowCountsVO> getCounts(@PathVariable Long userId) {
-        Long currentUserId = SecurityUtils.getCurrentUserIdOrNull();
-        if (currentUserId == null) {
-            throw new BusinessException(401, "请先登录");
-        }
         FollowService.FollowCountsVO counts = followService.getCounts(userId);
         return Result.success(counts);
     }

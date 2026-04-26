@@ -60,14 +60,6 @@ public class SysUserController {
     @Operation(summary = "根据ID查询用户")
     @GetMapping("/{id}")
     public Result<UserVO> getById(@PathVariable Long id) {
-        Long currentUserId = SecurityUtils.getCurrentUserIdOrNull();
-        if (currentUserId == null) {
-            throw new BusinessException(401, "请先登录");
-        }
-        // 非管理员只能查看自己
-        if (!SecurityUtils.isCurrentUserAdmin() && !currentUserId.equals(id)) {
-            throw new BusinessException(403, "无权限查看其他用户信息");
-        }
         SysUser user = sysUserService.getUserById(id);
         if (user == null) {
             throw new BusinessException(404, "用户不存在");
