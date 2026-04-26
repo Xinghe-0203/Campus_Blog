@@ -12,7 +12,7 @@
 | **MyBatis Plus** | 3.5.5 | ORM 持久层框架（MyBatis 增强） |
 | **MySQL** | 8.0+ | 关系型数据库（云端部署） |
 | **Knife4j** | 4.5.0 | API 文档（基于 Swagger） |
-| **Lombok** | 1.18.36 | 简化 Java 代码 |
+| **Lombok** | 1.18.40 | 简化 Java 代码 |
 | **Hutool** | 5.8.38 | Java 工具类库 |
 | **JWT (JJWT)** | 0.12.3 | JSON Web Token 认证 |
 | **Spring Security** | 由父工程管理 | 安全认证框架 |
@@ -507,6 +507,14 @@ java -jar target/edu_project-0.0.1-SNAPSHOT.jar
 ## 更新日志
 
 ### v1.29 (2026-04-26)
+- 🔧 **Critical 修复**：安全漏洞 - 移除登录响应中的邮箱/角色字段
+- 🔧 **Critical 修复**：安全漏洞 - 用户详情接口仅用户本人或管理员可见邮箱/角色
+- 🔧 **High 修复**：高级搜索接口改为公开接口（无需登录）
+- 🔧 **High 修复**：所有分页接口添加 @Min/@Max 边界校验
+- 🔧 **High 修复**：添加用户注册、登录、关注、文章操作等关键日志
+- 🔧 **High 修复**：BlogPostServiceImpl 空指针防护加强
+- 🔧 **High 修复**：pom.xml Lombok 升级至 1.18.40（兼容 Java 25）
+- 🔧 **High 修复**：pom.xml 添加 maven-compiler-plugin 配置 Lombok 注解处理器
 - 🔧 **High 修复**：举报下架文章 status 从 0 改为 2（1=已发布，0=草稿，2=已下架）
 - 🔧 **High 修复**：refreshToken 增加用户状态校验（验证用户存在/未禁用/未锁定）
 - 🔧 **High 修复**：MediaController getMediaInfo/getPostMedia 增加权限校验
