@@ -10,7 +10,7 @@
 | **项目类型** | 全栈 Web 应用 |
 | **开发周期** | 校技能大赛周期 |
 | **开发人员** | 刘畅 |
-| **当前版本** | v1.21 |
+| **当前版本** | v1.22 |
 | **GitHub 仓库** | https://github.com/Xinghe-0203/Campus_Blog |
 
 ---
@@ -965,6 +965,7 @@ edu_project/
 
 ---
 
+| 2026-04-26 | v1.22 | 🔒 安全修复：MediaController.getMediaInfo/getPostMedia 添加登录校验<br>🔒 安全修复：GlobalExceptionHandler 兜底异常不返回异常类名<br>🔧 增强：NotificationController 分页参数添加 @Min/@Max 验证<br>🔧 增强：MediaController.bindPostMedia @Size 验证<br>🔧 增强：CORS 配置支持环境变量 CORS_ALLOWED_ORIGINS<br>🐛 修复：BlogTrending.statDate 类型改为 LocalDate<br>🐛 修复：CirclePost 添加缺失字段 repostUserId/repostContent/mentions |
 | 2026-04-26 | v1.21 | ✨ 新增校友圈搜索功能（GET /api/circle/search）<br>🐛 修复 FollowServiceImpl 潜在 NPE（添加 targetUserId 和 currentUserId null 检查）<br>🐛 修复搜索关键词无长度限制问题（限制最大 200 字符） |
 | 2026-04-26 | v1.20 | 🔒 ReportServiceImpl 添加管理员权限校验<br>🔒 SysUserServiceImpl.login 密码验证顺序修正<br>🐛 修复 toggleLike/toggleCollect/follow/unfollow 逻辑删除+唯一约束冲突 bug<br>🐛 修复 TrendingServiceImpl.getHotTags 分页-排序错误<br>🐛 修复 MediaServiceImpl 软删除机制统一<br>📝 文档更新至 v1.20 |
 | 2026-04-25 | v1.19 | 新增社交/关注系统（BlogFollow、FollowService、FollowController）<br>新增通知系统（BlogNotification、NotificationService、NotificationController）<br>新增热门/趋势系统（BlogTrending、TrendingService、TrendingController）<br>新增草稿自动保存（BlogDraft、SaveDraftRequest）<br>新增举报管理（BlogReport、ReportService、AdminReportController）<br>新增校友圈动态（CirclePost、Media、CircleService、CircleController）<br>新增校友圈点赞/评论/转发（CircleLike、CircleComment、CircleRepost）<br>新增修改密码和用户搜索功能（PUT /user/password, GET /user/search）<br>新增文章高级搜索和搜索建议（GET /post/search/advanced, GET /post/search/suggest）<br>新增媒体上传功能（图片/视频上传、批量上传、自动压缩）<br>🔒 修复 CircleServiceImpl.deleteComment 越权逻辑漏洞<br>🔧 BlogPostMedia 添加 @TableLogic 和 isDeleted 字段支持软删除<br>🔧 BlogPostMediaMapper.xml foreach 语法修复<br>🔧 MediaController 单文件上传路径修正为 /media/upload<br>🔧 CircleServiceImpl 和 BlogPostServiceImpl 多处添加 isDeleted 过滤 |

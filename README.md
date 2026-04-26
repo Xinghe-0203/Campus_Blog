@@ -388,6 +388,16 @@ mvn spring-boot:run
 
 ## 更新日志
 
+### v1.22 (2026-04-26)
+- 🔒 安全修复：MediaController.getMediaInfo/getPostMedia 添加登录校验，防止越权访问
+- 🔒 安全修复：GlobalExceptionHandler 兜底异常不返回异常类名，防止信息泄露
+- 🔧 增强：NotificationController 分页参数添加 @Min/@Max 验证
+- 🔧 增强：MediaController.bindPostMedia mediaIds 参数添加 @Size(max=20) 验证
+- 🔧 增强：CORS 配置支持环境变量 CORS_ALLOWED_ORIGINS
+- 🐛 修复：BlogTrending.statDate 类型从 LocalDateTime 改为 LocalDate
+- 🐛 修复：CirclePost 添加缺失字段 repostUserId/repostContent/mentions
+- 📝 文档：开发进度.md 更新至 v1.22
+
 ### v1.21 (2026-04-26)
 - ✨ 新增校友圈搜索功能：GET /api/circle/search（关键词搜索动态）
 - 🐛 修复 FollowServiceImpl 潜在 NPE：follow/unfollow 方法添加 targetUserId 和 currentUserId null 检查

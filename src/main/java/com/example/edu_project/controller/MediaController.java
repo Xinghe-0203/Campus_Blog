@@ -9,6 +9,7 @@ import com.example.edu_project.vo.MediaVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -62,6 +63,10 @@ public class MediaController {
     @Operation(summary = "获取媒体信息")
     @GetMapping("/{mediaId}")
     public Result<MediaVO> getMediaInfo(@PathVariable Long mediaId) {
+        Long userId = SecurityUtils.getCurrentUserIdOrNull();
+        if (userId == null) {
+            throw new BusinessException(401, "请先登录");
+        }
         MediaVO media = mediaService.getMediaInfo(mediaId);
         return Result.success(media);
     }
@@ -71,7 +76,7 @@ public class MediaController {
      */
     @Operation(summary = "绑定文章媒体")
     @PostMapping("/bind/{postId}")
-    public Result<Void> bindPostMedia(@PathVariable Long postId, @Valid @RequestBody List<Long> mediaIds) {
+    public Result<Void> bindPostMedia(@PathVariable Long postId, @Valid @RequestBody @Size(max = 20, message = "最多绑定20个媒体") List<Long> mediaIds) {
         Long userId = SecurityUtils.getCurrentUserIdOrNull();
         if (userId == null) {
             throw new BusinessException(401, "请先登录");
@@ -87,6 +92,10 @@ public class MediaController {
     @Operation(summary = "获取文章的媒体列表")
     @GetMapping("/post/{postId}")
     public Result<List<MediaVO>> getPostMedia(@PathVariable Long postId) {
+        Long userId = SecurityUtils.getCurrentUserIdOrNull();
+        if (userId == null) {
+            throw new BusinessException(401, "请先登录");
+        }
         List<MediaVO> mediaList = mediaService.getPostMedia(postId);
         return Result.success(mediaList);
     }

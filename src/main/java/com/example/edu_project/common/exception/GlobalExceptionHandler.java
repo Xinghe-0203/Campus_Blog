@@ -148,6 +148,6 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Throwable.class)
     public Result<Void> handleThrowable(Throwable e) {
         log.error("系统异常: {}", e.getMessage(), e);
-        return Result.error(500, "系统内部错误：" + e.getClass().getSimpleName());
+        return Result.error(500, "系统内部错误，请稍后重试");
     }
 }

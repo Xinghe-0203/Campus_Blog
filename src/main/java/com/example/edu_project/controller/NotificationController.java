@@ -8,6 +8,8 @@ import com.example.edu_project.utils.SecurityUtils;
 import com.example.edu_project.vo.NotificationVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -28,8 +30,8 @@ public class NotificationController {
     @Operation(summary = "获取通知列表")
     @GetMapping("/list")
     public Result<Page<NotificationVO>> getNotificationList(
-            @RequestParam(defaultValue = "1") Integer pageNum,
-            @RequestParam(defaultValue = "10") Integer pageSize) {
+            @RequestParam(defaultValue = "1") @Min(1) Integer pageNum,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(100) Integer pageSize) {
         Long userId = SecurityUtils.getCurrentUserIdOrNull();
         if (userId == null) {
             throw new BusinessException(401, "请先登录");

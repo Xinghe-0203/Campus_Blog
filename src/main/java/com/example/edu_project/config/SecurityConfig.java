@@ -1,6 +1,7 @@
 package com.example.edu_project.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -14,6 +15,9 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
+import java.util.Arrays;
+import java.util.List;
+
 /**
  * Spring Security 配置类
  */
@@ -24,6 +28,14 @@ public class SecurityConfig {
     @Autowired
     private JwtAuthenticationFilter jwtAuthenticationFilter;
 
+    /**
+     * CORS 允许的来源列表
+     * 可通过环境变量 CORS_ALLOWED_ORIGINS 配置，多个来源用逗号分隔
+     * 示例: http://localhost:*,http://127.0.0.1:*,https://campus-blog.com
+     */
+    @Value("${cors.allowed-origins:http://localhost:*,http://127.0.0.1:*}")
+    private String allowedOrigins;
+
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(12);
@@ -32,9 +44,14 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        // 允许特定来源（开发环境可改为具体域名）
-        configuration.addAllowedOriginPattern("http://localhost:*");
-        configuration.addAllowedOriginPattern("http://127.0.0.1:*");
+        // 从环境变量读取 CORS 来源配置
+        List<String> origins = Arrays.asList(allowedOrigins.split(","));
+        for (String origin : origins) {
+            String trimmed = origin.trim();
+            if (!trimmed.isEmpty()) {
+                configuration.addAllowedOriginPattern(trimmed);
+            }
+        }
         configuration.addAllowedHeader("*");
         configuration.addAllowedMethod("*");
         configuration.setAllowCredentials(true);

@@ -48,6 +48,21 @@ public class CirclePost implements Serializable {
     private Long repostId;
 
     /**
+     * 被转发者用户ID（如果是转发类型）
+     */
+    private Long repostUserId;
+
+    /**
+     * 转发时添加的内容（如果是转发类型）
+     */
+    private String repostContent;
+
+    /**
+     * @提及的用户ID数组（JSON）
+     */
+    private String mentions;
+
+    /**
      * 位置信息
      */
     private String location;

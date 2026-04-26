@@ -169,7 +169,7 @@ public class TrendingServiceImpl extends ServiceImpl<BlogTrendingMapper, BlogTre
         trending.setViewCount(post.getViewCount());
         trending.setLikeCount(post.getLikeCount());
         trending.setCommentCount(post.getCommentCount());
-        trending.setStatDate(todayStart);
+        trending.setStatDate(todayStart.toLocalDate());
 
         if (existingList.isEmpty()) {
             // 新增记录

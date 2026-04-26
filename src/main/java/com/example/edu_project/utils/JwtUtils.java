@@ -36,7 +36,9 @@ public class JwtUtils {
 
     /**
      * Token黑名单：存储已撤销的Token
-     * 注意：生产环境应使用Redis实现分布式黑名单
+     * TODO [高优先级]: 生产环境应使用 Redis 实现分布式 Token 黑名单
+     * 当前内存存储方案仅适用于单实例部署，多实例部署时 Token revocation 无效
+     * 建议方案：使用 Redis SET 存储 token，设置与 token 剩余有效期一致的 TTL 自动过期
      */
     private final Set<String> tokenBlacklist = ConcurrentHashMap.newKeySet();
 
