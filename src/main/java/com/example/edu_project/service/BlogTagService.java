@@ -13,4 +13,11 @@ public interface BlogTagService extends IService<BlogTag> {
      * @return 标签列表
      */
     java.util.List<BlogTag> listAllTags();
+
+    /**
+     * 创建标签
+     * @param name 标签名称
+     * @return 创建的标签
+     */
+    BlogTag createTag(String name);
 }

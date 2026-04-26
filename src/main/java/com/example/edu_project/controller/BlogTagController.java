@@ -6,11 +6,10 @@ import com.example.edu_project.service.BlogTagService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 标签管理控制器
@@ -31,5 +30,16 @@ public class BlogTagController {
     public Result<List<BlogTag>> listAllTags() {
         List<BlogTag> tags = blogTagService.listAllTags();
         return Result.success(tags);
+    }
+
+    /**
+     * 创建标签
+     */
+    @Operation(summary = "创建标签")
+    @PostMapping
+    public Result<BlogTag> createTag(@RequestBody Map<String, String> request) {
+        String name = request.get("name");
+        BlogTag tag = blogTagService.createTag(name);
+        return Result.success(tag);
     }
 }
