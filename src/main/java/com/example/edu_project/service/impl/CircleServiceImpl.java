@@ -106,7 +106,7 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
         }
 
         // 如果是转发，校验原动态是否存在
-        Integer contentType = 2; // 纯文本
+        Integer contentType = 1; // 纯文本
         if (repostId != null) {
             CirclePost originalPost = this.getById(repostId);
             if (originalPost == null || originalPost.getStatus() == 2) {
@@ -126,7 +126,7 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
             }
             contentType = 3; // 转发
         } else if (images != null && !images.isEmpty()) {
-            contentType = 1; // 纯文本
+            contentType = 2; // 图文
         }
 
         // 创建动态
@@ -202,11 +202,11 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
     public List<CirclePostVO> getRecommendFeed(int page, int pageSize, Long currentUserId) {
         LambdaQueryWrapper<CirclePost> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(CirclePost::getStatus, 1) // 只查询正常状态的动态
-                // 可见性过滤：公开动态(visibility=0) 或 作者本人查看自己的公开动态
-                .and(w -> w.eq(CirclePost::getVisibility, 0) // 公开
-                        .or() // 或者作者本人查看自己公开的
-                        .and(w2 -> w2.eq(CirclePost::getUserId, currentUserId)
-                                    .eq(CirclePost::getVisibility, 0)))
+                // 可见性过滤：公开动态(visibility=0)对所有人可见，作者本人可看自己的非公开动态
+                .and(w -> w.eq(CirclePost::getVisibility, 0) // 公开动态对所有人可见
+                        .or(currentUserId != null, w2 -> w2
+                                .eq(CirclePost::getUserId, currentUserId)
+                                .ne(CirclePost::getVisibility, 0))) // 作者本人可看自己非公开的动态
                 .orderByDesc(CirclePost::getIsTop) // 置顶优先
                 .orderByDesc(CirclePost::getCreateTime); // 然后按时间
 

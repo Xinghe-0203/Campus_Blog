@@ -76,6 +76,16 @@ public class ReportServiceImpl extends ServiceImpl<BlogReportMapper, BlogReport>
             throw new BusinessException(400, "不能举报自己");
         }
 
+        // 检查是否对待处理举报
+        LambdaQueryWrapper<BlogReport> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(BlogReport::getReporterId, reporterId)
+               .eq(BlogReport::getTargetType, targetType)
+               .eq(BlogReport::getTargetId, request.getTargetId())
+               .eq(BlogReport::getStatus, 0); // 待处理状态
+        if (this.count(wrapper) > 0) {
+            throw new BusinessException(400, "您已提交过待处理举报，请等待处理");
+        }
+
         // 创建举报记录
         BlogReport report = new BlogReport();
         report.setReporterId(reporterId);
@@ -161,6 +171,35 @@ public class ReportServiceImpl extends ServiceImpl<BlogReportMapper, BlogReport>
         report.setHandleTime(LocalDateTime.now());
 
         this.updateById(report);
+
+        // 如果是已核实状态，对被举报内容进行相应处理
+        if (request.getStatus() == 2) {
+            String targetType = report.getTargetType();
+            Long targetId = report.getTargetId();
+
+            switch (targetType) {
+                case "post":
+                    // 下架文章
+                    BlogPost post = blogPostMapper.selectById(targetId);
+                    if (post != null) {
+                        post.setStatus(0); // 设为隐藏状态
+                        blogPostMapper.updateById(post);
+                    }
+                    break;
+                case "comment":
+                    // 删除评论（逻辑删除）
+                    blogCommentMapper.deleteById(targetId);
+                    break;
+                case "user":
+                    // 封禁用户
+                    SysUser user = sysUserMapper.selectById(targetId);
+                    if (user != null) {
+                        user.setStatus(0); // 设为禁用状态
+                        sysUserMapper.updateById(user);
+                    }
+                    break;
+            }
+        }
     }
 
     /**
@@ -213,6 +252,15 @@ public class ReportServiceImpl extends ServiceImpl<BlogReportMapper, BlogReport>
         SysUser reportedUser = sysUserMapper.selectById(report.getReportedUserId());
         if (reportedUser != null) {
             vo.setReportedUser(convertToUserVO(reportedUser));
+        }
+
+        // 获取处理人信息
+        if (report.getHandlerId() != null) {
+            vo.setHandlerId(report.getHandlerId());
+            SysUser handler = sysUserMapper.selectById(report.getHandlerId());
+            if (handler != null) {
+                vo.setHandler(convertToUserVO(handler));
+            }
         }
 
         return vo;

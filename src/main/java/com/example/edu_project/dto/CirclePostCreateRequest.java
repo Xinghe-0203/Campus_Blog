@@ -17,7 +17,6 @@ import java.util.List;
 public class CirclePostCreateRequest {
 
     @Schema(description = "动态内容")
-    @NotBlank(message = "动态内容不能为空")
     @Size(max = 2000, message = "动态内容不能超过2000字符")
     private String content;
 

@@ -33,7 +33,7 @@ public class CirclePost implements Serializable {
     private String content;
 
     /**
-     * 内容类型：1=图文，2=纯文本，3=转发
+     * 内容类型：1=纯文本，2=图文，3=转发
      */
     private Integer contentType;
 

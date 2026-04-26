@@ -39,6 +39,12 @@ public class ReportVO {
     @Schema(description = "举报状态：0=待处理，1=已驳回，2=已核实")
     private Integer status;
 
+    @Schema(description = "处理人ID")
+    private Long handlerId;
+
+    @Schema(description = "处理人信息")
+    private UserVO handler;
+
     @Schema(description = "处理结果说明")
     private String handlerResult;
 

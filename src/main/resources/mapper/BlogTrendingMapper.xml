@@ -16,6 +16,7 @@
         WHERE date >= #{dateStart}
           AND date &lt; #{dateEnd}
         ORDER BY score DESC
+        LIMIT #{page.size} OFFSET #{page.offset}
     </select>
 
     <!-- 插入或更新趋势记录（使用 ON DUPLICATE KEY UPDATE 实现 upsert） -->

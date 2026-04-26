@@ -251,10 +251,7 @@ public class BlogPostController {
     @Operation(summary = "获取搜索建议")
     @GetMapping("/search/suggest")
     public Result<List<String>> getSearchSuggestions(@RequestParam(required = false) String keyword) {
-        Long userId = SecurityUtils.getCurrentUserIdOrNull();
-        if (userId == null) {
-            throw new BusinessException(401, "请先登录");
-        }
+        // 搜索建议是公开功能，不需要登录
         List<String> suggestions = blogPostService.getSearchSuggestions(keyword);
         return Result.success(suggestions);
     }

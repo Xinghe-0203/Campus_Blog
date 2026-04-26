@@ -161,44 +161,160 @@ edu_project/
 
 ### 1. 环境要求
 
-- JDK 21+
-- Maven 3.8+
-- MySQL 8.0+
-- IDEA / Eclipse
+- JDK 21+ （**必须**，项目使用 Spring Boot 3.0.12 需要 JDK 21）
+- Maven 3.8+ （构建工具）
+- MySQL 8.0+ （数据库）
+- IDEA 2024+ / Eclipse 2024+ （推荐 IntelliJ IDEA）
 
-### 2. 数据库初始化
+### 2. IDE 环境配置（详细步骤）
 
-在 MySQL 中执行项目根目录下的 `数据库表` SQL 脚本。
+#### 2.1 IntelliJ IDEA 配置
 
-### 3. 环境变量配置（必需）
+**① 安装 Lombok 插件**
+```
+Settings → Plugins → 搜索 "Lombok" → Install → 重启 IDEA
+```
 
-使用 `.env` 文件配置所有敏感信息：
+**② 启用注解处理器**
+```
+Settings → Build, Execution, Deployment → Compiler → Annotation Processors
+→ 勾选 "Enable annotation processing" → Apply
+```
+
+**③ 配置 JDK**
+```
+Settings → Build, Execution, Deployment → Build Tools → Maven → Runner
+→ JRE 选择 JDK 21
+
+Settings → Project → SDK → 添加 JDK 21 → 设置为 Project SDK
+```
+
+**④ 导入项目**
+```
+File → Open → 选择项目根目录 → 打开为 Maven 项目
+IDEA 会自动识别 pom.xml 并下载依赖
+```
+
+**⑤ 配置运行环境**
+```
+Run → Edit Configurations → 添加新配置
+→ Spring Boot → 选择 EduProjectApplication.java
+→ 配置 VM options: -Dspring.profiles.active=local
+```
+
+**⑥ 配置数据库连接（可选）**
+```
+右侧 Database 面板 → 添加 MySQL 连接
+填写 DB_HOST, DB_PORT, DB_NAME, DB_USERNAME, DB_PASSWORD
+```
+
+#### 2.2 Eclipse 配置
+
+**① 安装 Lombok**
+```
+下载 lombok.jar → 右键 "Open With" → Eclipse JDT Compiler
+或命令行: java -jar lombok.jar install
+```
+
+**② 配置 JDK**
+```
+Window → Preferences → Java → Installed JREs → 添加 JDK 21
+Window → Preferences → Java → Compiler → 选择 JDK 21
+```
+
+**③ 导入 Maven 项目**
+```
+File → Import → Maven → Existing Maven Projects
+→ 选择项目根目录 → Finish
+```
+
+**④ 启用注解处理**
+```
+Project → Properties → Java Compiler → Annotation Processing
+→ 勾选 "Enable project specific settings"
+```
+
+### 3. 数据库初始化
+
+**① 创建数据库**
+```sql
+CREATE DATABASE IF NOT EXISTS campus_blog DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
+
+**② 执行 SQL 脚本**
+```bash
+# 方式1: 命令行
+mysql -u root -p campus_blog < 数据库表.sql
+
+# 方式2: IDE 导入
+在 MySQL Workbench 或 IDE Database 面板中打开并执行 数据库表.sql
+```
+
+### 4. 环境变量配置（必需）
+
+项目使用 `.env` 文件管理所有敏感配置：
 
 ```bash
 # 1. 复制环境变量模板
 cp .env.example .env
 
-# 2. 修改 .env 文件，填入实际配置值
+# 2. 编辑 .env 文件，填入实际配置
+# Windows PowerShell:
+# copy .env.example .env
 
-# 3. 启动项目（.env 会自动加载）
-mvn spring-boot:run
+# 3. .env 文件内容示例:
+DB_HOST=localhost
+DB_PORT=3306
+DB_NAME=campus_blog
+DB_USERNAME=root
+DB_PASSWORD=your_password
+JWT_SECRET=your-secret-key-at-least-32-characters-long
+JWT_EXPIRATION=86400000
+JWT_REFRESH_EXPIRATION=604800000
+SERVER_PORT=8825
 ```
 
-**注意**：`.env` 文件包含敏感信息，已添加到 `.gitignore` 不会提交到 Git。
+**⚠️ 注意**：
+- `.env` 文件已添加到 `.gitignore`，**不会提交到 Git**
+- `JWT_SECRET` 至少需要 32 个字符
+- 生产环境务必使用强密码
 
-### 4. 启动项目
+### 5. 启动项目
 
-运行 `EduProjectApplication.java` 的 `main` 方法。
+**方式1: IDE 启动**
+```
+运行 EduProjectApplication.java 的 main 方法
+```
 
-### 5. 访问 API 文档
+**方式2: Maven 命令行**
+```bash
+# 开发模式（热编译）
+mvn spring-boot:run
 
-项目启动成功后，访问：
+# 或打包后运行
+mvn clean package
+java -jar target/edu_project-0.0.1-SNAPSHOT.jar
+```
+
+### 6. 验证启动成功
+
+**访问 API 文档**：
 **http://localhost:8825/api/doc.html**
 
-## 默认账号
-
+**默认管理员账号**：
 - 用户名：`admin`
-- 密码：`admin123`（需确保数据库中已初始化该用户）
+- 密码：`admin123`
+
+### 7. 常见问题排查
+
+| 问题 | 解决方案 |
+|------|---------|
+| "Java version mismatch" | 确保使用 JDK 21+，IDEA Project SDK 设置正确 |
+| "Lombok not working" | 检查是否安装并启用了 Lombok 插件，注解处理器是否开启 |
+| "Cannot connect to DB" | 检查 .env 配置，确认 MySQL 服务运行中 |
+| "Port 8825 already in use" | 修改 SERVER_PORT 环境变量或停止占用端口的应用 |
+| "Module not found" | 右键 pom.xml → Add as Maven Project |
+| "Dependencies red" | Maven 面板 → Reload All Maven Projects |
 
 ## 当前已实现的API接口
 
@@ -388,6 +504,22 @@ mvn spring-boot:run
 8. 对接前端页面
 
 ## 更新日志
+
+### v1.26 (2026-04-26)
+- 🔧 **通知系统修复**：集成 sendNotification 到点赞/评论/关注服务，通知系统正式启用
+- 🔧 **校友圈 Bug 修复**：推荐流对未登录用户返回空问题修复
+- 🔧 **校友圈 Bug 修复**：内容类型定义修正（1=纯文本，2=图文，3=转发）
+- 🔧 **校友圈 Bug 修复**：发布动态参数校验修正，允许图文动态和纯转发动态
+- 🔧 **趋势系统 Bug 修复**：SQL 分页使用 LIMIT/OFFSET，修复今日数据被排除问题
+- 🔧 **趋势系统 Bug 修复**：添加 isDeleted 检查，修复大事务问题
+- 🔧 **草稿系统 Bug 修复**：saveDraft 正确处理 draftId 参数
+- 🔧 **草稿系统 Bug 修复**：删除草稿添加管理员权限豁免
+- 🔧 **草稿系统 Bug 修复**：搜索建议改为公开功能，convertToSaveDraftRequest 增加异常处理
+- 🔧 **举报系统 Bug 修复**：状态值定义统一，添加处理联动操作（封禁用户/下架文章）
+- 🔧 **举报系统 Bug 修复**：添加重复举报检查，ReportVO 添加 handlerId 字段
+- 🔧 **高级搜索 Bug 修复**：移除 .last("LIMIT 10") 改用 Page 对象，添加关键词长度限制
+- 🔧 **媒体系统修复**：添加 Spring 文件上传配置（500MB 限制）
+- 📝 文档：删除 CAMPUS_BLOG_ENHANCEMENT_PLAN.md 增强计划文档
 
 ### v1.25 (2026-04-26)
 - 🔧 **安全审计修复**：CircleLikeMapper 表名错误 (circle_like → blog_circle_like)

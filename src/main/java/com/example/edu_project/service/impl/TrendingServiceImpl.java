@@ -75,7 +75,7 @@ public class TrendingServiceImpl extends ServiceImpl<BlogTrendingMapper, BlogTre
         List<Map<String, Object>> result = new ArrayList<>();
         for (BlogTrending trending : trendingPage.getRecords()) {
             BlogPost post = postMap.get(trending.getPostId());
-            if (post != null && post.getStatus() == 1) { // 只返回已发布的文章
+            if (post != null && post.getStatus() == 1 && post.getIsDeleted() == 0) { // 只返回已发布的文章且未被删除
                 Map<String, Object> item = new HashMap<>();
                 item.put("id", post.getId());
                 item.put("title", post.getTitle());

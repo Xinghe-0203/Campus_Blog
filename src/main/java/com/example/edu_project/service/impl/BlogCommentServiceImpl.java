@@ -11,11 +11,13 @@ import com.example.edu_project.mapper.BlogCommentMapper;
 import com.example.edu_project.mapper.SysUserMapper;
 import com.example.edu_project.service.BlogCommentService;
 import com.example.edu_project.service.BlogPostService;
+import com.example.edu_project.service.NotificationService;
 import com.example.edu_project.utils.HtmlSanitizer;
 import com.example.edu_project.utils.SecurityUtils;
 import com.example.edu_project.vo.CommentVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -38,6 +40,10 @@ public class BlogCommentServiceImpl extends ServiceImpl<BlogCommentMapper, BlogC
 
     @Autowired
     private HtmlSanitizer htmlSanitizer;
+
+    @Autowired
+    @Qualifier("notificationServiceImpl")
+    private NotificationService notificationService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -73,6 +79,12 @@ public class BlogCommentServiceImpl extends ServiceImpl<BlogCommentMapper, BlogC
 
         // 更新文章评论数
         blogPostService.incrementCommentCount(request.getPostId());
+
+        // 发送评论通知
+        String notifyType = request.getParentId() != null ? "reply" : "comment";
+        String notifyTitle = request.getParentId() != null ? "有人回复了你的评论" : "有人评论了你的文章";
+        String notifyContent = request.getParentId() != null ? "用户回复了你的评论：" + sanitizedContent : "用户评论了你的文章：" + post.getTitle();
+        notificationService.sendNotification(notifyType, notifyTitle, notifyContent, userId, post.getUserId(), "post", request.getPostId());
 
         return comment.getId();
     }

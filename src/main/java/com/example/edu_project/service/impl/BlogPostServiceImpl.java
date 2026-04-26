@@ -512,6 +512,25 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
                     .collect(Collectors.joining(","));
         }
 
+        // 如果指定了 draftId，则更新指定草稿
+        if (request.getDraftId() != null) {
+            BlogDraft targetDraft = blogDraftMapper.selectById(request.getDraftId());
+            if (targetDraft == null) {
+                throw new BusinessException(404, "草稿不存在");
+            }
+            if (!targetDraft.getUserId().equals(userId)) {
+                throw new BusinessException(403, "无权修改此草稿");
+            }
+            targetDraft.setTitle(sanitizedTitle);
+            targetDraft.setContent(sanitizedContent);
+            targetDraft.setSummary(sanitizedSummary);
+            targetDraft.setCategory(sanitizedCategory);
+            targetDraft.setTagIds(tagIdsStr);
+            targetDraft.setPostId(request.getPostId());
+            blogDraftMapper.updateById(targetDraft);
+            return targetDraft.getId();
+        }
+
         // 查询用户的最新草稿（按 update_time 倒序）
         LambdaQueryWrapper<BlogDraft> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(BlogDraft::getUserId, userId)
@@ -567,8 +586,8 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         if (draft == null) {
             throw new BusinessException(404, "草稿不存在");
         }
-        // 检查权限：只能删除自己的草稿
-        if (!draft.getUserId().equals(userId)) {
+        // 检查权限：只能删除自己的草稿，管理员除外
+        if (!draft.getUserId().equals(userId) && !SecurityUtils.isCurrentUserAdmin()) {
             throw new BusinessException(403, "无权删除此草稿");
         }
 
@@ -677,14 +696,19 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
             return Collections.emptyList();
         }
 
+        // 限制关键词长度，防止过长关键词导致性能问题
+        if (keyword.trim().length() > 200) {
+            keyword = keyword.trim().substring(0, 200);
+        }
+
         LambdaQueryWrapper<BlogPost> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(BlogPost::getStatus, 1)
+                .ne(BlogPost::getIsDeleted, 1)
                 .like(BlogPost::getTitle, keyword.trim())
                 .select(BlogPost::getTitle)
-                .orderByDesc(BlogPost::getViewCount)
-                .last("LIMIT 10");
+                .orderByDesc(BlogPost::getViewCount);
 
-        List<BlogPost> posts = this.list(wrapper);
+        List<BlogPost> posts = this.page(new Page<>(1, 10), wrapper).getRecords();
         return posts.stream()
                 .map(BlogPost::getTitle)
                 .collect(Collectors.toList());
@@ -701,10 +725,16 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
 
         // 将逗号分隔的 tagIds 转换为列表
         if (draft.getTagIds() != null && !draft.getTagIds().isEmpty()) {
-            String[] tagIdStrs = draft.getTagIds().split(",");
-            request.setTagIds(java.util.Arrays.stream(tagIdStrs)
-                    .map(Long::parseLong)
-                    .collect(Collectors.toList()));
+            try {
+                String[] tagIdStrs = draft.getTagIds().split(",");
+                request.setTagIds(java.util.Arrays.stream(tagIdStrs)
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty())
+                        .map(Long::parseLong)
+                        .collect(Collectors.toList()));
+            } catch (NumberFormatException e) {
+                // 忽略格式错误的 tagIds
+            }
         }
 
         return request;

@@ -549,7 +549,7 @@ CREATE TABLE `blog_report` (
 
     `reason`            VARCHAR(500)    NOT NULL                     COMMENT '举报原因',
 
-    `status`            TINYINT(1)     DEFAULT 0                     COMMENT '处理状态：0=待处理，1=已处理，2=已驳回',
+    `status`            TINYINT(1)     DEFAULT 0                     COMMENT '处理状态：0=待处理，1=已驳回，2=已核实',
 
     `handler_id`        BIGINT          DEFAULT NULL                  COMMENT '处理人ID（管理员）',
 
