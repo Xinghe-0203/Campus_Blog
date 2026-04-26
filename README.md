@@ -505,6 +505,17 @@ java -jar target/edu_project-0.0.1-SNAPSHOT.jar
 
 ## 更新日志
 
+### v1.28 (2026-04-26)
+- 🔧 **Critical 修复**：6个Mapper物理删除改为逻辑删除（is_deleted=1）
+- 🔧 **Critical 修复**：通知发送改为事件机制（@TransactionalEventListener）
+- 🔧 **High 修复**：Map转换添加merge function防止重复key
+- 🔧 **High 修复**：getPostDetail添加@Transactional(readOnly=true)
+- 🔧 **High 修复**：parentComment.getPostId() NPE修复
+- 🔧 **High 修复**：CORS配置默认端口从通配符改为具体端口8080
+- 🔧 **API 调整**：创建标签接口改为仅需登录（移除管理员权限）
+- ✨ 新增事件机制：CommentCreatedEvent、LikeCreatedEvent、FollowCreatedEvent
+- ✨ 新增 NotificationEventListener：事务提交后异步发送通知
+
 ### v1.27 (2026-04-26)
 - 🔧 **API 调整**：GET /api/user/{id} 改为公开访问，任何人可查看用户信息
 - 🔧 **通知系统增强**：管理员可删除任意用户的通知

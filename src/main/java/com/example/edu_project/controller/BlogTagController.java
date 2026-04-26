@@ -45,9 +45,6 @@ public class BlogTagController {
         if (userId == null) {
             throw new BusinessException(401, "请先登录");
         }
-        if (!SecurityUtils.isCurrentUserAdmin()) {
-            throw new BusinessException(403, "仅管理员可执行此操作");
-        }
         BlogTag tag = blogTagService.createTag(request.getName());
         return Result.success(tag);
     }
