@@ -12,10 +12,10 @@
 | **MyBatis Plus** | 3.5.5 | ORM 持久层框架（MyBatis 增强） |
 | **MySQL** | 8.0+ | 关系型数据库（云端部署） |
 | **Knife4j** | 4.5.0 | API 文档（基于 Swagger） |
-| **Lombok** | 最新 | 简化 Java 代码 |
+| **Lombok** | 由父工程管理 | 简化 Java 代码 |
 | **Hutool** | 5.8.38 | Java 工具类库 |
 | **JWT (JJWT)** | 0.12.3 | JSON Web Token 认证 |
-| **Spring Security** | 3.0.12 | 安全认证框架 |
+| **Spring Security** | 由父工程管理 | 安全认证框架 |
 
 ## 项目结构
 
@@ -41,7 +41,7 @@ edu_project/
 │   │   ├── AdminReportController.java          # 管理员举报控制器
 │   │   ├── CircleController.java               # 校友圈控制器
 │   │   └── MediaController.java               # 媒体控制器
-│   ├── service/                                 # Service 层（13个）
+│   ├── service/                                 # Service 层（14个）
 │   │   ├── SysUserService.java
 │   │   ├── BlogPostService.java
 │   │   ├── BlogCommentService.java
