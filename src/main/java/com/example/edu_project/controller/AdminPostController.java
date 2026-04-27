@@ -13,8 +13,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -23,13 +22,12 @@ import org.springframework.web.bind.annotation.*;
 /**
  * 管理员文章管理控制器
  */
+@Slf4j
 @Tag(name = "管理员-文章管理", description = "管理员文章管理接口")
 @RestController
 @RequestMapping("/admin/post")
 @Validated
 public class AdminPostController {
-
-    private static final Logger log = LoggerFactory.getLogger(AdminPostController.class);
 
     @Autowired
     private BlogPostService blogPostService;

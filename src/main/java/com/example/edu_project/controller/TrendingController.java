@@ -1,7 +1,10 @@
 package com.example.edu_project.controller;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.example.edu_project.common.result.Result;
 import com.example.edu_project.service.TrendingService;
+import com.example.edu_project.vo.HotPostVO;
+import com.example.edu_project.vo.HotTagVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Max;
@@ -28,10 +31,10 @@ public class TrendingController {
      */
     @Operation(summary = "获取热门文章列表")
     @GetMapping("/posts")
-    public Result<Object> getHotPosts(
+    public Result<IPage<HotPostVO>> getHotPosts(
             @RequestParam(defaultValue = "1") @Min(1) int pageNum,
             @RequestParam(defaultValue = "10") @Min(1) @Max(100) int pageSize) {
-        Object result = trendingService.getHotPosts(pageNum, pageSize);
+        IPage<HotPostVO> result = trendingService.getHotPosts(pageNum, pageSize);
         return Result.success(result);
     }
 
@@ -40,8 +43,8 @@ public class TrendingController {
      */
     @Operation(summary = "获取热门标签")
     @GetMapping("/hot-tags")
-    public Result<Object> getHotTags() {
-        Object result = trendingService.getHotTags();
+    public Result<IPage<HotTagVO>> getHotTags() {
+        IPage<HotTagVO> result = trendingService.getHotTags();
         return Result.success(result);
     }
 

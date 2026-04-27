@@ -17,6 +17,7 @@ import com.example.edu_project.mapper.BlogReportMapper;
 import com.example.edu_project.mapper.SysUserMapper;
 import com.example.edu_project.service.ReportService;
 import com.example.edu_project.utils.SecurityUtils;
+import com.example.edu_project.utils.UserConverter;
 import com.example.edu_project.vo.ReportVO;
 import com.example.edu_project.vo.UserVO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -265,13 +266,13 @@ public class ReportServiceImpl extends ServiceImpl<BlogReportMapper, BlogReport>
         // 设置举报人信息
         SysUser reporter = userMap.get(report.getReporterId());
         if (reporter != null) {
-            vo.setReporter(convertToUserVO(reporter));
+            vo.setReporter(UserConverter.toUserVO(reporter));
         }
 
         // 设置被举报用户信息
         SysUser reportedUser = userMap.get(report.getReportedUserId());
         if (reportedUser != null) {
-            vo.setReportedUser(convertToUserVO(reportedUser));
+            vo.setReportedUser(UserConverter.toUserVO(reportedUser));
         }
 
         // 设置处理人信息
@@ -279,7 +280,7 @@ public class ReportServiceImpl extends ServiceImpl<BlogReportMapper, BlogReport>
             vo.setHandlerId(report.getHandlerId());
             SysUser handler = userMap.get(report.getHandlerId());
             if (handler != null) {
-                vo.setHandler(convertToUserVO(handler));
+                vo.setHandler(UserConverter.toUserVO(handler));
             }
         }
 
@@ -320,22 +321,5 @@ public class ReportServiceImpl extends ServiceImpl<BlogReportMapper, BlogReport>
                 .collect(java.util.stream.Collectors.toList()));
 
         return result;
-    }
-
-    /**
-     * 转换用户实体为UserVO
-     */
-    private UserVO convertToUserVO(SysUser user) {
-        UserVO vo = new UserVO();
-        vo.setId(user.getId());
-        vo.setUsername(user.getUsername());
-        vo.setNickname(user.getNickname());
-        vo.setAvatar(user.getAvatar());
-        vo.setEmail(user.getEmail());
-        vo.setRole(user.getRole());
-        vo.setStatus(user.getStatus());
-        vo.setCreateTime(user.getCreateTime());
-        vo.setUpdateTime(user.getUpdateTime());
-        return vo;
     }
 }

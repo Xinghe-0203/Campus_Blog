@@ -4,10 +4,8 @@ import com.example.edu_project.event.CommentCreatedEvent;
 import com.example.edu_project.event.FollowCreatedEvent;
 import com.example.edu_project.event.LikeCreatedEvent;
 import com.example.edu_project.service.NotificationService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
@@ -17,13 +15,11 @@ import org.springframework.transaction.event.TransactionalEventListener;
  * 通知事件监听器，处理评论、点赞、关注等事件的异步通知发送
  * 使用 @TransactionalEventListener 确保在事务提交后才发送通知
  */
+@Slf4j
 @Component
 public class NotificationEventListener {
 
-    private static final Logger log = LoggerFactory.getLogger(NotificationEventListener.class);
-
     @Autowired
-    @Qualifier("notificationServiceImpl")
     private NotificationService notificationService;
 
     /**

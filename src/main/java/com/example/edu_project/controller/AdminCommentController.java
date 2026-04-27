@@ -6,8 +6,7 @@ import com.example.edu_project.service.BlogCommentService;
 import com.example.edu_project.utils.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -16,13 +15,12 @@ import org.springframework.web.bind.annotation.*;
 /**
  * 管理员评论管理控制器
  */
+@Slf4j
 @Tag(name = "管理员-评论管理", description = "管理员评论管理接口")
 @RestController
 @RequestMapping("/admin/comment")
 @Validated
 public class AdminCommentController {
-
-    private static final Logger log = LoggerFactory.getLogger(AdminCommentController.class);
 
     @Autowired
     private BlogCommentService blogCommentService;

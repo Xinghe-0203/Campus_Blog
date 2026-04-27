@@ -13,27 +13,25 @@ import com.example.edu_project.mapper.SysUserMapper;
 import com.example.edu_project.service.MessageService;
 import com.example.edu_project.utils.HtmlSanitizer;
 import com.example.edu_project.utils.SecurityUtils;
+import com.example.edu_project.utils.TimeUtils;
+import com.example.edu_project.utils.UserConverter;
 import com.example.edu_project.vo.MessageVO;
 import com.example.edu_project.vo.UserVO;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
 /**
  * 私信服务实现类
  */
+@Slf4j
 @Service
 public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> implements MessageService {
-
-    private static final Logger log = LoggerFactory.getLogger(MessageServiceImpl.class);
 
     @Autowired
     private SysUserMapper sysUserMapper;
@@ -179,69 +177,22 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         return messages.stream().map(message -> {
             MessageVO vo = new MessageVO();
             BeanUtils.copyProperties(message, vo);
-            vo.setTimeAgo(getTimeAgo(message.getCreateTime()));
+            vo.setTimeAgo(TimeUtils.getTimeAgo(message.getCreateTime()));
 
             // 设置发送者信息
             SysUser sender = userMap.get(message.getSenderId());
             if (sender != null) {
-                vo.setSender(convertToUserVO(sender));
+                vo.setSender(UserConverter.toUserVO(sender));
             }
 
             // 设置接收者信息
             SysUser receiver = userMap.get(message.getReceiverId());
             if (receiver != null) {
-                vo.setReceiver(convertToUserVO(receiver));
+                vo.setReceiver(UserConverter.toUserVO(receiver));
             }
 
             return vo;
         }).toList();
-    }
-
-    /**
-     * 转换用户实体为UserVO
-     */
-    private UserVO convertToUserVO(SysUser user) {
-        UserVO vo = new UserVO();
-        vo.setId(user.getId());
-        vo.setUsername(user.getUsername());
-        vo.setNickname(user.getNickname());
-        vo.setAvatar(user.getAvatar());
-        vo.setRole(user.getRole());
-        vo.setStatus(user.getStatus());
-        return vo;
-    }
-
-    /**
-     * 计算相对时间描述
-     */
-    private String getTimeAgo(LocalDateTime dateTime) {
-        if (dateTime == null) {
-            return "";
-        }
-        LocalDateTime now = LocalDateTime.now();
-        long seconds = Duration.between(dateTime, now).getSeconds();
-
-        if (seconds < 60) {
-            return "刚刚";
-        }
-        long minutes = seconds / 60;
-        if (minutes < 60) {
-            return minutes + "分钟前";
-        }
-        long hours = minutes / 60;
-        if (hours < 24) {
-            return hours + "小时前";
-        }
-        long days = hours / 24;
-        if (days < 30) {
-            return days + "天前";
-        }
-        long months = days / 30;
-        if (months < 12) {
-            return months + "个月前";
-        }
-        long years = days / 365;
-        return years + "年前";
     }
 
     /**

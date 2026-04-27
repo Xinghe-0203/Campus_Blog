@@ -10,15 +10,14 @@ import com.example.edu_project.mapper.BlogNotificationMapper;
 import com.example.edu_project.mapper.SysUserMapper;
 import com.example.edu_project.service.NotificationService;
 import com.example.edu_project.utils.SecurityUtils;
+import com.example.edu_project.utils.TimeUtils;
+import com.example.edu_project.utils.UserConverter;
 import com.example.edu_project.vo.NotificationVO;
-import com.example.edu_project.vo.UserVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
 import java.util.*;
 import java.util.Collections;
 import java.util.stream.Collectors;
@@ -136,7 +135,7 @@ public class NotificationServiceImpl extends ServiceImpl<BlogNotificationMapper,
         BeanUtils.copyProperties(notification, vo);
 
         // 计算timeAgo
-        vo.setTimeAgo(getTimeAgo(notification.getCreateTime()));
+        vo.setTimeAgo(TimeUtils.getTimeAgo(notification.getCreateTime()));
 
         return vo;
     }
@@ -166,56 +165,16 @@ public class NotificationServiceImpl extends ServiceImpl<BlogNotificationMapper,
         return notifications.stream().map(notification -> {
             NotificationVO vo = new NotificationVO();
             BeanUtils.copyProperties(notification, vo);
-            vo.setTimeAgo(getTimeAgo(notification.getCreateTime()));
+            vo.setTimeAgo(TimeUtils.getTimeAgo(notification.getCreateTime()));
 
             // 使用Map匹配用户信息
             if (notification.getFromUserId() != null) {
                 SysUser fromUser = userMap.get(notification.getFromUserId());
                 if (fromUser != null) {
-                    UserVO userVO = new UserVO();
-                    userVO.setId(fromUser.getId());
-                    userVO.setUsername(fromUser.getUsername());
-                    userVO.setNickname(fromUser.getNickname());
-                    userVO.setAvatar(fromUser.getAvatar());
-                    userVO.setRole(fromUser.getRole());
-                    userVO.setStatus(fromUser.getStatus());
-                    vo.setFromUser(userVO);
+                    vo.setFromUser(UserConverter.toUserVO(fromUser));
                 }
             }
             return vo;
         }).toList();
-    }
-
-    /**
-     * 计算相对时间描述
-     */
-    private String getTimeAgo(LocalDateTime dateTime) {
-        if (dateTime == null) {
-            return "";
-        }
-        LocalDateTime now = LocalDateTime.now();
-        long seconds = Duration.between(dateTime, now).getSeconds();
-
-        if (seconds < 60) {
-            return "刚刚";
-        }
-        long minutes = seconds / 60;
-        if (minutes < 60) {
-            return minutes + "分钟前";
-        }
-        long hours = minutes / 60;
-        if (hours < 24) {
-            return hours + "小时前";
-        }
-        long days = hours / 24;
-        if (days < 30) {
-            return days + "天前";
-        }
-        long months = days / 30;
-        if (months < 12) {
-            return months + "个月前";
-        }
-        long years = days / 365;
-        return years + "年前";
     }
 }

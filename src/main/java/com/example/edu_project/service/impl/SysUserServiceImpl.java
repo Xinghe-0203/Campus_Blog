@@ -15,6 +15,8 @@ import com.example.edu_project.mapper.SysUserMapper;
 import com.example.edu_project.service.SysUserService;
 import com.example.edu_project.utils.JwtUtils;
 import com.example.edu_project.utils.SecurityUtils;
+import com.example.edu_project.utils.StringMaskUtils;
+import com.example.edu_project.utils.UserConverter;
 import com.example.edu_project.vo.AdminUserVO;
 import com.example.edu_project.vo.UserLoginResponse;
 import com.example.edu_project.vo.UserVO;
@@ -246,24 +248,10 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         // 转换为 UserVO
         IPage<UserVO> result = new Page<>(userPage.getCurrent(), userPage.getSize(), userPage.getTotal());
         result.setRecords(userPage.getRecords().stream()
-                .map(this::convertToUserVO)
+                .map(UserConverter::toUserVO)
                 .collect(java.util.stream.Collectors.toList()));
 
         return result;
-    }
-
-    private UserVO convertToUserVO(SysUser user) {
-        UserVO userVO = new UserVO();
-        userVO.setId(user.getId());
-        userVO.setUsername(user.getUsername());
-        userVO.setNickname(user.getNickname());
-        userVO.setAvatar(user.getAvatar());
-        userVO.setEmail(user.getEmail());
-        userVO.setRole(user.getRole());
-        userVO.setStatus(user.getStatus());
-        userVO.setCreateTime(user.getCreateTime());
-        userVO.setUpdateTime(user.getUpdateTime());
-        return userVO;
     }
 
     @Override
@@ -445,23 +433,6 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         // 更新密码
         user.setPassword(passwordEncoder.encode(newPassword));
         this.updateById(user);
-        log.info("用户密码重置成功: userId={}, email={}", user.getId(), maskEmail(email));
-    }
-
-    /**
-     * 邮箱脱敏处理
-     */
-    private String maskEmail(String email) {
-        if (email == null || !email.contains("@")) {
-            return email;
-        }
-        String[] parts = email.split("@");
-        String local = parts[0];
-        String domain = parts[1];
-        int len = local.length();
-        if (len <= 2) {
-            return local.charAt(0) + "***@" + domain;
-        }
-        return local.charAt(0) + "***" + local.charAt(len - 1) + "@" + domain;
+        log.info("用户密码重置成功: userId={}, email={}", user.getId(), StringMaskUtils.maskEmail(email));
     }
 }

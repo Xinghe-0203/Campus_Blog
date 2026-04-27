@@ -13,6 +13,8 @@ import com.example.edu_project.service.FollowService;
 import com.example.edu_project.service.NotificationService;
 import com.example.edu_project.service.TopicService;
 import com.example.edu_project.utils.HtmlSanitizer;
+import com.example.edu_project.utils.TimeUtils;
+import com.example.edu_project.utils.UserConverter;
 import com.example.edu_project.vo.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,9 +22,6 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -510,7 +509,7 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
             vo.setAllowComment(post.getAllowComment());
             vo.setAllowRepost(post.getAllowRepost());
             vo.setCreateTime(post.getCreateTime());
-            vo.setTimeAgo(calculateTimeAgo(post.getCreateTime()));
+            vo.setTimeAgo(TimeUtils.getTimeAgo(post.getCreateTime()));
 
             // 图片列表
             if (StrUtil.isNotBlank(post.getImageUrls())) {
@@ -568,7 +567,7 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
                         }
 
                         repostVO.setCreateTime(repostPost.getCreateTime());
-                        repostVO.setTimeAgo(calculateTimeAgo(repostPost.getCreateTime()));
+                        repostVO.setTimeAgo(TimeUtils.getTimeAgo(repostPost.getCreateTime()));
 
                         vo.setRepostPost(repostVO);
                     } else {
@@ -581,29 +580,6 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
 
             return vo;
         }).collect(Collectors.toList());
-    }
-
-    /**
-     * 计算时间 ago 描述
-     */
-    private String calculateTimeAgo(LocalDateTime dateTime) {
-        if (dateTime == null) {
-            return "";
-        }
-        LocalDateTime now = LocalDateTime.now();
-        long seconds = Duration.between(dateTime, now).getSeconds();
-
-        if (seconds < 60) {
-            return "刚刚";
-        } else if (seconds < 3600) {
-            return (seconds / 60) + "分钟前";
-        } else if (seconds < 86400) {
-            return (seconds / 3600) + "小时前";
-        } else if (seconds < 604800) {
-            return (seconds / 86400) + "天前";
-        } else {
-            return dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-        }
     }
 
     // ==================== 点赞相关方法 ====================
@@ -867,13 +843,13 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
         vo.setReplyToUserId(comment.getReplyToUserId());
         vo.setLikeCount(comment.getLikeCount());
         vo.setCreateTime(comment.getCreateTime());
-        vo.setTimeAgo(calculateTimeAgo(comment.getCreateTime()));
+        vo.setTimeAgo(TimeUtils.getTimeAgo(comment.getCreateTime()));
         vo.setReplies(new ArrayList<>());
 
         // 获取评论者信息
         SysUser user = userMap.get(comment.getUserId());
         if (user != null) {
-            vo.setUser(convertToUserVO(user));
+            vo.setUser(UserConverter.toUserVO(user));
         }
 
         // 获取回复目标用户昵称
@@ -885,19 +861,6 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
         }
 
         return vo;
-    }
-
-    /**
-     * 将用户转换为UserVO
-     */
-    private UserVO convertToUserVO(SysUser user) {
-        UserVO userVO = new UserVO();
-        userVO.setId(user.getId());
-        userVO.setUsername(user.getUsername());
-        userVO.setNickname(user.getNickname());
-        userVO.setAvatar(user.getAvatar());
-        userVO.setRole(user.getRole());
-        return userVO;
     }
 
     // ==================== 转发相关方法 ====================

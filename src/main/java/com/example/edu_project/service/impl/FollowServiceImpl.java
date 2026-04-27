@@ -11,10 +11,10 @@ import com.example.edu_project.event.FollowCreatedEvent;
 import com.example.edu_project.mapper.BlogFollowMapper;
 import com.example.edu_project.mapper.SysUserMapper;
 import com.example.edu_project.service.FollowService;
+import com.example.edu_project.utils.UserConverter;
 import com.example.edu_project.vo.FollowStatusVO;
 import com.example.edu_project.vo.UserVO;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.dao.DuplicateKeyException;
@@ -247,7 +247,7 @@ public class FollowServiceImpl extends ServiceImpl<BlogFollowMapper, BlogFollow>
         List<SysUser> followers = sysUserMapper.selectBatchIds(followerIds);
 
         return followers.stream()
-                .map(this::convertToUserVO)
+                .map(UserConverter::toUserVO)
                 .collect(java.util.stream.Collectors.toList());
     }
 
@@ -277,7 +277,7 @@ public class FollowServiceImpl extends ServiceImpl<BlogFollowMapper, BlogFollow>
         List<SysUser> followings = sysUserMapper.selectBatchIds(followingIds);
 
         return followings.stream()
-                .map(this::convertToUserVO)
+                .map(UserConverter::toUserVO)
                 .collect(java.util.stream.Collectors.toList());
     }
 
@@ -327,7 +327,7 @@ public class FollowServiceImpl extends ServiceImpl<BlogFollowMapper, BlogFollow>
         // 转换
         return followPage.convert(follow -> {
             SysUser follower = userMap.get(follow.getFollowerId());
-            return follower != null ? convertToUserVO(follower) : null;
+            return follower != null ? UserConverter.toUserVO(follower) : null;
         });
     }
 
@@ -362,16 +362,8 @@ public class FollowServiceImpl extends ServiceImpl<BlogFollowMapper, BlogFollow>
         // 转换
         return followPage.convert(follow -> {
             SysUser following = userMap.get(follow.getFollowingId());
-            return following != null ? convertToUserVO(following) : null;
+            return following != null ? UserConverter.toUserVO(following) : null;
         });
     }
 
-    /**
-     * 转换 SysUser 为 UserVO
-     */
-    private UserVO convertToUserVO(SysUser user) {
-        UserVO vo = new UserVO();
-        BeanUtils.copyProperties(user, vo);
-        return vo;
-    }
 }

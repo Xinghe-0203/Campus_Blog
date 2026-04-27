@@ -5,6 +5,7 @@ import com.example.edu_project.common.exception.BusinessException;
 import com.example.edu_project.entity.SysUser;
 import com.example.edu_project.mapper.SysUserMapper;
 import com.example.edu_project.service.EmailService;
+import com.example.edu_project.utils.StringMaskUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -99,7 +100,7 @@ public class EmailServiceImpl implements EmailService {
         // 发送邮件
         try {
             sendHtmlEmail(to, code);
-            log.info("验证码已发送至: {}", maskEmail(to));
+            log.info("验证码已发送至: {}", StringMaskUtils.maskEmail(to));
             return true;
         } catch (Exception e) {
             log.error("发送验证码失败: {}", e.getMessage());
@@ -246,22 +247,5 @@ public class EmailServiceImpl implements EmailService {
                 "    </div>\n" +
                 "</body>\n" +
                 "</html>";
-    }
-
-    /**
-     * 邮箱脱敏处理
-     */
-    private String maskEmail(String email) {
-        if (email == null || !email.contains("@")) {
-            return email;
-        }
-        String[] parts = email.split("@");
-        String local = parts[0];
-        String domain = parts[1];
-        int len = local.length();
-        if (len <= 2) {
-            return local.charAt(0) + "***@" + domain;
-        }
-        return local.charAt(0) + "***" + local.charAt(len - 1) + "@" + domain;
     }
 }

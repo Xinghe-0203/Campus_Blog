@@ -6,6 +6,7 @@ import com.example.edu_project.dto.ResetPasswordRequest;
 import com.example.edu_project.dto.SendCodeRequest;
 import com.example.edu_project.service.EmailService;
 import com.example.edu_project.service.SysUserService;
+import com.example.edu_project.utils.StringMaskUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -39,7 +40,7 @@ public class PasswordController {
         // 检查邮箱是否已注册
         if (!emailService.isEmailRegistered(request.getEmail())) {
             // 为了防止用户枚举攻击，返回成功但实际不发送
-            log.info("密码找回尝试：邮箱未注册 - {}", maskEmail(request.getEmail()));
+            log.info("密码找回尝试：邮箱未注册 - {}", StringMaskUtils.maskEmail(request.getEmail()));
             return Result.success("验证码已发送", null);
         }
 
@@ -61,24 +62,7 @@ public class PasswordController {
         // 重置密码
         sysUserService.resetPassword(request.getEmail(), request.getNewPassword());
 
-        log.info("密码重置成功: {}", maskEmail(request.getEmail()));
+        log.info("密码重置成功: {}", StringMaskUtils.maskEmail(request.getEmail()));
         return Result.success("密码重置成功", null);
-    }
-
-    /**
-     * 邮箱脱敏处理
-     */
-    private String maskEmail(String email) {
-        if (email == null || !email.contains("@")) {
-            return email;
-        }
-        String[] parts = email.split("@");
-        String local = parts[0];
-        String domain = parts[1];
-        int len = local.length();
-        if (len <= 2) {
-            return local.charAt(0) + "***@" + domain;
-        }
-        return local.charAt(0) + "***" + local.charAt(len - 1) + "@" + domain;
     }
 }

@@ -7,8 +7,6 @@ import com.example.edu_project.service.BlogPostTagService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-
 /**
  * 文章-标签关联服务实现类
  */
