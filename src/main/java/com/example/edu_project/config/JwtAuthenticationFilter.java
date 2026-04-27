@@ -39,6 +39,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             if (StringUtils.hasText(token)) {
                 try {
+                    // 拒绝 refresh token 用于 API 访问，防止泄露后长期滥用
+                    if (jwtUtils.isRefreshToken(token)) {
+                        filterChain.doFilter(request, response);
+                        return;
+                    }
                     // 必须先验证 Token 签名，再检查黑名单
                     if (!jwtUtils.isTokenExpired(token) && !jwtUtils.isTokenRevoked(token)) {
                         Long userId = jwtUtils.getUserIdFromToken(token);

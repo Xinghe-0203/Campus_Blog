@@ -211,9 +211,9 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
             baseMapper.incrementRepostCount(repostId);
         }
 
-        // 更新话题的动态数
-        for (Long topicId : topicIds) {
-            baseMapper.incrementTopicPostCount(topicId);
+        // 批量更新话题的动态数，避免 N+1
+        if (!topicIds.isEmpty()) {
+            baseMapper.batchIncrementTopicPostCount(topicIds);
         }
 
         // 发送 @提及 通知（此时post已保存，可以获取正确的postId）

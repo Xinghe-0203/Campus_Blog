@@ -11,6 +11,8 @@ import com.example.edu_project.vo.PostDetailResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,8 +69,8 @@ public class AdminPostController {
     @PreAuthorize("hasRole('admin')")
     public Result<IPage<PostDetailResponse>> getReviewList(
             @RequestParam(required = false) String keyword,
-            @RequestParam(defaultValue = "1") Integer page,
-            @RequestParam(defaultValue = "10") Integer pageSize) {
+            @RequestParam(defaultValue = "1") @Min(1) Integer page,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(100) Integer pageSize) {
         IPage<PostDetailResponse> result = blogPostService.getReviewList(keyword, page, pageSize);
         return Result.success(result);
     }

@@ -37,7 +37,7 @@ validate_env() {
     REQUIRED_VARS="DB_HOST DB_PORT DB_NAME DB_USERNAME DB_PASSWORD JWT_SECRET"
 
     for var in $REQUIRED_VARS; do
-        value=$(eval echo \$$var)
+        value=$(printenv "$var")
         if [ -z "$value" ] || [ "$value" = "your_${var,,}_here" ] || [ "$value" = "your_password_here" ]; then
             log_error "环境变量 $var 未设置或为默认值"
             log_error "请在 .env 文件或 Docker 环境变量中配置"

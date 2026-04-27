@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.event.TransactionPhase;
 import org.springframework.transaction.event.TransactionalEventListener;
@@ -29,6 +30,7 @@ public class NotificationEventListener {
      * 处理评论创建事件
      * TransactionPhase.AFTER_COMMIT 确保事务提交后才执行
      */
+    @Async("notificationExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleCommentCreated(CommentCreatedEvent event) {
         try {
@@ -62,6 +64,7 @@ public class NotificationEventListener {
      * 处理点赞创建事件
      * TransactionPhase.AFTER_COMMIT 确保事务提交后才执行
      */
+    @Async("notificationExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleLikeCreated(LikeCreatedEvent event) {
         try {
@@ -89,6 +92,7 @@ public class NotificationEventListener {
      * 处理关注创建事件
      * TransactionPhase.AFTER_COMMIT 确保事务提交后才执行
      */
+    @Async("notificationExecutor")
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handleFollowCreated(FollowCreatedEvent event) {
         try {

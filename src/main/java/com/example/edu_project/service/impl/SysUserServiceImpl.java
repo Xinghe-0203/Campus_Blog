@@ -129,7 +129,11 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
             log.warn("用户登录失败: username={}, 原因=密码错误", request.getUsername());
             // 密码错误，使用原子操作增加失败计数
-            handleLoginFailAtomic(user.getId());
+            int affected = handleLoginFailAtomic(user.getId());
+            if (affected == 0) {
+                // 更新行数为0，说明账号已被锁定（SQL中的WHERE条件不满足）
+                throw new BusinessException(403, "登录失败次数过多，请稍后再试");
+            }
             // 重新查询获取最新锁定状态
             SysUser updatedUser = this.getById(user.getId());
             if (updatedUser.getLockUntil() != null && updatedUser.getLockUntil().isAfter(LocalDateTime.now())) {
@@ -165,8 +169,8 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
     /**
      * 原子性处理登录失败（解决并发问题）
      */
-    private void handleLoginFailAtomic(Long userId) {
-        baseMapper.incrementLoginFailCount(userId, MAX_LOGIN_FAIL_COUNT, LOCK_MINUTES);
+    private int handleLoginFailAtomic(Long userId) {
+        return baseMapper.incrementLoginFailCount(userId, MAX_LOGIN_FAIL_COUNT, LOCK_MINUTES);
     }
 
     @Override

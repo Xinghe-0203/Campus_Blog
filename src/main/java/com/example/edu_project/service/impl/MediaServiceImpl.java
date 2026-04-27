@@ -5,6 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.edu_project.common.exception.BusinessException;
 import com.example.edu_project.dto.MediaQueryRequest;
+import com.example.edu_project.entity.BlogPostMedia;
 import com.example.edu_project.entity.Media;
 import com.example.edu_project.entity.SysUser;
 import com.example.edu_project.mapper.MediaMapper;
@@ -31,6 +32,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -462,11 +464,11 @@ public class MediaServiceImpl extends ServiceImpl<MediaMapper, Media> implements
             throw new BusinessException(403, "文章未发布或已下架");
         }
 
-        List<Media> mediaList = blogPostMediaMapper.selectByPostId(postId)
-                .stream()
-                .map(pm -> this.getById(pm.getMediaId()))
-                .filter(m -> m != null)
+        List<BlogPostMedia> postMediaList = blogPostMediaMapper.selectByPostId(postId);
+        List<Long> mediaIds = postMediaList.stream()
+                .map(BlogPostMedia::getMediaId)
                 .collect(Collectors.toList());
+        List<Media> mediaList = mediaIds.isEmpty() ? Collections.emptyList() : this.listByIds(mediaIds);
 
         return mediaList.stream().map(media -> {
             MediaVO vo = new MediaVO();

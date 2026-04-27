@@ -103,7 +103,7 @@ public class ReportServiceImpl extends ServiceImpl<BlogReportMapper, BlogReport>
 
     @Override
     @Transactional(readOnly = true)
-    public IPage<ReportVO> getMyReports(Long page, Long pageSize, Long reporterId) {
+    public IPage<ReportVO> getMyReports(Integer page, Integer pageSize, Long reporterId) {
         Page<BlogReport> pageParam = new Page<>(page, pageSize);
         LambdaQueryWrapper<BlogReport> wrapper = new LambdaQueryWrapper<>();
         wrapper.eq(BlogReport::getReporterId, reporterId)
@@ -115,7 +115,7 @@ public class ReportServiceImpl extends ServiceImpl<BlogReportMapper, BlogReport>
 
     @Override
     @Transactional(readOnly = true)
-    public IPage<ReportVO> getPendingReports(Long page, Long pageSize) {
+    public IPage<ReportVO> getPendingReports(Integer page, Integer pageSize) {
         // 管理员权限校验
         if (!SecurityUtils.isCurrentUserAdmin()) {
             throw new BusinessException(403, "需要管理员权限");

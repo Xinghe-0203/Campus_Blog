@@ -9,6 +9,8 @@ import com.example.edu_project.vo.ReportVO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
@@ -33,8 +35,8 @@ public class AdminReportController {
     @GetMapping("/pending")
     @PreAuthorize("hasRole('admin')")
     public Result<IPage<ReportVO>> getPendingReports(
-            @RequestParam(defaultValue = "1") Long page,
-            @RequestParam(defaultValue = "10") Long pageSize) {
+            @RequestParam(defaultValue = "1") @Min(1) Integer page,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(100) Integer pageSize) {
         IPage<ReportVO> reports = reportService.getPendingReports(page, pageSize);
         return Result.success(reports);
     }

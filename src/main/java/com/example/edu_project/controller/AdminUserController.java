@@ -82,6 +82,8 @@ public class AdminUserController {
 
     /**
      * 重置用户密码（管理员）
+     * 注意：生成的临时密码会返回给管理员，应由管理员通过安全渠道转交给用户
+     * 建议用户登录后立即修改密码
      */
     @Operation(summary = "重置用户密码")
     @PutMapping("/{id}/reset-password")
@@ -106,6 +108,7 @@ public class AdminUserController {
         user.setPassword(passwordEncoder.encode(newPassword));
         sysUserService.updateById(user);
 
+        // 返回临时密码（生产环境建议通过邮件发送）
         return Result.success(newPassword);
     }
 

@@ -16,6 +16,7 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -42,6 +43,7 @@ public class TopicController {
      */
     @Operation(summary = "创建话题（仅管理员）")
     @PostMapping
+    @PreAuthorize("hasRole('admin')")
     public Result<Long> createTopic(@Valid @RequestBody TopicCreateRequest request) {
         Long userId = SecurityUtils.getCurrentUserIdOrNull();
         if (userId == null) {

@@ -50,6 +50,9 @@ COPY entrypoint.sh /app/entrypoint.sh
 # 创建上传目录（持久化）
 RUN mkdir -p /app/uploads && chown -R appuser:appgroup /app
 
+# 安装 wget 用于健康检查
+RUN apk add --no-cache wget mysql-client
+
 # ============================================
 # 环境变量配置
 # ============================================
@@ -72,11 +75,11 @@ HEALTHCHECK --interval=10s --timeout=5s --start-period=30s --retries=3 \
 # ============================================
 # 启动配置
 # ============================================
+# 设置入口点脚本执行权限（必须在 USER 之前执行）
+RUN chmod +x /app/entrypoint.sh
+
 # 切换到非 root 用户
 USER appuser
-
-# 设置入口点脚本执行权限
-RUN chmod +x /app/entrypoint.sh
 
 # 入口脚本处理环境变量和数据库迁移
 ENTRYPOINT ["/app/entrypoint.sh"]

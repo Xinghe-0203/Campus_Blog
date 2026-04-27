@@ -4,10 +4,17 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.example.edu_project.entity.CirclePost;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
+
+import java.time.LocalDateTime;
+import java.util.List;
 
 @Mapper
 public interface CirclePostMapper extends BaseMapper<CirclePost> {
+
+    @Select("SELECT COUNT(DISTINCT user_id) FROM blog_circle_post WHERE create_time >= #{since} AND status != 2")
+    Long countDistinctAuthorsSince(@Param("since") LocalDateTime since);
 
     @Update("UPDATE blog_circle_post SET view_count = view_count + 1 WHERE id = #{id} AND status != 2")
     void incrementViewCount(@Param("id") Long id);
@@ -35,4 +42,11 @@ public interface CirclePostMapper extends BaseMapper<CirclePost> {
 
     @Update("UPDATE blog_topic SET post_count = post_count + 1, trending_score = trending_score + 1 WHERE id = #{topicId}")
     void incrementTopicPostCount(@Param("topicId") Long topicId);
+
+    @Update("<script>" +
+            "UPDATE blog_topic SET post_count = post_count + 1, trending_score = trending_score + 1 " +
+            "WHERE id IN <foreach collection='topicIds' item='topicId' open='(' separator=',' close=')'>" +
+            "#{topicId}</foreach>" +
+            "</script>")
+    void batchIncrementTopicPostCount(@Param("topicIds") List<Long> topicIds);
 }

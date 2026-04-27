@@ -71,8 +71,8 @@
 - Maven 项目结构搭建
 - 核心依赖配置（MyBatis Plus、MySQL、Knife4j、Lombok、Hutool）
 - 标准的包结构（controller、service、mapper、entity、config、common）
-- 21 个实体类（Entity）编写完成
-- 21 个 Mapper 接口编写完成
+- 20 个实体类（Entity）编写完成
+- 20 个 Mapper 接口编写完成
 - 统一响应结果封装（Result）
 - MyBatis Plus 配置（分页插件已启用）
 - API 文档集成（Knife4j）
@@ -96,8 +96,6 @@
 #### ✅ 版本兼容性修复（2026-04-24）
 - 解决 Spring Boot 与 MyBatis Plus 兼容性问题
 - 测试多个版本组合，确定稳定方案：**Spring Boot 3.0.12 + MyBatis Plus 3.5.5**
-- 暂时注释 Spring Security 和 JWT 依赖（开发阶段，简化调试）
-- 注释分页插件配置（依赖问题，后续恢复）
 - 项目成功启动并正常运行！
 - 数据库连接正常（云端 MySQL）
 - API 接口正常响应
@@ -135,7 +133,7 @@
 | **Spring Web MVC** | - | Web 层框架，提供 RESTful API 支持 |
 | **MyBatis Plus** | 3.5.5 | ORM 持久层框架，MyBatis 的增强工具，极大简化数据库操作 |
 | **MySQL Connector** | - | MySQL 数据库驱动 |
-| **Lombok** | 最新 | Java 代码简化工具，自动生成 Getter/Setter/Builder 等 |
+| **Lombok** | 1.18.40 | Java 代码简化工具，自动生成 Getter/Setter/Builder 等 |
 | **Hutool** | 5.8.38 | Java 工具类库，提供字符串、日期、加密等常用工具 |
 | **Knife4j** | 4.5.0 | API 文档工具，基于 Swagger 的增强版，提供美观的 UI 界面 |
 | **Spring Security** | 3.0.12 | 安全认证框架 |
@@ -438,7 +436,7 @@ src/main/java/com/example/edu_project/
 │   ├── DotenvConfig.java                # .env 环境变量加载
 │   └── EnvValidationConfig.java          # 环境变量校验
 │
-├── controller/                           # Controller 层（18个）
+├── controller/                           # Controller 层（20个）
 │   ├── SysUserController.java            # 用户控制器
 │   ├── BlogPostController.java            # 文章控制器
 │   ├── BlogCommentController.java         # 评论控制器
@@ -497,7 +495,7 @@ src/main/java/com/example/edu_project/
 │   ├── EmailServiceImpl.java
 │   └── StatisticsServiceImpl.java
 │
-├── mapper/                               # Mapper 层（21个）
+├── mapper/                               # Mapper 层（20个）
 │   ├── SysUserMapper.java
 │   ├── BlogPostMapper.java
 │   ├── BlogCommentMapper.java
@@ -519,7 +517,7 @@ src/main/java/com/example/edu_project/
 │   ├── TopicMapper.java
 │   └── MessageMapper.java
 │
-├── entity/                               # Entity 实体类（19个）
+├── entity/                               # Entity 实体类（20个）
 │   ├── SysUser.java
 │   ├── BlogPost.java
 │   ├── BlogComment.java
@@ -540,30 +538,7 @@ src/main/java/com/example/edu_project/
 │   ├── BlogPostMedia.java
 │   ├── Topic.java
 │   └── Message.java
-│
-├── entity/                               # Entity 实体类（21个）
-│   ├── SysUser.java
-│   ├── BlogPost.java
-│   ├── BlogComment.java
-│   ├── BlogTag.java
-│   ├── BlogPostTag.java
-│   ├── BlogLike.java
-│   ├── BlogCollect.java
-│   ├── BlogFollow.java
-│   ├── BlogNotification.java
-│   ├── BlogTrending.java
-│   ├── BlogDraft.java
-│   ├── BlogReport.java
-│   ├── CirclePost.java
-│   ├── CircleLike.java
-│   ├── CircleComment.java
-│   ├── CircleRepost.java
-│   ├── Media.java
-│   ├── BlogPostMedia.java
-│   ├── Topic.java
-│   └── Message.java
-│
-└── common/                               # 公共类
+│└── common/                               # 公共类
     ├── result/
     │   └── Result.java                   # 统一响应结果封装
     └── exception/
@@ -753,7 +728,8 @@ src/main/java/com/example/edu_project/
 | 接口 | 方法 | 路径 | 说明 |
 | :--- | :--- | :--- | :--- |
 | 文章列表 | GET | `/api/admin/post/list` | ✅ 已实现 |
-| 修改文章状态 | PUT | `/api/admin/post/{id}/status` | ✅ 已实现 |
+| 审核通过文章 | PUT | `/api/admin/post/{id}/approve` | ✅ 已实现 |
+| 驳回文章 | PUT | `/api/admin/post/{id}/reject` | ✅ 已实现 |
 | 删除文章 | DELETE | `/api/admin/post/{id}` | ✅ 已实现 |
 | 评论列表 | GET | `/api/admin/comment/list` | ✅ 已实现 |
 | 删除评论 | DELETE | `/api/admin/comment/{id}` | ✅ 已实现 |
@@ -932,7 +908,7 @@ edu_project/
     │   │   ├── MybatisPlusConfig.java
     │   │   ├── MyMetaObjectHandler.java
     │   │   └── SecurityConfig.java
-    │   ├── controller/                           # Controller 层（13个）
+    │   ├── controller/                           # Controller 层（20个）
     │   │   ├── SysUserController.java
     │   │   ├── BlogPostController.java
     │   │   ├── BlogCommentController.java
@@ -946,7 +922,7 @@ edu_project/
     │   │   ├── AdminReportController.java
     │   │   ├── CircleController.java
     │   │   └── MediaController.java
-    │   ├── entity/                               # Entity 实体类（18个）
+    │   ├── entity/                               # Entity 实体类（20个）
     │   │   ├── SysUser.java
     │   │   ├── BlogPost.java
     │   │   ├── BlogComment.java
@@ -965,7 +941,7 @@ edu_project/
     │   │   ├── CircleRepost.java
     │   │   ├── Media.java
     │   │   └── BlogPostMedia.java
-    │   ├── mapper/                               # Mapper 层（18个）
+    │   ├── mapper/                               # Mapper 层（20个）
     │   │   ├── SysUserMapper.java
     │   │   ├── BlogPostMapper.java
     │   │   ├── BlogCommentMapper.java
@@ -994,7 +970,7 @@ edu_project/
     │   │   ├── SecurityUtils.java         # 安全工具类
     │   │   ├── UserContext.java          # 用户上下文
     │   │   └── HtmlSanitizer.java        # XSS 防护
-    │   └── service/                              # Service 层（13个）
+    │   └── service/                              # Service 层（17个）
     │   │   ├── SysUserService.java
     │   │   ├── BlogPostService.java
     │   │   ├── BlogCommentService.java
@@ -1008,7 +984,7 @@ edu_project/
     │   │   ├── ReportService.java
     │   │   ├── CircleService.java
     │   │   └── MediaService.java
-    │   ├── service/impl/                         # ServiceImpl 层（13个）
+    │   ├── service/impl/                         # ServiceImpl 层（17个）
     │   │   ├── SysUserServiceImpl.java
     │   │   ├── BlogPostServiceImpl.java
     │   │   ├── BlogCommentServiceImpl.java

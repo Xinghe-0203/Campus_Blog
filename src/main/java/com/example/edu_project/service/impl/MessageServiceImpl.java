@@ -11,6 +11,7 @@ import com.example.edu_project.mapper.BlogNotificationMapper;
 import com.example.edu_project.mapper.MessageMapper;
 import com.example.edu_project.mapper.SysUserMapper;
 import com.example.edu_project.service.MessageService;
+import com.example.edu_project.utils.HtmlSanitizer;
 import com.example.edu_project.utils.SecurityUtils;
 import com.example.edu_project.vo.MessageVO;
 import com.example.edu_project.vo.UserVO;
@@ -40,6 +41,9 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
     @Autowired
     private BlogNotificationMapper blogNotificationMapper;
 
+    @Autowired
+    private HtmlSanitizer htmlSanitizer;
+
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Message sendMessage(Long senderId, Long receiverId, String content) {
@@ -58,7 +62,7 @@ public class MessageServiceImpl extends ServiceImpl<MessageMapper, Message> impl
         Message message = new Message();
         message.setSenderId(senderId);
         message.setReceiverId(receiverId);
-        message.setContent(content);
+        message.setContent(htmlSanitizer.sanitizePlainText(content));
         message.setIsRead(0);
 
         this.save(message);

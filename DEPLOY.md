@@ -159,7 +159,7 @@ copy .env.example .env
 
 ```bash
 # 进入项目目录
-cd D:\MyCode\edu_project
+cd your-project-directory
 
 # 使用 Maven 启动（开发模式）
 mvn spring-boot:run
@@ -262,7 +262,7 @@ sudo systemctl status campus-blog
 
 ```bash
 # 进入项目目录
-cd D:\MyCode\edu_project
+cd your-project-directory
 
 # 启动所有服务（MySQL + 应用）
 docker-compose up -d

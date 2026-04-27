@@ -36,7 +36,7 @@ edu_project/
 │   │   ├── WebMvcConfig.java                  # Web MVC 配置
 │   │   ├── DotenvConfig.java                  # .env 环境变量加载
 │   │   └── EnvValidationConfig.java           # 环境变量校验配置
-│   ├── controller/                              # Controller 层（18个）
+│   ├── controller/                              # Controller 层（19个）
 │   │   ├── SysUserController.java              # 用户控制器
 │   │   ├── BlogPostController.java             # 文章控制器
 │   │   ├── BlogCommentController.java          # 评论控制器
@@ -56,7 +56,7 @@ edu_project/
 │   │   ├── AdminUserController.java            # 管理员用户控制器
 │   │   ├── MessageController.java              # 私信控制器
 │   │   └── PasswordController.java              # 密码找回控制器
-│   ├── service/                                 # Service 层（16个）
+│   ├── service/                                 # Service 层（17个）
 │   │   ├── SysUserService.java
 │   │   ├── BlogPostService.java
 │   │   ├── BlogCommentService.java
@@ -72,7 +72,8 @@ edu_project/
 │   │   ├── MediaService.java
 │   │   ├── TopicService.java
 │   │   ├── MessageService.java
-│   │   └── EmailService.java
+│   │   ├── EmailService.java
+│   │   └── StatisticsService.java
 │   │       ├── SysUserServiceImpl.java
 │   │       ├── BlogPostServiceImpl.java
 │   │       ├── BlogCommentServiceImpl.java
@@ -85,8 +86,12 @@ edu_project/
 │   │       ├── TrendingServiceImpl.java
 │   │       ├── ReportServiceImpl.java
 │   │       ├── CircleServiceImpl.java
-│   │       └── MediaServiceImpl.java
-│   ├── mapper/                                  # Mapper 层（19个）
+│   │       ├── MediaServiceImpl.java
+│   │       ├── TopicServiceImpl.java
+│   │       ├── MessageServiceImpl.java
+│   │       ├── EmailServiceImpl.java
+│   │       └── StatisticsServiceImpl.java
+│   ├── mapper/                                  # Mapper 层（20个）
 │   │   ├── SysUserMapper.java
 │   │   ├── BlogPostMapper.java
 │   │   ├── BlogCommentMapper.java
@@ -120,7 +125,7 @@ edu_project/
 │   │   ├── JwtUtils.java                       # JWT 工具类
 │   │   ├── SecurityUtils.java                  # 安全工具类
 │   │   └── UserContext.java                    # 用户上下文对象
-│   └── entity/                                  # Entity 实体类（19个）
+│   └── entity/                                  # Entity 实体类（20个）
 │       ├── SysUser.java
 │       ├── BlogPost.java
 │       ├── BlogComment.java
@@ -154,7 +159,7 @@ edu_project/
 
 ## 数据库表结构
 
-项目包含 **19 张数据表**：
+项目包含 **20 张数据表**：
 
 ### 核心表（7张）
 1. **sys_user** - 用户表（含 follower_count、following_count）
@@ -165,7 +170,7 @@ edu_project/
 6. **blog_like** - 点赞记录表（自增主键）
 7. **blog_collect** - 收藏记录表（自增主键）
 
-### 扩展功能表（12张）
+### 扩展功能表（13张）
 8. **blog_follow** - 关注关系表
 9. **blog_notification** - 通知表
 10. **blog_trending** - 热度统计表
@@ -180,7 +185,7 @@ edu_project/
 19. **blog_topic** - 话题标签表
 20. **blog_message** - 私信表
 
-**合计：7 + 12 = 19 张**
+**合计：7 + 13 = 20 张**
 
 ## 快速开始
 
@@ -534,11 +539,12 @@ java -jar target/edu_project-0.0.1-SNAPSHOT.jar
 
 | 方法 | 路径 | 说明 |
 | :--- | :--- | :--- |
-| POST | `/api/message/send` | 发送私信（需登录） |
-| GET | `/api/message/conversation/{userId}` | 获取与某用户的私信会话（需登录） |
-| GET | `/api/message/unread-count` | 获取未读私信数量（需登录） |
-| PUT | `/api/message/{messageId}/read` | 标记私信已读（需登录） |
-| PUT | `/api/message/read-all` | 标记全部已读（需登录） |
+| POST | `/api/message/send` | 发送私信 |
+| GET | `/api/message/received` | 获取收到的私信 |
+| GET | `/api/message/sent` | 获取发送的私信 |
+| PUT | `/api/message/{id}/read` | 标记已读 |
+| DELETE | `/api/message/{id}` | 删除私信 |
+| GET | `/api/message/unread-count` | 获取未读数 |
 
 ### 密码找回模块
 
@@ -750,16 +756,6 @@ java -jar target/edu_project-0.0.1-SNAPSHOT.jar
 - 📝 新增页面清单：个人中心、校友圈、通知中心、管理员后台等完整页面列表
 - 📝 新增开发指南：环境配置、移动端适配、安全注意事项、调试技巧
 - 📝 更新技术栈：Marked.js 9.x、Highlight.js 11.x、DOMPurify 3.x
-
-### v1.22 (2026-04-26)
-- 🔒 安全修复：MediaController.getMediaInfo/getPostMedia 添加登录校验，防止越权访问
-- 🔒 安全修复：GlobalExceptionHandler 兜底异常不返回异常类名，防止信息泄露
-- 🔧 增强：NotificationController 分页参数添加 @Min/@Max 验证
-- 🔧 增强：MediaController.bindPostMedia mediaIds 参数添加 @Size(max=20) 验证
-- 🔧 增强：CORS 配置支持环境变量 CORS_ALLOWED_ORIGINS
-- 🐛 修复：BlogTrending.statDate 类型从 LocalDateTime 改为 LocalDate
-- 🐛 修复：CirclePost 添加缺失字段 repostUserId/repostContent/mentions
-- 📝 文档：开发进度.md 更新至 v1.22
 
 ### v1.21 (2026-04-26)
 - ✨ 新增校友圈搜索功能：GET /api/circle/search（关键词搜索动态）

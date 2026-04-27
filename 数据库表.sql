@@ -81,7 +81,7 @@ CREATE TABLE `sys_user` (
 
     -- -------------------- 索引约束 --------------------
     PRIMARY KEY (`id`),                                                 -- 主键索引，加速按 ID 查询
-    UNIQUE KEY `idx_username` (`username`)                              -- 唯一索引，保证用户名不重复，用于快速登录校验
+    UNIQUE KEY `uk_username` (`username`)                              -- 唯一索引，保证用户名不重复，用于快速登录校验
 
 ) ENGINE=InnoDB                                                      -- 使用 InnoDB 引擎，支持事务和行级锁
   DEFAULT CHARSET=utf8mb4                                             -- 字符集，支持存储中文、emoji 等
@@ -235,7 +235,7 @@ CREATE TABLE `blog_tag` (
 
     -- -------------------- 索引约束 --------------------
     PRIMARY KEY (`id`),                                                 -- 主键索引
-    UNIQUE KEY `idx_name` (`name`)                                      -- 唯一索引，保证标签名不重复，便于精确查询
+    UNIQUE KEY `uk_name` (`name`)                                      -- 唯一索引，保证标签名不重复，便于精确查询
 
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
@@ -269,9 +269,15 @@ CREATE TABLE `blog_post_tag` (
 
     `tag_id`            BIGINT          NOT NULL                     COMMENT '标签ID，关联 blog_tag 表的外键',
 
+    -- -------------------- 时间戳和软删除字段 --------------------
+    `create_time`       DATETIME        DEFAULT CURRENT_TIMESTAMP    COMMENT '创建时间',
+
+    `is_deleted`        TINYINT(1)      DEFAULT 0                    COMMENT '逻辑删除：0=正常，1=删除',
+
     -- -------------------- 主键和唯一约束 --------------------
     PRIMARY KEY (`id`),                                               -- 主键索引
-    UNIQUE KEY `uk_post_tag` (`post_id`, `tag_id`)                    -- 联合唯一索引，保证 (文章+标签) 组合唯一
+    UNIQUE KEY `uk_post_tag` (`post_id`, `tag_id`),                   -- 联合唯一索引，保证 (文章+标签) 组合唯一
+    INDEX `idx_tag_id` (`tag_id`)                                     -- 按标签ID查询文章
 
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
@@ -312,7 +318,7 @@ CREATE TABLE `blog_like` (
 
     -- -------------------- 主键和唯一约束 --------------------
     PRIMARY KEY (`id`),                                               -- 主键索引
-    UNIQUE KEY `uk_user_post` (`user_id`, `post_id`),                -- 联合唯一索引，防止重复点赞
+    UNIQUE KEY `uk_like_user_post` (`user_id`, `post_id`),                -- 联合唯一索引，防止重复点赞
     INDEX `idx_post_id` (`post_id`)                                    -- 按文章查询点赞用户列表
 
 ) ENGINE=InnoDB
@@ -350,7 +356,7 @@ CREATE TABLE `blog_collect` (
 
     -- -------------------- 主键和唯一约束 --------------------
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_user_post` (`user_id`, `post_id`),
+    UNIQUE KEY `uk_collect_user_post` (`user_id`, `post_id`),
     INDEX `idx_post_id` (`post_id`)
 
 ) ENGINE=InnoDB
@@ -613,6 +619,8 @@ CREATE TABLE `blog_circle_post` (
 
     `mentions`          JSON            DEFAULT NULL                  COMMENT '@提及的用户ID数组',
 
+    `topic_ids`         JSON            DEFAULT NULL                  COMMENT '关联话题ID数组（JSON）',
+
     `location`          VARCHAR(100)   DEFAULT NULL                  COMMENT '位置信息',
 
     `like_count`        INT             DEFAULT 0                    COMMENT '点赞数',
@@ -669,7 +677,7 @@ CREATE TABLE `blog_circle_like` (
     `is_deleted`        TINYINT(1)     DEFAULT 0                     COMMENT '逻辑删除：0=正常，1=删除',
 
     PRIMARY KEY (`id`),
-    UNIQUE KEY `uk_user_post` (`user_id`, `post_id`),
+    UNIQUE KEY `uk_circle_like_user_post` (`user_id`, `post_id`),
     INDEX `idx_post_id` (`post_id`)
 
 ) ENGINE=InnoDB
@@ -861,6 +869,9 @@ CREATE TABLE `blog_topic` (
 
     `update_time`       DATETIME        DEFAULT CURRENT_TIMESTAMP
                                         ON UPDATE CURRENT_TIMESTAMP  COMMENT '更新时间',
+
+    -- -------------------- 软删除字段 --------------------
+    `is_deleted`        TINYINT(1)      DEFAULT 0                    COMMENT '逻辑删除：0=正常，1=删除',
 
     -- -------------------- 主键和唯一约束 --------------------
     PRIMARY KEY (`id`),

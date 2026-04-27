@@ -27,7 +27,7 @@ public interface ReportService extends IService<BlogReport> {
      * @param reporterId 举报人ID
      * @return 分页举报列表
      */
-    IPage<ReportVO> getMyReports(Long page, Long pageSize, Long reporterId);
+    IPage<ReportVO> getMyReports(Integer page, Integer pageSize, Long reporterId);
 
     /**
      * 获取待处理的举报列表（管理员）
@@ -35,7 +35,7 @@ public interface ReportService extends IService<BlogReport> {
      * @param pageSize 每页大小
      * @return 待处理举报分页列表
      */
-    IPage<ReportVO> getPendingReports(Long page, Long pageSize);
+    IPage<ReportVO> getPendingReports(Integer page, Integer pageSize);
 
     /**
      * 获取举报详情（管理员）

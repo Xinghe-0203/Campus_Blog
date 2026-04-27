@@ -87,7 +87,7 @@ mybatis-plus:
   configuration:
     map-underscore-to-camel-case: true  # 数据库下划线自动转驼峰命名
     # SQL日志配置：通过 MYBATIS_SQL_LOG 环境变量控制（0=关闭，1=开启）
-    log-impl: ${MYBATIS_SQL_LOG:org.apache.ibatis.logging.stdout.StdOutImpl}
+    log-impl: ${MYBATIS_SQL_LOG:org.apache.ibatis.logging.nologging.NoLoggingImpl}
     
   # MyBatis Plus 全局策略配置
   global-config:
@@ -157,7 +157,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus,logfile
+        include: health,info,metrics
       base-path: /actuator
 
   endpoint:

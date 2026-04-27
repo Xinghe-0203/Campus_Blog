@@ -4,10 +4,16 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.example.edu_project.entity.BlogPost;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
+
+import java.time.LocalDateTime;
 
 @Mapper
 public interface BlogPostMapper extends BaseMapper<BlogPost> {
+
+    @Select("SELECT COUNT(DISTINCT user_id) FROM blog_post WHERE create_time >= #{since} AND is_deleted = 0")
+    Long countDistinctAuthorsSince(@Param("since") LocalDateTime since);
 
     @Update("UPDATE blog_post SET view_count = view_count + 1 WHERE id = #{id} AND is_deleted = 0")
     void incrementViewCount(@Param("id") Long id);

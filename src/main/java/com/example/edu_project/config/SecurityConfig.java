@@ -60,7 +60,8 @@ public class SecurityConfig {
             if (!trimmed.isEmpty()) {
                 // 验证 origin 格式，拒绝过于宽泛的 pattern
                 if (trimmed.endsWith("*")) {
-                    log.warn("CORS 配置包含通配符，建议使用具体端口: {}", trimmed);
+                    log.warn("CORS 配置包含通配符，已被拒绝: {}", trimmed);
+                    continue; // 拒绝通配符，只允许具体来源
                 }
                 validatedOrigins.add(trimmed);
                 configuration.addAllowedOriginPattern(trimmed);
@@ -88,6 +89,11 @@ public class SecurityConfig {
         http
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .headers(headers -> headers
+                .contentTypeOptions(contentTypeOptions -> contentTypeOptions.disable())
+                .frameOptions(frameOptions -> frameOptions.deny())
+                .xssProtection(xss -> xss.disable())
+            )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
