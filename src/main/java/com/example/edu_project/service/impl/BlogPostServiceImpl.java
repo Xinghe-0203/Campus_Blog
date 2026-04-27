@@ -365,12 +365,6 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
 
     @Override
     @Transactional(rollbackFor = Exception.class)
-    public void decrementCommentCount(Long postId) {
-        baseMapper.decrementCommentCount(postId, 1);
-    }
-
-    @Override
-    @Transactional(rollbackFor = Exception.class)
     public void decrementCommentCount(Long postId, int count) {
         baseMapper.decrementCommentCount(postId, count);
     }

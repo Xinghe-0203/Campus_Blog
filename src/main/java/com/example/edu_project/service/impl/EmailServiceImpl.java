@@ -8,6 +8,8 @@ import com.example.edu_project.service.EmailService;
 import com.example.edu_project.utils.StringMaskUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.concurrent.atomic.AtomicInteger;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -59,12 +61,12 @@ public class EmailServiceImpl implements EmailService {
     private static class VerificationData {
         String code;
         long expireTime;
-        int attempts;
+        AtomicInteger attempts;
 
         VerificationData(String code, long expireTime) {
             this.code = code;
             this.expireTime = expireTime;
-            this.attempts = 0;
+            this.attempts = new AtomicInteger(0);
         }
     }
 
@@ -128,11 +130,11 @@ public class EmailServiceImpl implements EmailService {
             throw new BusinessException(400, "验证码已过期，请重新获取");
         }
 
-        // 增加验证尝试次数
-        data.attempts++;
+        // 增加验证尝试次数（原子操作）
+        int currentAttempts = data.attempts.incrementAndGet();
 
         // 检查是否超过最大尝试次数
-        if (data.attempts > maxVerifyAttempts) {
+        if (currentAttempts > maxVerifyAttempts) {
             verificationStore.remove(email);
             throw new BusinessException(400, "验证失败次数过多，请重新获取验证码");
         }
@@ -145,12 +147,12 @@ public class EmailServiceImpl implements EmailService {
         }
 
         // 验证码错误
-        if (data.attempts >= maxVerifyAttempts) {
+        if (currentAttempts >= maxVerifyAttempts) {
             verificationStore.remove(email);
             throw new BusinessException(400, "验证失败次数过多，请重新获取验证码");
         }
 
-        throw new BusinessException(400, "验证码错误，剩余" + (maxVerifyAttempts - data.attempts) + "次尝试机会");
+        throw new BusinessException(400, "验证码错误，剩余" + (maxVerifyAttempts - currentAttempts) + "次尝试机会");
     }
 
     @Override

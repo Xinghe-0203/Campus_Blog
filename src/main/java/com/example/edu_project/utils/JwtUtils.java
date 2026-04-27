@@ -101,14 +101,18 @@ public class JwtUtils {
         if (token == null) {
             return;
         }
-        // 黑名单容量保护
+        // 容量预检查（轻微竞态，可接受）
         if (tokenBlacklist.size() >= BLACKLIST_MAX_SIZE) {
             return;
         }
         try {
             // 必须先验证 Token 签名，确保是有效的 token 才能加入黑名单
             parseToken(token);
-            if (!isTokenExpired(token)) {
+            if (isTokenExpired(token)) {
+                return;
+            }
+            // 容量再次检查后添加（add 操作本身是线程安全的）
+            if (tokenBlacklist.size() < BLACKLIST_MAX_SIZE) {
                 tokenBlacklist.add(token);
             }
         } catch (Exception e) {

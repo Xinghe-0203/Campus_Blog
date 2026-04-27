@@ -13,7 +13,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -269,47 +271,56 @@ public class StatisticsServiceImpl implements StatisticsService {
     }
 
     private List<StatisticsVO.DailyCount> getUserGrowthTrend() {
-        List<StatisticsVO.DailyCount> trend = new ArrayList<>();
-        LocalDate today = LocalDate.now();
+        LocalDateTime since = LocalDate.now().minusDays(29).atStartOfDay();
+        List<Map<String, Object>> rawData = sysUserMapper.countUsersGroupByDate(since);
 
-        for (int i = 29; i >= 0; i--) {
-            LocalDate date = today.minusDays(i);
-            LocalDateTime dayStart = date.atStartOfDay();
-            LocalDateTime dayEnd = date.plusDays(1).atStartOfDay();
-
-            LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
-            wrapper.ge(SysUser::getCreateTime, dayStart)
-                   .lt(SysUser::getCreateTime, dayEnd);
-
-            StatisticsVO.DailyCount dailyCount = new StatisticsVO.DailyCount();
-            dailyCount.setDate(date.format(DATE_FORMATTER));
-            dailyCount.setCount(sysUserMapper.selectCount(wrapper));
-            trend.add(dailyCount);
+        // 构建以日期为key的map，便于查找
+        Map<String, Long> countMap = new HashMap<>();
+        for (Map<String, Object> row : rawData) {
+            String dateStr = row.get("date").toString();
+            long count = ((Number) row.get("count")).longValue();
+            countMap.put(dateStr, count);
         }
 
+        // 补齐30天数据
+        List<StatisticsVO.DailyCount> trend = new ArrayList<>();
+        LocalDate today = LocalDate.now();
+        for (int i = 29; i >= 0; i--) {
+            LocalDate date = today.minusDays(i);
+            String dateStr = date.format(DATE_FORMATTER);
+            Long count = countMap.get(dateStr);
+            StatisticsVO.DailyCount dailyCount = new StatisticsVO.DailyCount();
+            dailyCount.setDate(dateStr);
+            dailyCount.setCount(count != null ? count : 0L);
+            trend.add(dailyCount);
+        }
         return trend;
     }
 
     private List<StatisticsVO.DailyCount> getPostGrowthTrend() {
-        List<StatisticsVO.DailyCount> trend = new ArrayList<>();
-        LocalDate today = LocalDate.now();
+        LocalDateTime since = LocalDate.now().minusDays(29).atStartOfDay();
+        List<Map<String, Object>> rawData = blogPostMapper.countPostsGroupByDate(since);
 
-        for (int i = 29; i >= 0; i--) {
-            LocalDate date = today.minusDays(i);
-            LocalDateTime dayStart = date.atStartOfDay();
-            LocalDateTime dayEnd = date.plusDays(1).atStartOfDay();
-
-            LambdaQueryWrapper<BlogPost> wrapper = new LambdaQueryWrapper<>();
-            wrapper.eq(BlogPost::getIsDeleted, 0)
-                   .ge(BlogPost::getCreateTime, dayStart)
-                   .lt(BlogPost::getCreateTime, dayEnd);
-
-            StatisticsVO.DailyCount dailyCount = new StatisticsVO.DailyCount();
-            dailyCount.setDate(date.format(DATE_FORMATTER));
-            dailyCount.setCount(blogPostMapper.selectCount(wrapper));
-            trend.add(dailyCount);
+        // 构建以日期为key的map，便于查找
+        Map<String, Long> countMap = new HashMap<>();
+        for (Map<String, Object> row : rawData) {
+            String dateStr = row.get("date").toString();
+            long count = ((Number) row.get("count")).longValue();
+            countMap.put(dateStr, count);
         }
 
+        // 补齐30天数据
+        List<StatisticsVO.DailyCount> trend = new ArrayList<>();
+        LocalDate today = LocalDate.now();
+        for (int i = 29; i >= 0; i--) {
+            LocalDate date = today.minusDays(i);
+            String dateStr = date.format(DATE_FORMATTER);
+            Long count = countMap.get(dateStr);
+            StatisticsVO.DailyCount dailyCount = new StatisticsVO.DailyCount();
+            dailyCount.setDate(dateStr);
+            dailyCount.setCount(count != null ? count : 0L);
+            trend.add(dailyCount);
+        }
         return trend;
     }
 }

@@ -248,13 +248,15 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
             mentionedUsernames.add(matcher.group(1));
         }
 
-        // 查询这些用户是否存在
-        for (String username : mentionedUsernames) {
+        // 批量查询这些用户是否存在（避免 N+1 查询）
+        if (!mentionedUsernames.isEmpty()) {
             LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
-            wrapper.eq(SysUser::getUsername, username);
-            SysUser user = sysUserMapper.selectOne(wrapper);
-            if (user != null && !user.getId().equals(authorId)) {
-                mentionedUsers.add(user);
+            wrapper.in(SysUser::getUsername, mentionedUsernames);
+            List<SysUser> foundUsers = sysUserMapper.selectList(wrapper);
+            for (SysUser user : foundUsers) {
+                if (!user.getId().equals(authorId)) {
+                    mentionedUsers.add(user);
+                }
             }
         }
 

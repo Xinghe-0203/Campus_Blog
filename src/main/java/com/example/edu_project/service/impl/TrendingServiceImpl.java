@@ -196,8 +196,7 @@ public class TrendingServiceImpl extends ServiceImpl<BlogTrendingMapper, BlogTre
     }
 
     @Override
-    @Scheduled(cron = "0 0 0 * * ?") // 每天凌晨执行
-    @Transactional(rollbackFor = Exception.class)
+    @Scheduled(cron = "0 0 0 * * ?", zone = "Asia/Shanghai") // 每天凌晨执行
     public void scheduledUpdateAllTrending() {
         // 分页查询未删除的文章，避免一次性加载所有文章导致OOM
         int pageSize = 1000;

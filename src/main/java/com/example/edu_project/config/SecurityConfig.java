@@ -89,9 +89,7 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .headers(headers -> headers
-                .contentTypeOptions(contentTypeOptions -> contentTypeOptions.disable())
                 .frameOptions(frameOptions -> frameOptions.deny())
-                .xssProtection(xss -> xss.disable())
             )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorize -> authorize

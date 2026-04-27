@@ -8,6 +8,8 @@ import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface BlogPostMapper extends BaseMapper<BlogPost> {
@@ -35,4 +37,13 @@ public interface BlogPostMapper extends BaseMapper<BlogPost> {
 
     @Update("UPDATE blog_post SET collect_count = collect_count - 1 WHERE id = #{id} AND is_deleted = 0 AND collect_count > 0")
     void decrementCollectCount(@Param("id") Long id);
+
+    /**
+     * 批量统计每日新增文章数（避免 N+1 查询）
+     * @param since 起始时间
+     * @return 每日文章数和日期的映射列表
+     */
+    @Select("SELECT DATE(create_time) as date, COUNT(*) as count FROM blog_post " +
+            "WHERE create_time >= #{since} AND is_deleted = 0 GROUP BY DATE(create_time) ORDER BY date")
+    List<Map<String, Object>> countPostsGroupByDate(@Param("since") LocalDateTime since);
 }

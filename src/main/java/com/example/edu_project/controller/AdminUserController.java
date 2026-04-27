@@ -16,7 +16,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Random;
+import java.security.SecureRandom;
 
 /**
  * 管理员用户管理控制器
@@ -34,7 +34,7 @@ public class AdminUserController {
     private BCryptPasswordEncoder passwordEncoder;
 
     private static final String PASSWORD_CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-    private static final Random random = new Random();
+    private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
     /**
      * 获取用户列表（管理员）
@@ -131,7 +131,7 @@ public class AdminUserController {
     private String generateRandomPassword(int length) {
         StringBuilder password = new StringBuilder(length);
         for (int i = 0; i < length; i++) {
-            password.append(PASSWORD_CHARS.charAt(random.nextInt(PASSWORD_CHARS.length())));
+            password.append(PASSWORD_CHARS.charAt(SECURE_RANDOM.nextInt(PASSWORD_CHARS.length())));
         }
         return password.toString();
     }

@@ -4,7 +4,12 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.example.edu_project.entity.SysUser;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 用户表 Mapper 接口
@@ -57,4 +62,13 @@ public interface SysUserMapper extends BaseMapper<SysUser> {
      */
     @Update("UPDATE sys_user SET following_count = GREATEST(following_count - 1, 0) WHERE id = #{userId}")
     int decrementFollowingCount(@Param("userId") Long userId);
+
+    /**
+     * 批量统计每日新增用户数（避免 N+1 查询）
+     * @param since 起始时间
+     * @return 每日用户数和日期的映射列表
+     */
+    @Select("SELECT DATE(create_time) as date, COUNT(*) as count FROM sys_user " +
+            "WHERE create_time >= #{since} GROUP BY DATE(create_time) ORDER BY date")
+    List<Map<String, Object>> countUsersGroupByDate(@Param("since") LocalDateTime since);
 }
