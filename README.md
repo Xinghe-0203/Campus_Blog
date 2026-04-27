@@ -54,8 +54,9 @@ edu_project/
 │   │   ├── AdminStatisticsController.java      # 管理员统计控制器
 │   │   ├── AdminPostController.java            # 管理员内容控制器
 │   │   ├── AdminUserController.java            # 管理员用户控制器
-│   │   └── MessageController.java              # 私信控制器
-│   ├── service/                                 # Service 层（15个）
+│   │   ├── MessageController.java              # 私信控制器
+│   │   └── PasswordController.java              # 密码找回控制器
+│   ├── service/                                 # Service 层（16个）
 │   │   ├── SysUserService.java
 │   │   ├── BlogPostService.java
 │   │   ├── BlogCommentService.java
@@ -70,7 +71,8 @@ edu_project/
 │   │   ├── CircleService.java
 │   │   ├── MediaService.java
 │   │   ├── TopicService.java
-│   │   └── MessageService.java
+│   │   ├── MessageService.java
+│   │   └── EmailService.java
 │   │       ├── SysUserServiceImpl.java
 │   │       ├── BlogPostServiceImpl.java
 │   │       ├── BlogCommentServiceImpl.java
@@ -152,7 +154,7 @@ edu_project/
 
 ## 数据库表结构
 
-项目包含 **18 张数据表**：
+项目包含 **19 张数据表**：
 
 ### 核心表（7张）
 1. **sys_user** - 用户表（含 follower_count、following_count）
@@ -163,7 +165,7 @@ edu_project/
 6. **blog_like** - 点赞记录表（自增主键）
 7. **blog_collect** - 收藏记录表（自增主键）
 
-### 增强功能表（11张）
+### 扩展功能表（12张）
 8. **blog_follow** - 关注关系表
 9. **blog_notification** - 通知表
 10. **blog_trending** - 热度统计表
@@ -175,6 +177,10 @@ edu_project/
 16. **blog_circle_repost** - 校友圈转发表
 17. **blog_media** - 媒体资源表
 18. **blog_post_media** - 文章媒体关联表
+19. **blog_topic** - 话题标签表
+20. **blog_message** - 私信表
+
+**合计：7 + 12 = 19 张**
 
 ## 快速开始
 
@@ -582,6 +588,11 @@ java -jar target/edu_project-0.0.1-SNAPSHOT.jar
 
 ## 更新日志
 
+### v1.34 (2026-04-27)
+- ✨ **新增 PasswordController**：密码找回接口（发送验证码/重置密码）
+- ✨ **新增 EmailService**：邮件服务（验证码发送）
+- 📝 **文档更新**：组件数量修正、版本号统一为 v1.34
+
 ### v1.33 (2026-04-27)
 - ✨ **新增内容审核流程**：待审核/通过/驳回状态管理
 - ✨ **新增私信功能**：发送/接收/标记已读/未读消息
@@ -596,18 +607,13 @@ java -jar target/edu_project-0.0.1-SNAPSHOT.jar
 - ✨ **管理员接口**：AdminUserController 用户列表/封禁接口
 - ✨ **话题标签**：TopicController 话题列表/详情/热门接口
 - ✨ **数据统计**：AdminStatisticsController 平台统计数据接口
+- ✨ **新增功能**：内容审核流程（待审核/通过/驳回状态管理）
+- 🔧 **优化**：普通用户发布文章 status=0（待审核），管理员发布 status=1（直接发布）
 - 📝 **单元测试**：SysUserServiceImplTest、JwtUtilsTest、GlobalExceptionHandlerTest
 - ⚙️ **配置完善**：Actuator健康检查、多环境配置、logback日志配置
 - ⚙️ **异步优化**：AsyncConfig自定义线程池配置
 - ⚙️ **权限集中**：@PreAuthorize注解替代手动权限检查
 - 📦 **部署文档**：DEPLOY.md、Dockerfile、docker-compose.yml
-
-### v1.32 (2026-04-27)
-- ✨ **新增功能**：内容审核流程（待审核/通过/驳回状态管理）
-- 🔧 **优化**：普通用户发布文章 status=0（待审核），管理员发布 status=1（直接发布）
-- ✨ **新增接口**：GET `/api/admin/post/review-list` 待审核列表
-- ✨ **新增接口**：PUT `/api/admin/post/{id}/approve` 审核通过
-- ✨ **新增接口**：PUT `/api/admin/post/{id}/reject` 审核驳回
 
 ### v1.31 (2026-04-27)
 - 🔒 **Critical 修复**：CircleServiceImpl 添加 XSS 防护（htmlSanitizer.sanitizePlainText）

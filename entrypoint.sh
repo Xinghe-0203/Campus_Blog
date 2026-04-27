@@ -96,7 +96,7 @@ start_app() {
     echo ""
     echo "=========================================="
     echo "  Campus Blog Forum System"
-    echo "  Version: v1.30"
+    echo "  Version: v1.34"
     echo "=========================================="
     echo "  Server Port: ${SERVER_PORT:-8825}"
     echo "  Database:   ${DB_NAME}@${DB_HOST}:${DB_PORT}"

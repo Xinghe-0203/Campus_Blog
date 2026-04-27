@@ -61,23 +61,23 @@
 ### 2.1 已完成的工作
 
 #### ✅ 数据库设计（100%）
-- 19 张数据表设计（含增强功能模块）
+- 20 张数据表设计（含增强功能模块）
 - 完整的 SQL 初始化脚本（数据库表.sql）
 - 包含示例数据（管理员账号、示例标签）
 - 支持逻辑删除、自动时间戳
-- 包含：关注关系、通知、热度统计、草稿、举报、校友圈、媒体上传等增强功能
+- 包含：关注关系、通知、热度统计、草稿、举报、校友圈、媒体上传、话题、私信等增强功能
 
 #### ✅ 后端项目骨架（100%）
 - Maven 项目结构搭建
 - 核心依赖配置（MyBatis Plus、MySQL、Knife4j、Lombok、Hutool）
 - 标准的包结构（controller、service、mapper、entity、config、common）
-- 18 个实体类（Entity）编写完成
-- 18 个 Mapper 接口编写完成
+- 21 个实体类（Entity）编写完成
+- 21 个 Mapper 接口编写完成
 - 统一响应结果封装（Result）
 - MyBatis Plus 配置（分页插件已启用）
 - API 文档集成（Knife4j）
-- 13 个 Controller 编写完成
-- 13 个 Service 接口 + 13 个 ServiceImpl 实现类
+- 20 个 Controller 编写完成
+- 17 个 Service 接口 + 17 个 ServiceImpl 实现类
 
 #### ✅ 后端基础完善（2026-04-21）
 - 修复联合主键实体类配置（BlogPostTag、BlogCollect、BlogLike）
@@ -184,7 +184,7 @@
 
 ### 5.1 数据库表概览
 
-项目包含 **19 张数据表**（含增强功能模块）：
+项目包含 **20 张数据表**（含增强功能模块）：
 
 | 表名 | 中文说明 | 数据量预估 |
 | :--- | :--- | :--- |
@@ -206,6 +206,8 @@
 | **blog_circle_repost** | 校友圈转发表 | 中 |
 | **blog_media** | 媒体资源表 | 中 |
 | **blog_post_media** | 文章媒体关联表 | 中 |
+| **blog_topic** | 话题表 | 小 |
+| **blog_message** | 私信表 | 中 |
 
 ### 5.2 详细表结构
 
@@ -454,9 +456,10 @@ src/main/java/com/example/edu_project/
 │   ├── AdminStatisticsController.java    # 管理员统计控制器
 │   ├── AdminPostController.java          # 管理员内容控制器
 │   ├── AdminUserController.java          # 管理员用户控制器
-│   └── MessageController.java            # 私信控制器
+│   ├── MessageController.java            # 私信控制器
+│   └── PasswordController.java           # 密码找回控制器
 │
-├── service/                              # Service 层（15个）
+├── service/                              # Service 层（17个）
 │   ├── SysUserService.java
 │   ├── BlogPostService.java
 │   ├── BlogCommentService.java
@@ -471,9 +474,11 @@ src/main/java/com/example/edu_project/
 │   ├── CircleService.java
 │   ├── MediaService.java
 │   ├── TopicService.java
-│   └── MessageService.java
+│   ├── MessageService.java
+│   ├── EmailService.java
+│   └── StatisticsService.java
 │
-├── service/impl/                         # Service 实现类（15个）
+├── service/impl/                         # Service 实现类（17个）
 │   ├── SysUserServiceImpl.java
 │   ├── BlogPostServiceImpl.java
 │   ├── BlogCommentServiceImpl.java
@@ -488,9 +493,11 @@ src/main/java/com/example/edu_project/
 │   ├── CircleServiceImpl.java
 │   ├── MediaServiceImpl.java
 │   ├── TopicServiceImpl.java
-│   └── MessageServiceImpl.java
+│   ├── MessageServiceImpl.java
+│   ├── EmailServiceImpl.java
+│   └── StatisticsServiceImpl.java
 │
-├── mapper/                               # Mapper 层（19个）
+├── mapper/                               # Mapper 层（21个）
 │   ├── SysUserMapper.java
 │   ├── BlogPostMapper.java
 │   ├── BlogCommentMapper.java
@@ -531,10 +538,10 @@ src/main/java/com/example/edu_project/
 │   ├── CircleRepost.java
 │   ├── Media.java
 │   ├── BlogPostMedia.java
-│   ├── TopicMapper.java
-│   └── MessageMapper.java
+│   ├── Topic.java
+│   └── Message.java
 │
-├── entity/                               # Entity 实体类（19个）
+├── entity/                               # Entity 实体类（21个）
 │   ├── SysUser.java
 │   ├── BlogPost.java
 │   ├── BlogComment.java
@@ -731,14 +738,15 @@ src/main/java/com/example/edu_project/
 | 绑定媒体到文章 | POST | `/api/media/bind/{postId}` | ✅ 已实现 |
 | 获取文章媒体 | GET | `/api/media/post/{postId}` | ✅ 已实现 |
 
-### 7.15 管理员用户管理模块
+### 7.15 话题管理模块
 
 | 接口 | 方法 | 路径 | 说明 |
 | :--- | :--- | :--- | :--- |
-| 获取用户列表 | GET | `/api/admin/user/list` | ✅ 已实现 |
-| 修改用户状态 | PUT | `/api/admin/user/{id}/status` | ✅ 已实现 |
-| 封禁/解封用户 | PUT | `/api/admin/user/{id}/ban` | ✅ 已实现 |
-| 重置用户密码 | PUT | `/api/admin/user/{id}/reset-password` | ✅ 已实现 |
+| 创建话题 | POST | `/api/topic` | ✅ 已实现 |
+| 获取话题列表 | GET | `/api/topic/list` | ✅ 已实现 |
+| 获取热门话题 | GET | `/api/topic/hot` | ✅ 已实现 |
+| 获取话题详情 | GET | `/api/topic/{topicId}` | ✅ 已实现 |
+| 获取话题下的动态列表 | GET | `/api/topic/{topicId}/posts` | ✅ 已实现 |
 
 ### 7.16 内容审核模块
 
@@ -755,10 +763,11 @@ src/main/java/com/example/edu_project/
 | 接口 | 方法 | 路径 | 说明 |
 | :--- | :--- | :--- | :--- |
 | 发送私信 | POST | `/api/message/send` | ✅ 已实现 |
-| 获取私信会话 | GET | `/api/message/conversation/{userId}` | ✅ 已实现 |
-| 获取未读数量 | GET | `/api/message/unread-count` | ✅ 已实现 |
+| 获取收到的私信 | GET | `/api/message/received` | ✅ 已实现 |
+| 获取发送的私信 | GET | `/api/message/sent` | ✅ 已实现 |
 | 标记已读 | PUT | `/api/message/{id}/read` | ✅ 已实现 |
-| 标记全部已读 | PUT | `/api/message/read-all` | ✅ 已实现 |
+| 删除私信 | DELETE | `/api/message/{id}` | ✅ 已实现 |
+| 获取未读数量 | GET | `/api/message/unread-count` | ✅ 已实现 |
 
 ### 7.18 密码找回模块
 
@@ -766,6 +775,12 @@ src/main/java/com/example/edu_project/
 | :--- | :--- | :--- | :--- |
 | 发送验证码 | POST | `/api/user/send-code` | ✅ 已实现 |
 | 重置密码 | POST | `/api/user/reset-password` | ✅ 已实现 |
+
+### 7.19 管理员统计模块
+
+| 接口 | 方法 | 路径 | 说明 |
+| :--- | :--- | :--- | :--- |
+| 获取平台统计数据 | GET | `/api/admin/statistics` | ✅ 已实现 |
 
 ---
 
@@ -780,7 +795,7 @@ src/main/java/com/example/edu_project/
 | **✅ 第五阶段** | 互动功能模块 | 实现评论、点赞、收藏功能 | ✅ 已完成 |
 | **✅ 第六阶段** | 安全认证加固 | 启用 Spring Security + JWT | ✅ 已完成 |
 | **🚧 第七阶段** | 增强功能开发 | 社交/关注、通知、热门/趋势、草稿、举报、校友圈、媒体上传 | ✅ 已完成 |
-| **✅ 第八阶段** | 后端增强完善 | @提及、话题标签、单元测试、Actuator、Caffeine缓存、异步线程池 | ✅ 已完成 |
+| **✅ 第八阶段** | 后端增强完善 | 内容审核、私信、密码找回、@提及、话题标签、单元测试、Actuator、Caffeine缓存、异步线程池 | ✅ 已完成 |
 | **⏳ 第九阶段** | 前端页面开发 | 编写 HTML/CSS/Vue，实现响应式布局和 Markdown 集成 | ⏳ 待开始 |
 | **⏳ 第十阶段** | 前后端联调 | 使用 Axios 将前端页面与后端接口连通 | ⏳ 待开始 |
 | **⏳ 第十一阶段** | 优化与美化 | 加入 ECharts 统计图表，进行 UI 细节打磨 | ⏳ 待开始 |
@@ -1045,7 +1060,7 @@ edu_project/
 
 | 日期 | 版本 | 更新内容 |
 | :--- | :--- | :--- |
-| 2026-04-27 | v1.34 | ✨ **新增密码找回功能**：通过邮件验证码重置密码<br>新增 `EmailService` 接口和 `EmailServiceImpl` 实现类（发送HTML邮件、验证码管理）<br>新增 `PasswordController`（`/user/send-code`、`/user/reset-password`）<br>新增 `SendCodeRequest`、`ResetPasswordRequest` DTO<br>新增 `SysUserService.getUserByEmail()` 和 `resetPassword()` 方法<br>添加 `spring-boot-starter-mail` 依赖<br>邮件配置支持环境变量（`MAIL_HOST`、`MAIL_PORT`、`MAIL_USERNAME`、`MAIL_PASSWORD`）<br>验证码5分钟有效期、3次验证尝试、60秒发送间隔限制 |
+| 2026-04-27 | v1.34 | ✨ **内容审核流程**：新增 `AdminPostController` 和 `AdminCommentController`（审核文章/评论列表、修改状态、删除）<br>✨ **私信功能**：新增 `Message` 实体、`MessageService`、`MessageController`（发送/接收/已读/删除私信、未读计数）<br>✨ **密码找回功能**：新增 `EmailService` 和 `EmailServiceImpl`（发送HTML邮件、验证码管理）<br>新增 `PasswordController`（`/user/send-code`、`/user/reset-password`）<br>新增 `SendCodeRequest`、`ResetPasswordRequest` DTO<br>添加 `spring-boot-starter-mail` 依赖，邮件配置支持环境变量<br>验证码5分钟有效期、3次验证尝试、60秒发送间隔限制<br>🔧 **Entity修复**：`TopicMapper.java` 和 `MessageMapper.java` 移除（已改为实体类 `Topic.java` 和 `Message.java`）<br>🐛 **测试配置修复**：H2数据库支持、Flyway配置修正 |
 | 2026-04-27 | v1.32 | **P0 安全修复**：CircleServiceImpl XSS过滤、MediaServiceImpl Magic Number校验、SysUser.toString()密码泄露、multipart配置修正<br>**P0 管理员接口**：新增用户列表/封禁接口 AdminUserController<br>**P1 功能完善**：@提及通知(targetId bug修复)、话题标签完整实现<br>**P1 单元测试**：SysUserServiceImplTest、JwtUtilsTest、GlobalExceptionHandlerTest<br>**P1 配置增强**：Spring Boot Actuator健康检查、多环境配置(application-dev/prod.yml)、logback日志配置<br>**P2 性能优化**：N+1查询优化、@PreAuthorize权限控制集中化<br>**P2 架构完善**：Caffeine本地缓存、AsyncConfig异步线程池、AdminStatisticsController数据统计<br>**部署文档**：DEPLOY.md、Dockerfile、docker-compose.yml |
 | 2026-04-24 | v1.6 | 全面安全加固<br>密码字段添加@JsonIgnore防泄露<br>getById返回UserVO替代SysUser<br>敏感信息改为环境变量<br>添加防刷机制和权限校验<br>Entity联合主键和逻辑删除修复 |
 | 2026-04-24 | v1.5 | 安全与质量问题修复<br>添加@Valid参数校验<br>修复分层架构违规<br>添加密码复杂度校验<br>修复N+1查询问题<br>优化关联数据清理<br>完善异常处理机制 |
@@ -1083,5 +1098,5 @@ edu_project/
 
 ---
 
-**文档版本**：v1.33
+**文档版本**：v1.34
 **最后更新**：2026-04-27

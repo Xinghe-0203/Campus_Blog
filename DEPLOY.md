@@ -36,13 +36,15 @@
 ### 主要功能
 
 - 用户认证与授权（JWT）
-- 文章发布与管理
+- 文章发布与管理（含审核流程）
 - 评论与回复系统
 - 点赞、收藏、关注功能
 - 校友圈动态（类似微博）
 - 通知系统
 - 媒体文件上传
 - 内容举报与审核
+- 私信功能
+- 密码找回（邮件验证码）
 
 ---
 
@@ -121,6 +123,12 @@ mysql -u campus_blog -p campus_blog < 数据库表.sql
 | `SERVER_PORT` | 应用端口 | `8825` |
 | `MYBATIS_SQL_LOG` | SQL 日志配置 | `StdOutImpl` |
 | `CORS_ALLOWED_ORIGINS` | 允许的跨域来源 | `http://localhost:8080` |
+| `EMAIL_HOST` | 邮件服务器地址 | `smtp.example.com` |
+| `EMAIL_PORT` | 邮件服务器端口 | `587` |
+| `EMAIL_USERNAME` | 邮件用户名 | - |
+| `EMAIL_PASSWORD` | 邮件密码 | - |
+| `EMAIL_FROM` | 发件人地址 | `noreply@campusblog.com` |
+| `VERIFY_CODE_EXPIRATION` | 验证码过期时间(秒) | `300` |
 
 ### 配置步骤
 
@@ -538,4 +546,4 @@ echo "Backup completed: backup_$DATE.sql"
 
 ---
 
-*文档版本: v1.33 | 最后更新: 2026-04-27*
+*文档版本: v1.34 | 最后更新: 2026-04-27*
