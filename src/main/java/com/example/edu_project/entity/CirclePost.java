@@ -1,6 +1,7 @@
 package com.example.edu_project.entity;
 
 import com.baomidou.mybatisplus.annotation.*;
+import com.baomidou.mybatisplus.extension.handlers.JacksonTypeHandler;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -8,10 +9,10 @@ import java.time.LocalDateTime;
 
 /**
  * 校友圈动态实体类 (circle_post)
- * 使用 status=2 表示删除，不使用 is_deleted
+ * 使用 is_deleted + @TableLogic 实现逻辑删除，与全局策略保持一致
  */
 @Data
-@TableName("blog_circle_post")
+@TableName(value = "blog_circle_post", autoResultMap = true)
 public class CirclePost implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -40,6 +41,7 @@ public class CirclePost implements Serializable {
     /**
      * 图片URL列表（JSON数组）
      */
+    @TableField(typeHandler = JacksonTypeHandler.class)
     private String imageUrls;
 
     /**
@@ -60,11 +62,13 @@ public class CirclePost implements Serializable {
     /**
      * @提及的用户ID数组（JSON）
      */
+    @TableField(typeHandler = JacksonTypeHandler.class)
     private String mentions;
 
     /**
      * 关联话题ID数组（JSON）
      */
+    @TableField(typeHandler = JacksonTypeHandler.class)
     private String topicIds;
 
     /**
@@ -75,6 +79,7 @@ public class CirclePost implements Serializable {
     /**
      * 标签列表（JSON数组）
      */
+    @TableField(typeHandler = JacksonTypeHandler.class)
     private String tags;
 
     /**
@@ -118,9 +123,15 @@ public class CirclePost implements Serializable {
     private Integer allowRepost;
 
     /**
-     * 动态状态：1=正常，0=隐藏，2=已删除
+     * 动态状态：1=正常，0=隐藏
      */
     private Integer status;
+
+    /**
+     * 逻辑删除字段：0=正常，1=已删除（与MyBatis Plus全局@TableLogic配置联动）
+     */
+    @TableLogic
+    private Integer isDeleted;
 
     /**
      * 创建时间

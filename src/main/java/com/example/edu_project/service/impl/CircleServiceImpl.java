@@ -118,7 +118,7 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
         Integer contentType = 1; // 纯文本
         if (repostId != null) {
             CirclePost originalPost = this.getById(repostId);
-            if (originalPost == null || originalPost.getStatus() == 2) {
+            if (originalPost == null) {
                 throw new BusinessException(404, "原动态不存在");
             }
             // 检查原动态是否允许转发
@@ -299,9 +299,6 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
         if (post == null) {
             throw new BusinessException(404, "动态不存在");
         }
-        if (post.getStatus() == 2) {
-            throw new BusinessException(404, "动态已删除");
-        }
         // 检查权限：作者本人或管理员可以删除
         if (!post.getUserId().equals(userId) && !com.example.edu_project.utils.SecurityUtils.isCurrentUserAdmin()) {
             throw new BusinessException(403, "无权删除此动态");
@@ -317,9 +314,8 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
         circleLikeMapper.logicalDeleteByPostId(postId);
         circleRepostMapper.logicalDeleteByOriginalPostId(postId);
 
-        // 软删除：设置 status = 2
-        post.setStatus(2);
-        this.updateById(post);
+        // 逻辑删除：MyBatis Plus @TableLogic 自动处理（SET is_deleted = 1）
+        this.removeById(postId);
     }
 
     @Override
@@ -386,7 +382,7 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
     @Transactional(rollbackFor = Exception.class)
     public CirclePostVO getPostDetail(Long postId, Long currentUserId) {
         CirclePost post = this.getById(postId);
-        if (post == null || post.getStatus() == 2) {
+        if (post == null) {
             throw new BusinessException(404, "动态不存在");
         }
 
@@ -539,7 +535,7 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
             // 如果是转发，获取原动态信息（使用Map批量匹配）
             if (post.getRepostId() != null) {
                 CirclePost repostPost = finalRepostPostMap.get(post.getRepostId());
-                if (repostPost != null && repostPost.getStatus() != 2) {
+                if (repostPost != null) {
                     // 检查是否有权限查看原动态
                     if (canViewPost(repostPost, currentUserId)) {
                         CirclePostVO repostVO = new CirclePostVO();

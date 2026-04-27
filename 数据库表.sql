@@ -123,7 +123,7 @@ CREATE TABLE `blog_post` (
     `category`          VARCHAR(50)    DEFAULT '其他'                 COMMENT '文章所属分类，如"技术分享"、"校园生活"、"资源下载"等，默认为"其他"',
 
     -- -------------------- 互动统计字段 --------------------
-    `view_count`        INT             DEFAULT 0                    COMMENT '文章阅读量/浏览次数，每次进入详情页时自增，用于展示热门文章',
+    `view_count`        BIGINT          DEFAULT 0                    COMMENT '文章阅读量/浏览次数，每次进入详情页时自增，用于展示热门文章',
 
     `like_count`        INT             DEFAULT 0                    COMMENT '文章点赞数量，用户点赞时自增，用于展示受欢迎程度',
 
@@ -413,7 +413,7 @@ CREATE TABLE `blog_follow` (
 --   用户可以在通知中心查看所有通知。
 --
 -- 【设计要点】
---   1. type 字段区分通知类型：follow/like/comment/mention/system。
+--   1. type 字段区分通知类型：LIKE/COMMENT/REPLY/FOLLOW/MENTION/MESSAGE/SYSTEM。
 --   2. from_user_id 为触发通知的用户，user_id 为接收通知的用户。
 --   3. target_type 和 target_id 关联到具体的内容（文章/评论）。
 --   4. 支持逻辑删除。
@@ -425,7 +425,7 @@ CREATE TABLE `blog_notification` (
 
     `user_id`           BIGINT          NOT NULL                     COMMENT '通知所属用户ID（接收者）',
 
-    `type`              VARCHAR(50)     NOT NULL                     COMMENT '通知类型：follow/like/comment/mention/system',
+    `type`              VARCHAR(50)     NOT NULL                     COMMENT '通知类型：LIKE=点赞，COMMENT=评论，REPLY=回复，FOLLOW=关注，MENTION=提及，MESSAGE=私信，SYSTEM=系统通知',
 
     `title`             VARCHAR(200)    NOT NULL                     COMMENT '通知标题',
 
@@ -433,7 +433,7 @@ CREATE TABLE `blog_notification` (
 
     `from_user_id`      BIGINT          DEFAULT NULL                  COMMENT '触发通知的用户ID（发送者）',
 
-    `target_type`       VARCHAR(50)    DEFAULT NULL                  COMMENT '关联目标类型：post/comment',
+    `target_type`       VARCHAR(50)    DEFAULT NULL                  COMMENT '关联目标类型：POST=文章，COMMENT=评论，MESSAGE=私信，USER=用户',
 
     `target_id`         BIGINT          DEFAULT NULL                  COMMENT '关联目标ID',
 
@@ -537,6 +537,26 @@ CREATE TABLE `blog_draft` (
 
 
 -- ============================================================================
+-- 表十一点五：草稿-标签关联表 (blog_draft_tag)
+-- ============================================================================
+-- 【业务说明】
+--   实现草稿和标签之间的多对多关联，符合第一范式(1NF)。
+--   替代 blog_draft 表中的 tag_ids 逗号分隔字段。
+--
+DROP TABLE IF EXISTS `blog_draft_tag`;
+
+CREATE TABLE `blog_draft_tag` (
+    `id`            BIGINT      NOT NULL AUTO_INCREMENT COMMENT '主键',
+    `draft_id`      BIGINT      NOT NULL               COMMENT '草稿ID',
+    `tag_id`        BIGINT      NOT NULL               COMMENT '标签ID',
+    `create_time`   DATETIME    DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `uk_draft_tag` (`draft_id`, `tag_id`),
+    INDEX `idx_tag_id` (`tag_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='草稿-标签关联表';
+
+
+-- ============================================================================
 -- 表十二：内容举报表 (blog_report)
 -- ============================================================================
 -- 【业务说明】
@@ -594,7 +614,7 @@ CREATE TABLE `blog_report` (
 --   2. image_urls 存储 JSON 格式的图片 URL 数组（最多9张）。
 --   3. tags 存储 JSON 格式的话题标签数组。
 --   4. mentions 存储 JSON 格式的 @提及用户 ID 数组。
---   5. 使用 status=2 表示删除，与逻辑删除字段配合。
+--   5. 使用 is_deleted + @TableLogic 实现逻辑删除，与全局策略保持一致。
 --
 DROP TABLE IF EXISTS `blog_circle_post`;
 
@@ -629,7 +649,7 @@ CREATE TABLE `blog_circle_post` (
 
     `repost_count`      INT             DEFAULT 0                    COMMENT '转发数',
 
-    `view_count`        INT             DEFAULT 0                    COMMENT '查看数',
+    `view_count`        BIGINT          DEFAULT 0                    COMMENT '查看数',
 
     `is_top`            TINYINT(1)     DEFAULT 0                     COMMENT '是否置顶：0=否，1=是',
 
@@ -639,12 +659,14 @@ CREATE TABLE `blog_circle_post` (
 
     `allow_repost`      TINYINT(1)     DEFAULT 1                     COMMENT '是否允许转发：1=允许，0=不允许',
 
-    `status`            TINYINT(1)     DEFAULT 1                     COMMENT '状态：1=正常，0=隐藏，2=删除',
+    `status`            TINYINT(1)     DEFAULT 1                     COMMENT '状态：1=正常，0=隐藏',
 
     `create_time`       DATETIME        DEFAULT CURRENT_TIMESTAMP    COMMENT '创建时间',
 
     `update_time`       DATETIME        DEFAULT CURRENT_TIMESTAMP
                                         ON UPDATE CURRENT_TIMESTAMP  COMMENT '更新时间',
+
+    `is_deleted`        TINYINT(1)     DEFAULT 0                     COMMENT '逻辑删除：0=正常，1=删除',
 
     PRIMARY KEY (`id`),
     INDEX `idx_user_id` (`user_id`),
@@ -823,6 +845,8 @@ CREATE TABLE `blog_post_media` (
 
     `create_time`       DATETIME        DEFAULT CURRENT_TIMESTAMP    COMMENT '创建时间',
 
+    `is_deleted`        TINYINT(1)     DEFAULT 0                     COMMENT '逻辑删除：0=正常，1=删除',
+
     PRIMARY KEY (`id`),
     INDEX `idx_post_id` (`post_id`),
     INDEX `idx_media_id` (`media_id`)
@@ -962,6 +986,44 @@ INSERT INTO `blog_tag` (`name`) VALUES
 -- 运行提示：
 --   1. 请确保 MySQL 版本 >= 8.0，以支持 utf8mb4 字符集和 JSON 类型。
 --   2. 如果数据库已存在，请先执行 DROP DATABASE campus_blog; 删除后重建。
---   3. 表创建完成后，可使用 SHOW TABLES; 查看所有表（共18张）。
+--   3. 表创建完成后，可使用 SHOW TABLES; 查看所有表（共21张）。
 --   4. 可使用 DESC 表名; 查看表结构。
 -- ============================================================================
+
+
+-- ============================================================================
+-- 附录：外键约束参考（可选，生产环境建议添加以保证数据完整性）
+-- 说明：以下 ALTER TABLE 语句可根据需要选择性执行
+--       添加外键后，删除用户时会受到约束保护，需要先清理关联数据
+-- ============================================================================
+
+-- ALTER TABLE blog_post ADD CONSTRAINT fk_post_user FOREIGN KEY (user_id) REFERENCES sys_user(id);
+-- ALTER TABLE blog_comment ADD CONSTRAINT fk_comment_post FOREIGN KEY (post_id) REFERENCES blog_post(id);
+-- ALTER TABLE blog_comment ADD CONSTRAINT fk_comment_user FOREIGN KEY (user_id) REFERENCES sys_user(id);
+-- ALTER TABLE blog_like ADD CONSTRAINT fk_like_user FOREIGN KEY (user_id) REFERENCES sys_user(id);
+-- ALTER TABLE blog_like ADD CONSTRAINT fk_like_post FOREIGN KEY (post_id) REFERENCES blog_post(id);
+-- ALTER TABLE blog_collect ADD CONSTRAINT fk_collect_user FOREIGN KEY (user_id) REFERENCES sys_user(id);
+-- ALTER TABLE blog_collect ADD CONSTRAINT fk_collect_post FOREIGN KEY (post_id) REFERENCES blog_post(id);
+-- ALTER TABLE blog_follow ADD CONSTRAINT fk_follow_follower FOREIGN KEY (follower_id) REFERENCES sys_user(id);
+-- ALTER TABLE blog_follow ADD CONSTRAINT fk_follow_following FOREIGN KEY (following_id) REFERENCES sys_user(id);
+-- ALTER TABLE blog_post_tag ADD CONSTRAINT fk_post_tag_post FOREIGN KEY (post_id) REFERENCES blog_post(id);
+-- ALTER TABLE blog_post_tag ADD CONSTRAINT fk_post_tag_tag FOREIGN KEY (tag_id) REFERENCES blog_tag(id);
+-- ALTER TABLE blog_notification ADD CONSTRAINT fk_notification_user FOREIGN KEY (user_id) REFERENCES sys_user(id);
+-- ALTER TABLE blog_notification ADD CONSTRAINT fk_notification_from_user FOREIGN KEY (from_user_id) REFERENCES sys_user(id);
+-- ALTER TABLE blog_trending ADD CONSTRAINT fk_trending_post FOREIGN KEY (post_id) REFERENCES blog_post(id);
+-- ALTER TABLE blog_draft ADD CONSTRAINT fk_draft_user FOREIGN KEY (user_id) REFERENCES sys_user(id);
+-- ALTER TABLE blog_report ADD CONSTRAINT fk_report_reporter FOREIGN KEY (reporter_id) REFERENCES sys_user(id);
+-- ALTER TABLE blog_circle_post ADD CONSTRAINT fk_circle_post_user FOREIGN KEY (user_id) REFERENCES sys_user(id);
+-- ALTER TABLE blog_circle_like ADD CONSTRAINT fk_circle_like_user FOREIGN KEY (user_id) REFERENCES sys_user(id);
+-- ALTER TABLE blog_circle_like ADD CONSTRAINT fk_circle_like_post FOREIGN KEY (post_id) REFERENCES blog_circle_post(id);
+-- ALTER TABLE blog_circle_comment ADD CONSTRAINT fk_circle_comment_user FOREIGN KEY (user_id) REFERENCES sys_user(id);
+-- ALTER TABLE blog_circle_comment ADD CONSTRAINT fk_circle_comment_post FOREIGN KEY (post_id) REFERENCES blog_circle_post(id);
+-- ALTER TABLE blog_circle_repost ADD CONSTRAINT fk_circle_repost_user FOREIGN KEY (user_id) REFERENCES sys_user(id);
+-- ALTER TABLE blog_circle_repost ADD CONSTRAINT fk_circle_repost_orig FOREIGN KEY (original_post_id) REFERENCES blog_circle_post(id);
+-- ALTER TABLE blog_media ADD CONSTRAINT fk_media_user FOREIGN KEY (user_id) REFERENCES sys_user(id);
+-- ALTER TABLE blog_post_media ADD CONSTRAINT fk_post_media_post FOREIGN KEY (post_id) REFERENCES blog_post(id);
+-- ALTER TABLE blog_post_media ADD CONSTRAINT fk_post_media_media FOREIGN KEY (media_id) REFERENCES blog_media(id);
+-- ALTER TABLE blog_message ADD CONSTRAINT fk_message_sender FOREIGN KEY (sender_id) REFERENCES sys_user(id);
+-- ALTER TABLE blog_message ADD CONSTRAINT fk_message_receiver FOREIGN KEY (receiver_id) REFERENCES sys_user(id);
+-- ALTER TABLE blog_draft_tag ADD CONSTRAINT fk_draft_tag_draft FOREIGN KEY (draft_id) REFERENCES blog_draft(id);
+-- ALTER TABLE blog_draft_tag ADD CONSTRAINT fk_draft_tag_tag FOREIGN KEY (tag_id) REFERENCES blog_tag(id);

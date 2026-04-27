@@ -48,6 +48,7 @@ public class BlogDraft implements Serializable {
 
     /**
      * 标签ID列表（逗号分隔存储）
+     * 【待迁移】将迁移至 blog_draft_tag 关联表，符合1NF范式
      */
     private String tagIds;
 

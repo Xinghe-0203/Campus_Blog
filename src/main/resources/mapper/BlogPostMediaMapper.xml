@@ -18,9 +18,9 @@
         ORDER BY display_order ASC, id ASC
     </select>
 
-    <!-- 根据文章ID删除所有媒体关联 -->
-    <delete id="deleteByPostId">
-        DELETE FROM blog_post_media WHERE post_id = #{postId}
-    </delete>
+    <!-- 根据文章ID逻辑删除所有媒体关联 -->
+    <update id="deleteByPostId">
+        UPDATE blog_post_media SET is_deleted = 1 WHERE post_id = #{postId}
+    </update>
 
 </mapper>

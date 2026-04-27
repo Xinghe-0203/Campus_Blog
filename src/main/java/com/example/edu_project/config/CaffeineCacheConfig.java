@@ -3,10 +3,12 @@ package com.example.edu_project.config;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
-import org.springframework.cache.caffeine.CaffeineCacheManager;
+import org.springframework.cache.caffeine.CaffeineCache;
+import org.springframework.cache.support.SimpleCacheManager;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -43,17 +45,17 @@ public class CaffeineCacheConfig {
     public static final String TRENDING_CACHE = "trendingCache";
 
     /**
-     * 配置 Caffeine 缓存管理器
+     * 配置 Caffeine 缓存管理器，为每个具名缓存使用差异化配置
      */
     @Bean
     public CacheManager cacheManager() {
-        CaffeineCacheManager cacheManager = new CaffeineCacheManager();
-        cacheManager.setCaffeine(Caffeine.newBuilder()
-                // 全局配置：最大1000条缓存，写入后5分钟过期
-                .maximumSize(1000)
-                .expireAfterWrite(5, TimeUnit.MINUTES)
-                // 记录命中统计
-                .recordStats());
+        SimpleCacheManager cacheManager = new SimpleCacheManager();
+        cacheManager.setCaches(Arrays.asList(
+                new CaffeineCache(HOT_TAGS_CACHE, hotTagsCache().build()),
+                new CaffeineCache(CATEGORY_CACHE, categoryCache().build()),
+                new CaffeineCache(USER_CACHE, userCache().build()),
+                new CaffeineCache(TRENDING_CACHE, trendingCache().build())
+        ));
         return cacheManager;
     }
 

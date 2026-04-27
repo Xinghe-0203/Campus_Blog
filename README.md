@@ -35,7 +35,8 @@ edu_project/
 │   │   ├── JwtAuthenticationFilter.java      # JWT 认证过滤器
 │   │   ├── WebMvcConfig.java                  # Web MVC 配置
 │   │   ├── DotenvConfig.java                  # .env 环境变量加载
-│   │   └── EnvValidationConfig.java           # 环境变量校验配置
+│   │   ├── EnvValidationConfig.java           # 环境变量校验配置
+│   │   └── RateLimitInterceptor.java          # 接口频率限制拦截器
 │   ├── controller/                              # Controller 层（19个）
 │   │   ├── SysUserController.java              # 用户控制器
 │   │   ├── BlogPostController.java             # 文章控制器
@@ -91,7 +92,7 @@ edu_project/
 │   │       ├── MessageServiceImpl.java
 │   │       ├── EmailServiceImpl.java
 │   │       └── StatisticsServiceImpl.java
-│   ├── mapper/                                  # Mapper 层（20个）
+│   ├── mapper/                                  # Mapper 层（21个）
 │   │   ├── SysUserMapper.java
 │   │   ├── BlogPostMapper.java
 │   │   ├── BlogCommentMapper.java
@@ -111,7 +112,8 @@ edu_project/
 │   │   ├── MediaMapper.java
 │   │   ├── BlogPostMediaMapper.java
 │   │   ├── TopicMapper.java
-│   │   └── MessageMapper.java
+│   │   ├── MessageMapper.java
+│   │   └── BlogDraftTagMapper.java
 │   ├── dto/                                     # 数据传输对象
 │   │   ├── UserRegisterRequest.java
 │   │   ├── UserLoginRequest.java
@@ -124,8 +126,11 @@ edu_project/
 │   ├── utils/                                   # 工具类
 │   │   ├── JwtUtils.java                       # JWT 工具类
 │   │   ├── SecurityUtils.java                  # 安全工具类
-│   │   └── UserContext.java                    # 用户上下文对象
-│   └── entity/                                  # Entity 实体类（20个）
+│   │   ├── UserContext.java                    # 用户上下文对象
+│   │   ├── TimeUtils.java                      # 相对时间描述工具
+│   │   ├── StringMaskUtils.java                # 邮箱脱敏工具
+│   │   └── UserConverter.java                  # SysUser→UserVO 转换
+│   └── entity/                                  # Entity 实体类（21个）
 │       ├── SysUser.java
 │       ├── BlogPost.java
 │       ├── BlogComment.java
@@ -145,7 +150,8 @@ edu_project/
 │       ├── Media.java
 │       ├── BlogPostMedia.java
 │       ├── Topic.java
-│       └── Message.java
+│       ├── Message.java
+│       └── BlogDraftTag.java
 │   └── common/                                  # 公共类
 │       ├── result/
 │       │   └── Result.java                     # 统一响应结果类
@@ -159,7 +165,7 @@ edu_project/
 
 ## 数据库表结构
 
-项目包含 **20 张数据表**：
+项目包含 **21 张数据表**：
 
 ### 核心表（7张）
 1. **sys_user** - 用户表（含 follower_count、following_count）
@@ -170,22 +176,23 @@ edu_project/
 6. **blog_like** - 点赞记录表（自增主键）
 7. **blog_collect** - 收藏记录表（自增主键）
 
-### 扩展功能表（13张）
+### 扩展功能表（14张）
 8. **blog_follow** - 关注关系表
 9. **blog_notification** - 通知表
 10. **blog_trending** - 热度统计表
 11. **blog_draft** - 文章草稿表
-12. **blog_report** - 内容举报表
-13. **blog_circle_post** - 校友圈动态表
-14. **blog_circle_like** - 校友圈点赞表
-15. **blog_circle_comment** - 校友圈评论表
-16. **blog_circle_repost** - 校友圈转发表
-17. **blog_media** - 媒体资源表
-18. **blog_post_media** - 文章媒体关联表
-19. **blog_topic** - 话题标签表
-20. **blog_message** - 私信表
+12. **blog_draft_tag** - 草稿-标签关联表（复合主键，1NF规范化）
+13. **blog_report** - 内容举报表
+14. **blog_circle_post** - 校友圈动态表
+15. **blog_circle_like** - 校友圈点赞表
+16. **blog_circle_comment** - 校友圈评论表
+17. **blog_circle_repost** - 校友圈转发表
+18. **blog_media** - 媒体资源表
+19. **blog_post_media** - 文章媒体关联表
+20. **blog_topic** - 话题标签表
+21. **blog_message** - 私信表
 
-**合计：7 + 13 = 20 张**
+**合计：7 + 14 = 21 张**
 
 ## 快速开始
 
