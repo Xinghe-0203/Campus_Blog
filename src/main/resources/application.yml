@@ -174,6 +174,8 @@ management:
   health:
     db:
       enabled: true
+    mail:
+      enabled: false  # 开发环境禁用邮件健康检查，避免无配置时报错
     diskSpace:
       enabled: true
     ping:
