@@ -43,6 +43,12 @@ public class JwtUtils {
     private final Set<String> tokenBlacklist = ConcurrentHashMap.newKeySet();
 
     /**
+     * 黑名单最大容量，防止内存无限增长
+     * 超过容量时拒绝添加新的黑名单条目（极端情况下保护机制）
+     */
+    private static final int BLACKLIST_MAX_SIZE = 100_000;
+
+    /**
      * 生成 Token（包含角色）
      */
     public String generateToken(Long userId, String username, String role) {
@@ -93,6 +99,10 @@ public class JwtUtils {
      */
     public void revokeToken(String token) {
         if (token == null) {
+            return;
+        }
+        // 黑名单容量保护
+        if (tokenBlacklist.size() >= BLACKLIST_MAX_SIZE) {
             return;
         }
         try {

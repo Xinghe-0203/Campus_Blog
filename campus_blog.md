@@ -10,7 +10,7 @@
 | **项目类型** | 全栈 Web 应用 |
 | **开发周期** | 校技能大赛周期 |
 | **开发人员** | 刘畅 |
-| **当前版本** | v1.35 |
+| **当前版本** | v1.36 |
 | **GitHub 仓库** | https://github.com/Xinghe-0203/Campus_Blog |
 
 ---
@@ -99,6 +99,15 @@
 - 项目成功启动并正常运行！
 - 数据库连接正常（云端 MySQL）
 - API 接口正常响应
+
+#### ✅ 后端安全修复 v1.36（2026-04-27）
+- SecurityConfig 白名单修复：新增 circle/follow/topic/user 等 11 条公开端点 permitAll 规则
+- JwtAuthenticationFilter Critical 修复：Refresh Token 用于非刷新端点时返回 401
+- JwtUtils 黑名单容量保护：BLACKLIST_MAX_SIZE=100_000
+- BlogTagServiceImpl 管理员权限校验
+- TrendingServiceImpl 仅统计已发布文章
+- EmailServiceImpl 异常处理统一
+- CircleController 参数校验完善
 
 #### ✅ 后端增强完善 v1.35（2026-04-27）
 - 速率限制（Rate Limiting）：基于 Caffeine 的接口频率限制拦截器
@@ -1062,6 +1071,7 @@ edu_project/
 
 | 日期 | 版本 | 更新内容 |
 | :--- | :--- | :--- |
+| 2026-04-27 | v1.36 | 🔧 **SecurityConfig 白名单修复**：新增 11 条 permitAll 规则（circle/follow/topic/user 公开端点）<br>🔧 **JwtAuthenticationFilter Critical 修复**：Refresh Token 用于非刷新端点时返回 401 而非匿名通过<br>🔧 **JwtUtils 黑名单容量保护**：BLACKLIST_MAX_SIZE=100_000 防止内存无限增长<br>🔧 **BlogTagServiceImpl 管理员权限**：deleteTag 添加管理员校验，listAllTags 添加只读事务<br>🔧 **TrendingServiceImpl 状态校验**：updatePostTrending 仅统计已发布文章（status=1）<br>🔧 **EmailServiceImpl 异常处理**：verifyCode/sendHtmlEmail 统一使用 BusinessException<br>🔧 **CircleController 参数校验**：searchPosts 的 keyword 参数添加 @NotBlank 验证 |
 | 2026-04-27 | v1.35 | ✨ **速率限制**：新增 `RateLimitInterceptor` 基于 Caffeine 的接口频率限制<br>✨ **缓存策略修复**：SimpleCacheManager 具名缓存差异化配置<br>✨ **CirclePost 逻辑删除统一**：添加 is_deleted + @TableLogic 支持<br>✨ **JSON 列 TypeHandler**：JacksonTypeHandler 配置处理 CirclePost JSON 字段<br>✨ **BlogDraft 1NF 规范化**：新建 `blog_draft_tag` 关联表分离草稿标签多值依赖<br>✨ **BlogPostMedia 逻辑删除统一**：统一软删除机制<br>✨ **外键约束参考 SQL**：新增 29 条 ALTER TABLE 外键语句<br>✨ **view_count 类型升级**：INT → BIGINT<br>✨ **线程池参数可配置化**：@Value 注入 AsyncConfig 核心参数<br>✨ **新增工具类**：TimeUtils、StringMaskUtils、UserConverter<br>📦 **新增表**：`blog_draft_tag`（第21张表）<br>📦 **新增 Mapper/Entity**：`BlogDraftTagMapper`、`BlogDraftTag` |
 | 2026-04-27 | v1.34 | ✨ **内容审核流程**：新增 `AdminPostController` 和 `AdminCommentController`（审核文章/评论列表、修改状态、删除）<br>✨ **私信功能**：新增 `Message` 实体、`MessageService`、`MessageController`（发送/接收/已读/删除私信、未读计数）<br>✨ **密码找回功能**：新增 `EmailService` 和 `EmailServiceImpl`（发送HTML邮件、验证码管理）<br>新增 `PasswordController`（`/user/send-code`、`/user/reset-password`）<br>新增 `SendCodeRequest`、`ResetPasswordRequest` DTO<br>添加 `spring-boot-starter-mail` 依赖，邮件配置支持环境变量<br>验证码5分钟有效期、3次验证尝试、60秒发送间隔限制<br>🔧 **Entity修复**：`TopicMapper.java` 和 `MessageMapper.java` 移除（已改为实体类 `Topic.java` 和 `Message.java`）<br>🐛 **测试配置修复**：H2数据库支持、Flyway配置修正 |
 | 2026-04-27 | v1.32 | **P0 安全修复**：CircleServiceImpl XSS过滤、MediaServiceImpl Magic Number校验、SysUser.toString()密码泄露、multipart配置修正<br>**P0 管理员接口**：新增用户列表/封禁接口 AdminUserController<br>**P1 功能完善**：@提及通知(targetId bug修复)、话题标签完整实现<br>**P1 单元测试**：SysUserServiceImplTest、JwtUtilsTest、GlobalExceptionHandlerTest<br>**P1 配置增强**：Spring Boot Actuator健康检查、多环境配置(application-dev/prod.yml)、logback日志配置<br>**P2 性能优化**：N+1查询优化、@PreAuthorize权限控制集中化<br>**P2 架构完善**：Caffeine本地缓存、AsyncConfig异步线程池、AdminStatisticsController数据统计<br>**部署文档**：DEPLOY.md、Dockerfile、docker-compose.yml |
@@ -1101,5 +1111,5 @@ edu_project/
 
 ---
 
-**文档版本**：v1.35
+**文档版本**：v1.36
 **最后更新**：2026-04-27

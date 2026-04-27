@@ -114,7 +114,7 @@ public class EmailServiceImpl implements EmailService {
     public boolean verifyCode(String email, String code) {
         // 参数校验
         if (email == null || email.trim().isEmpty() || code == null || code.trim().isEmpty()) {
-            return false;
+            throw new BusinessException(400, "邮箱和验证码不能为空");
         }
 
         VerificationData data = verificationStore.get(email);
@@ -202,7 +202,7 @@ public class EmailServiceImpl implements EmailService {
                 mailSender.send(simpleMessage);
             } catch (Exception ex) {
                 log.error("纯文本邮件发送也失败: {}", ex.getMessage());
-                throw new RuntimeException("邮件发送失败", ex);
+                throw new BusinessException(500, "邮件发送失败，请稍后重试");
             }
         }
     }

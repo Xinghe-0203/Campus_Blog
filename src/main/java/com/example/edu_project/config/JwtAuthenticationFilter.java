@@ -41,7 +41,10 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 try {
                     // 拒绝 refresh token 用于 API 访问，防止泄露后长期滥用
                     if (jwtUtils.isRefreshToken(token)) {
-                        filterChain.doFilter(request, response);
+                        // Refresh token 只能用于 /user/refresh 端点，其他接口直接返回 401
+                        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                        response.setContentType("application/json;charset=UTF-8");
+                        response.getWriter().write("{\"code\":401,\"message\":\"Refresh token cannot be used for API access\"}");
                         return;
                     }
                     // 必须先验证 Token 签名，再检查黑名单

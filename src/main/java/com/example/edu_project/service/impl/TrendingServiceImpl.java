@@ -160,6 +160,10 @@ public class TrendingServiceImpl extends ServiceImpl<BlogTrendingMapper, BlogTre
         if (post == null || post.getIsDeleted() == 1) {
             return;
         }
+        // 仅更新已发布的文章热度
+        if (post.getStatus() != 1) {
+            return;
+        }
 
         // 计算热度评分
         int score = post.getViewCount() * VIEW_WEIGHT

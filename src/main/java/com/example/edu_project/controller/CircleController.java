@@ -215,7 +215,7 @@ public class CircleController {
     @Operation(summary = "搜索动态")
     @GetMapping("/search")
     public Result<List<CirclePostVO>> searchPosts(
-            @RequestParam String keyword,
+            @RequestParam @NotBlank String keyword,
             @RequestParam(defaultValue = "1") @Min(1) int page,
             @RequestParam(defaultValue = "20") @Min(1) @Max(100) int pageSize) {
         Long userId = SecurityUtils.getCurrentUserIdOrNull();
