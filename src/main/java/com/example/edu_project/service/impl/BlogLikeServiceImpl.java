@@ -1,14 +1,24 @@
 package com.example.edu_project.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.edu_project.common.exception.BusinessException;
 import com.example.edu_project.entity.BlogLike;
 import com.example.edu_project.entity.BlogPost;
+import com.example.edu_project.entity.BlogPostTag;
+import com.example.edu_project.entity.BlogTag;
+import com.example.edu_project.entity.SysUser;
 import com.example.edu_project.event.LikeCreatedEvent;
 import com.example.edu_project.mapper.BlogLikeMapper;
+import com.example.edu_project.mapper.BlogPostMapper;
+import com.example.edu_project.mapper.BlogPostTagMapper;
+import com.example.edu_project.mapper.BlogTagMapper;
+import com.example.edu_project.mapper.SysUserMapper;
 import com.example.edu_project.service.BlogLikeService;
 import com.example.edu_project.service.BlogPostService;
+import com.example.edu_project.vo.LikeItemVO;
 import com.example.edu_project.vo.LikeResultVO;
 import com.example.edu_project.vo.LikeStatusVO;
 import lombok.extern.slf4j.Slf4j;
@@ -18,8 +28,11 @@ import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.stream.Collectors;
 
 /**
  * 点赞服务实现类
@@ -33,6 +46,18 @@ public class BlogLikeServiceImpl extends ServiceImpl<BlogLikeMapper, BlogLike> i
 
     @Autowired
     private ApplicationEventPublisher eventPublisher;
+
+    @Autowired
+    private BlogPostMapper blogPostMapper;
+
+    @Autowired
+    private SysUserMapper sysUserMapper;
+
+    @Autowired
+    private BlogPostTagMapper blogPostTagMapper;
+
+    @Autowired
+    private BlogTagMapper blogTagMapper;
 
     /**
      * 细粒度锁映射表：key="userId-postId"，value=锁对象
@@ -169,5 +194,104 @@ public class BlogLikeServiceImpl extends ServiceImpl<BlogLikeMapper, BlogLike> i
         wrapper.eq(BlogLike::getUserId, userId)
               .eq(BlogLike::getPostId, postId);
         return this.count(wrapper) > 0;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public IPage<LikeItemVO> getMyLikes(Long userId, Integer page, Integer pageSize) {
+        Page<BlogLike> likePage = new Page<>(page, pageSize);
+
+        LambdaQueryWrapper<BlogLike> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(BlogLike::getUserId, userId)
+                .orderByDesc(BlogLike::getCreateTime);
+
+        IPage<BlogLike> likeResult = this.page(likePage, wrapper);
+
+        if (likeResult.getRecords().isEmpty()) {
+            return new Page<>(page, pageSize, 0);
+        }
+
+        // 获取所有文章ID
+        List<Long> postIds = likeResult.getRecords().stream()
+                .map(BlogLike::getPostId)
+                .distinct()
+                .collect(Collectors.toList());
+
+        // 批量查询文章
+        List<BlogPost> posts = blogPostMapper.selectBatchIds(postIds);
+        // 过滤掉未发布的文章
+        posts = posts.stream()
+                .filter(p -> p.getStatus() != null && p.getStatus() == 1)
+                .collect(Collectors.toList());
+        Map<Long, BlogPost> postMap = posts.stream()
+                .collect(Collectors.toMap(BlogPost::getId, p -> p, (a, b) -> a));
+
+        // 获取所有作者ID
+        List<Long> authorIds = posts.stream()
+                .map(BlogPost::getUserId)
+                .distinct()
+                .collect(Collectors.toList());
+        List<SysUser> users = sysUserMapper.selectBatchIds(authorIds);
+        Map<Long, SysUser> userMap = users.stream()
+                .collect(Collectors.toMap(SysUser::getId, u -> u, (a, b) -> a));
+
+        // 获取所有文章标签
+        LambdaQueryWrapper<BlogPostTag> tagWrapper = new LambdaQueryWrapper<>();
+        tagWrapper.in(BlogPostTag::getPostId, postIds);
+        List<BlogPostTag> postTags = blogPostTagMapper.selectList(tagWrapper);
+
+        // 获取标签详情
+        List<Long> tagIds = postTags.stream()
+                .map(BlogPostTag::getTagId)
+                .distinct()
+                .collect(Collectors.toList());
+        List<BlogTag> tags = tagIds.isEmpty() ? List.of() : blogTagMapper.selectBatchIds(tagIds);
+        Map<Long, String> tagNameMap = tags.stream()
+                .collect(Collectors.toMap(BlogTag::getId, BlogTag::getName, (a, b) -> a));
+
+        // 按文章分组标签
+        Map<Long, List<String>> postTagsMap = postTags.stream()
+                .collect(Collectors.groupingBy(
+                        BlogPostTag::getPostId,
+                        Collectors.mapping(pt -> tagNameMap.get(pt.getTagId()), Collectors.toList())
+                ));
+
+        // 构建返回结果
+        IPage<LikeItemVO> resultPage = new Page<>(
+                likeResult.getCurrent(),
+                likeResult.getSize(),
+                likeResult.getTotal()
+        );
+
+        List<LikeItemVO> items = likeResult.getRecords().stream()
+                .map(like -> {
+                    LikeItemVO item = new LikeItemVO();
+                    item.setLikeId(like.getId());
+                    item.setPostId(like.getPostId());
+                    item.setLikeTime(like.getCreateTime());
+
+                    BlogPost post = postMap.get(like.getPostId());
+                    if (post != null) {
+                        item.setTitle(post.getTitle());
+                        item.setSummary(post.getSummary());
+                        item.setCategory(post.getCategory());
+                        item.setViewCount(post.getViewCount());
+                        item.setLikeCount(post.getLikeCount());
+                        item.setCommentCount(post.getCommentCount());
+                        item.setCollectCount(post.getCollectCount());
+
+                        SysUser author = userMap.get(post.getUserId());
+                        if (author != null) {
+                            item.setAuthorId(author.getId());
+                            item.setAuthorNickname(author.getNickname());
+                            item.setAuthorAvatar(author.getAvatar());
+                        }
+                    }
+                    return item;
+                })
+                .collect(Collectors.toList());
+
+        resultPage.setRecords(items);
+        return resultPage;
     }
 }

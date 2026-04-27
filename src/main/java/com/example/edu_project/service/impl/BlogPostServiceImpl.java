@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.edu_project.common.exception.BusinessException;
+import com.example.edu_project.dto.AdminPostQueryRequest;
 import com.example.edu_project.dto.PostAdvancedSearchRequest;
 import com.example.edu_project.dto.PostCreateRequest;
 import com.example.edu_project.dto.PostQueryRequest;
@@ -743,5 +744,172 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         }
 
         return request;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public IPage<PostListResponse> getMyPosts(Long userId, Integer page, Integer pageSize) {
+        Page<BlogPost> pageObj = new Page<>(page, pageSize);
+
+        LambdaQueryWrapper<BlogPost> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(BlogPost::getUserId, userId)
+                .eq(BlogPost::getStatus, 1) // 只查询已发布的文章
+                .ne(BlogPost::getIsDeleted, 1) // 排除已删除的文章
+                .orderByDesc(BlogPost::getCreateTime);
+
+        IPage<BlogPost> postPage = this.page(pageObj, wrapper);
+
+        List<BlogPost> posts = postPage.getRecords();
+        if (posts.isEmpty()) {
+            return new Page<>(page, pageSize, 0);
+        }
+
+        // 收集所有文章ID
+        List<Long> postIds = posts.stream()
+                .map(BlogPost::getId)
+                .collect(Collectors.toList());
+
+        // 批量查询标签信息
+        Map<Long, List<PostDetailResponse.TagVO>> postTagsMap = getTagsMapByPostIds(postIds);
+
+        // 作者信息（当前用户）
+        SysUser user = sysUserMapper.selectById(userId);
+
+        // 转换为列表响应
+        IPage<PostListResponse> result = new Page<>(postPage.getCurrent(), postPage.getSize(), postPage.getTotal());
+        result.setRecords(posts.stream()
+                .map(post -> convertToListResponse(post, user, postTagsMap.get(post.getId())))
+                .collect(Collectors.toList()));
+
+        return result;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public IPage<PostDetailResponse> getAdminPostList(AdminPostQueryRequest request) {
+        Page<BlogPost> page = new Page<>(request.getPage(), request.getPageSize());
+
+        LambdaQueryWrapper<BlogPost> wrapper = new LambdaQueryWrapper<>();
+        // 排除已删除的文章
+        wrapper.ne(BlogPost::getIsDeleted, 1);
+
+        // 关键词搜索
+        if (request.getKeyword() != null && !request.getKeyword().trim().isEmpty()) {
+            wrapper.and(w -> w.like(BlogPost::getTitle, request.getKeyword().trim())
+                    .or()
+                    .like(BlogPost::getContent, request.getKeyword().trim()));
+        }
+        // 状态筛选
+        if (request.getStatus() != null) {
+            wrapper.eq(BlogPost::getStatus, request.getStatus());
+        }
+        // 用户ID筛选
+        if (request.getUserId() != null) {
+            wrapper.eq(BlogPost::getUserId, request.getUserId());
+        }
+        // 分类筛选
+        if (request.getCategory() != null && !request.getCategory().trim().isEmpty()) {
+            wrapper.eq(BlogPost::getCategory, request.getCategory().trim());
+        }
+
+        // 按创建时间倒序
+        wrapper.orderByDesc(BlogPost::getCreateTime);
+
+        IPage<BlogPost> postPage = this.page(page, wrapper);
+
+        List<BlogPost> posts = postPage.getRecords();
+        if (posts.isEmpty()) {
+            return new Page<>(postPage.getCurrent(), postPage.getSize(), postPage.getTotal());
+        }
+
+        // 收集所有需要的用户ID
+        List<Long> userIds = posts.stream()
+                .map(BlogPost::getUserId)
+                .distinct()
+                .collect(Collectors.toList());
+
+        // 收集所有文章ID
+        List<Long> postIds = posts.stream()
+                .map(BlogPost::getId)
+                .collect(Collectors.toList());
+
+        // 批量查询用户信息
+        Map<Long, SysUser> userMap = sysUserMapper.selectBatchIds(userIds).stream()
+                .collect(Collectors.toMap(SysUser::getId, u -> u, (a, b) -> a));
+
+        // 批量查询标签信息
+        Map<Long, List<PostDetailResponse.TagVO>> postTagsMap = getTagsMapByPostIds(postIds);
+
+        // 转换为详情响应
+        IPage<PostDetailResponse> result = new Page<>(postPage.getCurrent(), postPage.getSize(), postPage.getTotal());
+        result.setRecords(posts.stream()
+                .map(post -> convertToDetailResponse(post, userMap.get(post.getUserId()), postTagsMap.get(post.getId())))
+                .collect(Collectors.toList()));
+
+        return result;
+    }
+
+    private PostDetailResponse convertToDetailResponse(BlogPost post, SysUser user, List<PostDetailResponse.TagVO> tags) {
+        PostDetailResponse response = new PostDetailResponse();
+        response.setId(post.getId());
+        response.setUserId(post.getUserId());
+        response.setTitle(post.getTitle());
+        response.setSummary(post.getSummary());
+        response.setContent(post.getContent());
+        response.setCategory(post.getCategory());
+        response.setViewCount(post.getViewCount());
+        response.setLikeCount(post.getLikeCount());
+        response.setCommentCount(post.getCommentCount());
+        response.setCollectCount(post.getCollectCount());
+        response.setStatus(post.getStatus());
+        response.setCreateTime(post.getCreateTime());
+        response.setUpdateTime(post.getUpdateTime());
+
+        if (user != null) {
+            response.setUsername(user.getUsername());
+            response.setNickname(user.getNickname());
+            response.setAvatar(user.getAvatar());
+        }
+
+        response.setTags(tags != null ? tags : Collections.emptyList());
+
+        return response;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void adminDeletePost(Long postId, Long adminId) {
+        BlogPost post = this.getById(postId);
+        if (post == null) {
+            throw new BusinessException(404, "文章不存在");
+        }
+        if (post.getIsDeleted() != null && post.getIsDeleted() == 1) {
+            throw new BusinessException(404, "文章不存在");
+        }
+
+        // 删除文章
+        this.removeById(postId);
+
+        // 删除标签关联
+        LambdaQueryWrapper<BlogPostTag> tagWrapper = new LambdaQueryWrapper<>();
+        tagWrapper.eq(BlogPostTag::getPostId, postId);
+        blogPostTagMapper.delete(tagWrapper);
+
+        // 删除评论
+        LambdaQueryWrapper<BlogComment> commentWrapper = new LambdaQueryWrapper<>();
+        commentWrapper.eq(BlogComment::getPostId, postId);
+        blogCommentMapper.delete(commentWrapper);
+
+        // 删除点赞
+        LambdaQueryWrapper<BlogLike> likeWrapper = new LambdaQueryWrapper<>();
+        likeWrapper.eq(BlogLike::getPostId, postId);
+        blogLikeMapper.delete(likeWrapper);
+
+        // 删除收藏
+        LambdaQueryWrapper<BlogCollect> collectWrapper = new LambdaQueryWrapper<>();
+        collectWrapper.eq(BlogCollect::getPostId, postId);
+        blogCollectMapper.delete(collectWrapper);
+
+        log.info("管理员删除文章: postId={}, adminId={}, title={}", postId, adminId, post.getTitle());
     }
 }

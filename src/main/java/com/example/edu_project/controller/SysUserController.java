@@ -5,6 +5,7 @@ import com.example.edu_project.common.exception.BusinessException;
 import com.example.edu_project.common.result.Result;
 import com.example.edu_project.dto.ChangePasswordRequest;
 import com.example.edu_project.dto.UserLoginRequest;
+import com.example.edu_project.dto.UserProfileRequest;
 import com.example.edu_project.dto.UserRegisterRequest;
 import com.example.edu_project.dto.UserRegisterResponse;
 import com.example.edu_project.dto.UserSearchRequest;
@@ -18,6 +19,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -26,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "用户管理", description = "用户相关接口")
 @RestController
 @RequestMapping("/user")
+@Validated
 public class SysUserController {
 
     @Autowired
@@ -159,5 +162,37 @@ public class SysUserController {
     public Result<IPage<UserVO>> searchUsers(@Valid UserSearchRequest request) {
         IPage<UserVO> result = sysUserService.searchUsers(request);
         return Result.success(result);
+    }
+
+    /**
+     * 修改用户资料
+     */
+    @Operation(summary = "修改用户资料")
+    @PutMapping("/profile")
+    public Result<Void> updateProfile(@Valid @RequestBody UserProfileRequest request) {
+        Long userId = SecurityUtils.getCurrentUserIdOrNull();
+        if (userId == null) {
+            throw new BusinessException(401, "请先登录");
+        }
+        sysUserService.updateUserProfile(userId, request.getNickname(), request.getEmail());
+        return Result.success("资料修改成功", null);
+    }
+
+    /**
+     * 修改头像
+     */
+    @Operation(summary = "修改头像")
+    @PutMapping("/avatar")
+    public Result<Void> updateAvatar(@RequestBody java.util.Map<String, String> request) {
+        Long userId = SecurityUtils.getCurrentUserIdOrNull();
+        if (userId == null) {
+            throw new BusinessException(401, "请先登录");
+        }
+        String avatar = request.get("avatar");
+        if (avatar == null || avatar.trim().isEmpty()) {
+            throw new BusinessException(400, "头像URL不能为空");
+        }
+        sysUserService.updateAvatar(userId, avatar);
+        return Result.success("头像修改成功", null);
     }
 }

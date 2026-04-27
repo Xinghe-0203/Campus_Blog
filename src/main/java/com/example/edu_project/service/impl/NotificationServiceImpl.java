@@ -19,6 +19,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.*;
+import java.util.Collections;
+import java.util.stream.Collectors;
 
 /**
  * 通知服务实现类
@@ -40,9 +43,7 @@ public class NotificationServiceImpl extends ServiceImpl<BlogNotificationMapper,
         Page<BlogNotification> notificationPage = this.page(page, wrapper);
 
         Page<NotificationVO> voPage = new Page<>(notificationPage.getCurrent(), notificationPage.getSize(), notificationPage.getTotal());
-        voPage.setRecords(notificationPage.getRecords().stream()
-                .map(this::convertToVO)
-                .toList());
+        voPage.setRecords(convertToVOList(notificationPage.getRecords()));
 
         return voPage;
     }
@@ -128,32 +129,61 @@ public class NotificationServiceImpl extends ServiceImpl<BlogNotificationMapper,
     }
 
     /**
-     * 转换实体为VO
-     * 注意：每次单独查询fromUser存在N+1问题，但计划书已有此问题暂不优化
+     * 转换实体为VO（优化：批量查询fromUser避免N+1）
      */
     private NotificationVO convertToVO(BlogNotification notification) {
         NotificationVO vo = new NotificationVO();
         BeanUtils.copyProperties(notification, vo);
 
-        // 查询发送者信息
-        if (notification.getFromUserId() != null) {
-            SysUser fromUser = sysUserMapper.selectById(notification.getFromUserId());
-            if (fromUser != null) {
-                UserVO userVO = new UserVO();
-                userVO.setId(fromUser.getId());
-                userVO.setUsername(fromUser.getUsername());
-                userVO.setNickname(fromUser.getNickname());
-                userVO.setAvatar(fromUser.getAvatar());
-                userVO.setRole(fromUser.getRole());
-                userVO.setStatus(fromUser.getStatus());
-                vo.setFromUser(userVO);
-            }
-        }
-
         // 计算timeAgo
         vo.setTimeAgo(getTimeAgo(notification.getCreateTime()));
 
         return vo;
+    }
+
+    /**
+     * 批量转换通知列表为VO（优化N+1：收集所有fromUserId后批量查询）
+     */
+    List<NotificationVO> convertToVOList(List<BlogNotification> notifications) {
+        if (notifications.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        // 收集所有fromUserId
+        Set<Long> fromUserIds = notifications.stream()
+                .map(BlogNotification::getFromUserId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        // 批量查询用户信息
+        Map<Long, SysUser> userMap = new HashMap<>();
+        if (!fromUserIds.isEmpty()) {
+            sysUserMapper.selectBatchIds(fromUserIds)
+                    .forEach(user -> userMap.put(user.getId(), user));
+        }
+
+        // 转换VO
+        return notifications.stream().map(notification -> {
+            NotificationVO vo = new NotificationVO();
+            BeanUtils.copyProperties(notification, vo);
+            vo.setTimeAgo(getTimeAgo(notification.getCreateTime()));
+
+            // 使用Map匹配用户信息
+            if (notification.getFromUserId() != null) {
+                SysUser fromUser = userMap.get(notification.getFromUserId());
+                if (fromUser != null) {
+                    UserVO userVO = new UserVO();
+                    userVO.setId(fromUser.getId());
+                    userVO.setUsername(fromUser.getUsername());
+                    userVO.setNickname(fromUser.getNickname());
+                    userVO.setAvatar(fromUser.getAvatar());
+                    userVO.setRole(fromUser.getRole());
+                    userVO.setStatus(fromUser.getStatus());
+                    vo.setFromUser(userVO);
+                }
+            }
+            return vo;
+        }).toList();
     }
 
     /**

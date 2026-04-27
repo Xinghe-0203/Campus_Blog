@@ -12,8 +12,12 @@ import com.example.edu_project.mapper.BlogPostMapper;
 import com.example.edu_project.mapper.BlogPostTagMapper;
 import com.example.edu_project.mapper.BlogTagMapper;
 import com.example.edu_project.mapper.BlogTrendingMapper;
+import com.example.edu_project.config.CaffeineCacheConfig;
 import com.example.edu_project.service.TrendingService;
+import com.example.edu_project.vo.HotPostVO;
+import com.example.edu_project.vo.HotTagVO;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,7 +55,7 @@ public class TrendingServiceImpl extends ServiceImpl<BlogTrendingMapper, BlogTre
 
     @Override
     @Transactional(readOnly = true)
-    public Object getHotPosts(int pageNum, int pageSize) {
+    public IPage<HotPostVO> getHotPosts(int pageNum, int pageSize) {
         Page<BlogTrending> page = new Page<>(pageNum, pageSize);
 
         LocalDateTime now = LocalDateTime.now();
@@ -60,7 +64,9 @@ public class TrendingServiceImpl extends ServiceImpl<BlogTrendingMapper, BlogTre
         IPage<BlogTrending> trendingPage = baseMapper.selectHotPosts(page, dateStart, now);
 
         if (trendingPage.getRecords().isEmpty()) {
-            return trendingPage;
+            Page<HotPostVO> emptyPage = new Page<>(pageNum, pageSize, 0);
+            emptyPage.setRecords(new ArrayList<>());
+            return emptyPage;
         }
 
         // 获取文章信息
@@ -72,73 +78,77 @@ public class TrendingServiceImpl extends ServiceImpl<BlogTrendingMapper, BlogTre
                 .collect(Collectors.toMap(BlogPost::getId, p -> p));
 
         // 构建响应数据
-        List<Map<String, Object>> result = new ArrayList<>();
+        List<HotPostVO> result = new ArrayList<>();
         for (BlogTrending trending : trendingPage.getRecords()) {
             BlogPost post = postMap.get(trending.getPostId());
             if (post != null && post.getStatus() == 1 && post.getIsDeleted() == 0) { // 只返回已发布的文章且未被删除
-                Map<String, Object> item = new HashMap<>();
-                item.put("id", post.getId());
-                item.put("title", post.getTitle());
-                item.put("summary", post.getSummary());
-                item.put("category", post.getCategory());
-                item.put("viewCount", trending.getViewCount());
-                item.put("likeCount", trending.getLikeCount());
-                item.put("commentCount", trending.getCommentCount());
-                item.put("score", trending.getScore());
-                item.put("createTime", post.getCreateTime());
-                result.add(item);
+                HotPostVO vo = new HotPostVO();
+                vo.setId(post.getId());
+                vo.setTitle(post.getTitle());
+                vo.setSummary(post.getSummary());
+                vo.setCategory(post.getCategory());
+                vo.setViewCount(trending.getViewCount());
+                vo.setLikeCount(trending.getLikeCount());
+                vo.setCommentCount(trending.getCommentCount());
+                vo.setScore(trending.getScore());
+                vo.setCreateTime(post.getCreateTime());
+                result.add(vo);
             }
         }
 
         // 返回分页结果
-        Page<Map<String, Object>> resultPage = new Page<>(trendingPage.getCurrent(), trendingPage.getSize(), trendingPage.getTotal());
+        Page<HotPostVO> resultPage = new Page<>(trendingPage.getCurrent(), trendingPage.getSize(), trendingPage.getTotal());
         resultPage.setRecords(result);
         return resultPage;
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Object getHotTags() {
-        // 查询所有未删除的标签
-        LambdaQueryWrapper<BlogTag> wrapper = new LambdaQueryWrapper<>();
-        wrapper.eq(BlogTag::getIsDeleted, 0);
-        List<BlogTag> allTags = blogTagMapper.selectList(wrapper);
+    @Cacheable(value = CaffeineCacheConfig.HOT_TAGS_CACHE, key = "'hotTags'")
+    public IPage<HotTagVO> getHotTags() {
+        // 只查询有限的标签（避免全量加载导致OOM），按ID倒序取较新的标签
+        LambdaQueryWrapper<BlogTag> tagWrapper = new LambdaQueryWrapper<>();
+        tagWrapper.eq(BlogTag::getIsDeleted, 0)
+                  .orderByDesc(BlogTag::getId)
+                  .last("LIMIT 100"); // 最多处理100个标签
+        List<BlogTag> limitedTags = blogTagMapper.selectList(tagWrapper);
 
-        if (allTags.isEmpty()) {
-            Page<Map<String, Object>> emptyPage = new Page<>(1, 20, 0);
+        if (limitedTags.isEmpty()) {
+            Page<HotTagVO> emptyPage = new Page<>(1, 20, 0);
             emptyPage.setRecords(new ArrayList<>());
             return emptyPage;
         }
 
-        // 统计每个标签关联的文章数量（查询所有标签的文章关联）
-        List<Long> allTagIds = allTags.stream()
+        // 收集这批标签的ID
+        List<Long> tagIds = limitedTags.stream()
                 .map(BlogTag::getId)
                 .collect(Collectors.toList());
 
+        // 批量统计每个标签关联的文章数量（只统计我们关心的标签）
         LambdaQueryWrapper<BlogPostTag> postTagWrapper = new LambdaQueryWrapper<>();
-        postTagWrapper.in(BlogPostTag::getTagId, allTagIds);
+        postTagWrapper.in(BlogPostTag::getTagId, tagIds);
         List<BlogPostTag> postTags = blogPostTagMapper.selectList(postTagWrapper);
 
         Map<Long, Long> tagCountMap = postTags.stream()
                 .collect(Collectors.groupingBy(BlogPostTag::getTagId, Collectors.counting()));
 
         // 转换为响应数据，按文章数量降序
-        List<Map<String, Object>> result = allTags.stream()
+        List<HotTagVO> result = limitedTags.stream()
                 .map(tag -> {
-                    Map<String, Object> item = new HashMap<>();
-                    item.put("id", tag.getId());
-                    item.put("name", tag.getName());
-                    item.put("postCount", tagCountMap.getOrDefault(tag.getId(), 0L));
-                    return item;
+                    HotTagVO vo = new HotTagVO();
+                    vo.setId(tag.getId());
+                    vo.setName(tag.getName());
+                    vo.setPostCount(tagCountMap.getOrDefault(tag.getId(), 0L));
+                    return vo;
                 })
-                .sorted((a, b) -> Long.compare((Long) b.get("postCount"), (Long) a.get("postCount")))
+                .sorted((a, b) -> Long.compare(b.getPostCount(), a.getPostCount()))
                 .collect(Collectors.toList());
 
         // 取前20个
-        List<Map<String, Object>> top20 = result.size() > 20 ? result.subList(0, 20) : result;
+        List<HotTagVO> top20 = result.size() > 20 ? result.subList(0, 20) : result;
 
         // 返回分页结果
-        Page<Map<String, Object>> resultPage = new Page<>(1, 20, top20.size());
+        Page<HotTagVO> resultPage = new Page<>(1, 20, top20.size());
         resultPage.setRecords(top20);
         return resultPage;
     }

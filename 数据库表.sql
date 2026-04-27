@@ -819,6 +819,53 @@ CREATE TABLE `blog_post_media` (
 
 
 -- ============================================================================
+-- 表十九：话题表 (blog_topic)
+-- ============================================================================
+-- 【业务说明】
+--   存储校友圈的话题信息，如"Java"、"校园生活"等。
+--   用户发布动态时可通过 #话题名 自动关联话题。
+--
+-- 【设计要点】
+--   1. name 设置唯一索引，防止重复添加同名话题。
+--   2. post_count 为该话题下的动态数量冗余计数字段。
+--   3. trending_score 用于热门话题排序。
+--   4. 支持逻辑删除。
+--
+DROP TABLE IF EXISTS `blog_topic`;
+
+CREATE TABLE `blog_topic` (
+    -- -------------------- 主键字段 --------------------
+    `id`                BIGINT          NOT NULL    AUTO_INCREMENT   COMMENT '主键ID，自增长',
+
+    -- -------------------- 基础信息字段 --------------------
+    `name`              VARCHAR(50)     NOT NULL                     COMMENT '话题名称（如 Java、Python）',
+
+    `description`       VARCHAR(500)   DEFAULT NULL                  COMMENT '话题描述',
+
+    -- -------------------- 统计字段 --------------------
+    `post_count`        INT             DEFAULT 0                    COMMENT '关联动态数',
+
+    `trending_score`    INT             DEFAULT 0                    COMMENT '热度分数',
+
+    -- -------------------- 状态字段 --------------------
+    `status`            TINYINT(1)     DEFAULT 1                     COMMENT '状态：1=正常，0=禁用',
+
+    -- -------------------- 时间戳字段 --------------------
+    `create_time`       DATETIME        DEFAULT CURRENT_TIMESTAMP    COMMENT '创建时间',
+
+    `update_time`       DATETIME        DEFAULT CURRENT_TIMESTAMP
+                                        ON UPDATE CURRENT_TIMESTAMP  COMMENT '更新时间',
+
+    -- -------------------- 主键和唯一约束 --------------------
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `idx_name` (`name`)
+
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COMMENT='话题表：存储校友圈话题信息';
+
+
+-- ============================================================================
 -- 数据初始化：插入管理员账号
 -- ============================================================================
 -- 说明：插入一个默认管理员账号，用于系统管理。

@@ -1,14 +1,13 @@
 package com.example.edu_project.controller;
 
-import com.example.edu_project.common.exception.BusinessException;
 import com.example.edu_project.common.result.Result;
 import com.example.edu_project.service.TrendingService;
-import com.example.edu_project.utils.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -51,10 +50,8 @@ public class TrendingController {
      */
     @Operation(summary = "更新文章热度")
     @PostMapping("/update/{postId}")
+    @PreAuthorize("hasRole('admin')")
     public Result<Void> updatePostTrending(@PathVariable Long postId) {
-        if (!SecurityUtils.isCurrentUserAdmin()) {
-            throw new BusinessException(403, "仅管理员可执行此操作");
-        }
         trendingService.updatePostTrending(postId);
         return Result.success(null);
     }

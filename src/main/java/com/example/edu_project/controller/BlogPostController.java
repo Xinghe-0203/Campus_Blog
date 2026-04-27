@@ -14,8 +14,11 @@ import com.example.edu_project.vo.PostListResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import org.springframework.beans.factory.annotation.Autowired;
 import jakarta.validation.Valid;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Collections;
@@ -30,6 +33,7 @@ import java.util.concurrent.atomic.AtomicLong;
 @Tag(name = "文章管理", description = "文章相关接口")
 @RestController
 @RequestMapping("/post")
+@Validated
 public class BlogPostController {
 
     @Autowired
@@ -250,5 +254,21 @@ public class BlogPostController {
         // 搜索建议是公开功能，不需要登录
         List<String> suggestions = blogPostService.getSearchSuggestions(keyword);
         return Result.success(suggestions);
+    }
+
+    /**
+     * 获取我的文章列表
+     */
+    @Operation(summary = "获取我的文章列表")
+    @GetMapping("/my")
+    public Result<IPage<PostListResponse>> getMyPosts(
+            @RequestParam(defaultValue = "1") @Min(1) Integer page,
+            @RequestParam(defaultValue = "10") @Min(1) @Max(100) Integer pageSize) {
+        Long userId = SecurityUtils.getCurrentUserIdOrNull();
+        if (userId == null) {
+            throw new BusinessException(401, "请先登录");
+        }
+        IPage<PostListResponse> result = blogPostService.getMyPosts(userId, page, pageSize);
+        return Result.success(result);
     }
 }

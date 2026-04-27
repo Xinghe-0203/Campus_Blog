@@ -63,6 +63,11 @@ public class CirclePost implements Serializable {
     private String mentions;
 
     /**
+     * 关联话题ID数组（JSON）
+     */
+    private String topicIds;
+
+    /**
      * 位置信息
      */
     private String location;

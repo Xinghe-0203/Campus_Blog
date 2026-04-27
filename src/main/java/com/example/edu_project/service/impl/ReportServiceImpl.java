@@ -25,8 +25,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * 举报服务实现类
@@ -138,7 +140,8 @@ public class ReportServiceImpl extends ServiceImpl<BlogReportMapper, BlogReport>
         if (report == null) {
             throw new BusinessException(404, "举报记录不存在");
         }
-        return convertToVO(report);
+        // 使用单条记录转换（复用batch逻辑以保证一致性）
+        return convertSingleToVO(report, null);
     }
 
     @Override
@@ -229,9 +232,11 @@ public class ReportServiceImpl extends ServiceImpl<BlogReportMapper, BlogReport>
     }
 
     /**
-     * 转换实体为VO
+     * 转换单条举报记录为VO（使用批量查询避免N+1问题）
+     * @param report 举报记录
+     * @param userMap 预加载的用户Map（可选，用于批量转换场景）
      */
-    private ReportVO convertToVO(BlogReport report) {
+    private ReportVO convertSingleToVO(BlogReport report, Map<Long, SysUser> userMap) {
         ReportVO vo = new ReportVO();
         vo.setId(report.getId());
         vo.setTargetType(report.getTargetType());
@@ -242,22 +247,37 @@ public class ReportServiceImpl extends ServiceImpl<BlogReportMapper, BlogReport>
         vo.setHandleTime(report.getHandleTime());
         vo.setCreateTime(report.getCreateTime());
 
-        // 获取举报人信息
-        SysUser reporter = sysUserMapper.selectById(report.getReporterId());
+        // 如果没有传入userMap，则使用批量查询（避免N+1）
+        if (userMap == null) {
+            userMap = new HashMap<>();
+            Set<Long> userIds = new HashSet<>();
+            userIds.add(report.getReporterId());
+            userIds.add(report.getReportedUserId());
+            if (report.getHandlerId() != null) {
+                userIds.add(report.getHandlerId());
+            }
+            List<SysUser> users = sysUserMapper.selectBatchIds(userIds);
+            for (SysUser user : users) {
+                userMap.put(user.getId(), user);
+            }
+        }
+
+        // 设置举报人信息
+        SysUser reporter = userMap.get(report.getReporterId());
         if (reporter != null) {
             vo.setReporter(convertToUserVO(reporter));
         }
 
-        // 获取被举报用户信息
-        SysUser reportedUser = sysUserMapper.selectById(report.getReportedUserId());
+        // 设置被举报用户信息
+        SysUser reportedUser = userMap.get(report.getReportedUserId());
         if (reportedUser != null) {
             vo.setReportedUser(convertToUserVO(reportedUser));
         }
 
-        // 获取处理人信息
+        // 设置处理人信息
         if (report.getHandlerId() != null) {
             vo.setHandlerId(report.getHandlerId());
-            SysUser handler = sysUserMapper.selectById(report.getHandlerId());
+            SysUser handler = userMap.get(report.getHandlerId());
             if (handler != null) {
                 vo.setHandler(convertToUserVO(handler));
             }
@@ -267,7 +287,7 @@ public class ReportServiceImpl extends ServiceImpl<BlogReportMapper, BlogReport>
     }
 
     /**
-     * 转换分页结果
+     * 转换分页结果（优化：批量查询用户信息避免N+1）
      */
     private IPage<ReportVO> convertToVOPage(IPage<BlogReport> reportPage) {
         List<BlogReport> reports = reportPage.getRecords();
@@ -275,45 +295,28 @@ public class ReportServiceImpl extends ServiceImpl<BlogReportMapper, BlogReport>
             return new Page<>(reportPage.getCurrent(), reportPage.getSize(), reportPage.getTotal());
         }
 
-        // 收集所有需要的用户ID
+        // 收集所有需要的用户ID（包括handler）
         Map<Long, SysUser> userMap = new HashMap<>();
         for (BlogReport report : reports) {
             userMap.put(report.getReporterId(), null);
             userMap.put(report.getReportedUserId(), null);
+            if (report.getHandlerId() != null) {
+                userMap.put(report.getHandlerId(), null);
+            }
         }
 
-        // 批量查询用户信息
-        List<SysUser> users = sysUserMapper.selectBatchIds(userMap.keySet());
-        for (SysUser user : users) {
-            userMap.put(user.getId(), user);
+        // 批量查询用户信息（一次查询替代N次）
+        if (!userMap.isEmpty()) {
+            List<SysUser> users = sysUserMapper.selectBatchIds(userMap.keySet());
+            for (SysUser user : users) {
+                userMap.put(user.getId(), user);
+            }
         }
 
         // 转换为VO
         Page<ReportVO> result = new Page<>(reportPage.getCurrent(), reportPage.getSize(), reportPage.getTotal());
         result.setRecords(reports.stream()
-                .map(report -> {
-                    ReportVO vo = new ReportVO();
-                    vo.setId(report.getId());
-                    vo.setTargetType(report.getTargetType());
-                    vo.setTargetId(report.getTargetId());
-                    vo.setReason(report.getReason());
-                    vo.setStatus(report.getStatus());
-                    vo.setHandlerResult(report.getHandlerResult());
-                    vo.setHandleTime(report.getHandleTime());
-                    vo.setCreateTime(report.getCreateTime());
-
-                    SysUser reporter = userMap.get(report.getReporterId());
-                    if (reporter != null) {
-                        vo.setReporter(convertToUserVO(reporter));
-                    }
-
-                    SysUser reportedUser = userMap.get(report.getReportedUserId());
-                    if (reportedUser != null) {
-                        vo.setReportedUser(convertToUserVO(reportedUser));
-                    }
-
-                    return vo;
-                })
+                .map(report -> convertSingleToVO(report, userMap))
                 .collect(java.util.stream.Collectors.toList()));
 
         return result;

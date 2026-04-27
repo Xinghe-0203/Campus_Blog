@@ -2,11 +2,13 @@ package com.example.edu_project.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.example.edu_project.dto.AdminUserQueryRequest;
 import com.example.edu_project.dto.UserLoginRequest;
 import com.example.edu_project.dto.UserRegisterRequest;
 import com.example.edu_project.dto.UserRegisterResponse;
 import com.example.edu_project.dto.UserSearchRequest;
 import com.example.edu_project.entity.SysUser;
+import com.example.edu_project.vo.AdminUserVO;
 import com.example.edu_project.vo.UserLoginResponse;
 import com.example.edu_project.vo.UserVO;
 
@@ -50,4 +52,33 @@ public interface SysUserService extends IService<SysUser> {
      * @return 分页用户列表
      */
     IPage<UserVO> searchUsers(UserSearchRequest request);
+
+    /**
+     * 获取管理员用户列表（支持状态筛选和关键词搜索）
+     * @param request 查询请求
+     * @return 分页用户列表
+     */
+    IPage<AdminUserVO> getAdminUserList(AdminUserQueryRequest request);
+
+    /**
+     * 修改用户资料
+     * @param userId 用户ID
+     * @param nickname 昵称
+     * @param email 邮箱
+     */
+    void updateUserProfile(Long userId, String nickname, String email);
+
+    /**
+     * 修改用户头像
+     * @param userId 用户ID
+     * @param avatar 头像URL
+     */
+    void updateAvatar(Long userId, String avatar);
+
+    /**
+     * 封禁/解封用户（切换状态）
+     * @param userId 用户ID
+     * @param ban true=封禁，false=解封
+     */
+    void banUser(Long userId, boolean ban);
 }

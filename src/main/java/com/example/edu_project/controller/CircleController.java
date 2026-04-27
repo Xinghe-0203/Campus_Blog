@@ -2,6 +2,7 @@ package com.example.edu_project.controller;
 
 import com.example.edu_project.common.exception.BusinessException;
 import com.example.edu_project.common.result.Result;
+import com.example.edu_project.dto.CircleCommentRequest;
 import com.example.edu_project.dto.CirclePostCreateRequest;
 import com.example.edu_project.service.CircleService;
 import com.example.edu_project.utils.SecurityUtils;
@@ -230,21 +231,5 @@ public class CircleController {
             throw new BusinessException(401, "请先登录");
         }
         return userId;
-    }
-
-    /**
-     * 发表评论请求 DTO
-     */
-    @lombok.Data
-    public static class CircleCommentRequest {
-        @NotNull(message = "动态ID不能为空")
-        private Long postId;
-
-        @NotBlank(message = "评论内容不能为空")
-        @Size(max = 1000, message = "评论内容不能超过1000字符")
-        private String content;
-
-        private Long parentId;
-        private Long replyToUserId;
     }
 }

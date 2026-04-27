@@ -8,11 +8,14 @@ import com.example.edu_project.common.exception.BusinessException;
 import com.example.edu_project.dto.UserLoginRequest;
 import com.example.edu_project.dto.UserRegisterRequest;
 import com.example.edu_project.dto.UserRegisterResponse;
+import com.example.edu_project.dto.AdminUserQueryRequest;
 import com.example.edu_project.dto.UserSearchRequest;
 import com.example.edu_project.entity.SysUser;
 import com.example.edu_project.mapper.SysUserMapper;
 import com.example.edu_project.service.SysUserService;
 import com.example.edu_project.utils.JwtUtils;
+import com.example.edu_project.utils.SecurityUtils;
+import com.example.edu_project.vo.AdminUserVO;
 import com.example.edu_project.vo.UserLoginResponse;
 import com.example.edu_project.vo.UserVO;
 import lombok.extern.slf4j.Slf4j;
@@ -257,5 +260,140 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         userVO.setCreateTime(user.getCreateTime());
         userVO.setUpdateTime(user.getUpdateTime());
         return userVO;
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public IPage<AdminUserVO> getAdminUserList(AdminUserQueryRequest request) {
+        Page<SysUser> page = new Page<>(request.getPage(), request.getPageSize());
+
+        LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
+        // 关键词搜索：支持 username、nickname 和 email 模糊匹配
+        if (request.getKeyword() != null && !request.getKeyword().trim().isEmpty()) {
+            String keyword = request.getKeyword().trim();
+            wrapper.and(w -> w.like(SysUser::getUsername, keyword)
+                    .or()
+                    .like(SysUser::getNickname, keyword)
+                    .or()
+                    .like(SysUser::getEmail, keyword));
+        }
+        // 状态筛选
+        if (request.getStatus() != null) {
+            wrapper.eq(SysUser::getStatus, request.getStatus());
+        }
+
+        // 按创建时间倒序
+        wrapper.orderByDesc(SysUser::getCreateTime);
+
+        IPage<SysUser> userPage = this.page(page, wrapper);
+
+        // 转换为 AdminUserVO
+        IPage<AdminUserVO> result = new Page<>(userPage.getCurrent(), userPage.getSize(), userPage.getTotal());
+        result.setRecords(userPage.getRecords().stream()
+                .map(this::convertToAdminUserVO)
+                .collect(java.util.stream.Collectors.toList()));
+
+        return result;
+    }
+
+    private AdminUserVO convertToAdminUserVO(SysUser user) {
+        AdminUserVO vo = new AdminUserVO();
+        vo.setId(user.getId());
+        vo.setUsername(user.getUsername());
+        vo.setNickname(user.getNickname());
+        vo.setAvatar(user.getAvatar());
+        vo.setEmail(user.getEmail());
+        vo.setRole(user.getRole());
+        vo.setStatus(user.getStatus());
+        vo.setCreateTime(user.getCreateTime());
+        vo.setFollowerCount(user.getFollowerCount());
+        vo.setFollowingCount(user.getFollowingCount());
+        return vo;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateUserProfile(Long userId, String nickname, String email) {
+        // 参数校验
+        if (userId == null) {
+            throw new BusinessException(400, "用户ID不能为空");
+        }
+        if (nickname == null || nickname.trim().isEmpty()) {
+            throw new BusinessException(400, "昵称不能为空");
+        }
+        if (nickname.length() > 50) {
+            throw new BusinessException(400, "昵称长度不能超过50字符");
+        }
+
+        // 获取用户
+        SysUser user = this.getById(userId);
+        if (user == null) {
+            throw new BusinessException(404, "用户不存在");
+        }
+
+        // 检查邮箱唯一性（如果提供了新邮箱）
+        if (email != null && !email.trim().isEmpty()) {
+            LambdaQueryWrapper<SysUser> emailWrapper = new LambdaQueryWrapper<>();
+            emailWrapper.eq(SysUser::getEmail, email)
+                    .ne(SysUser::getId, userId); // 排除当前用户
+            if (this.count(emailWrapper) > 0) {
+                throw new BusinessException(400, "邮箱已被使用");
+            }
+            user.setEmail(email);
+        }
+
+        user.setNickname(nickname.trim());
+        this.updateById(user);
+        log.info("用户资料更新成功: userId={}", userId);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void updateAvatar(Long userId, String avatar) {
+        // 参数校验
+        if (userId == null) {
+            throw new BusinessException(400, "用户ID不能为空");
+        }
+        if (avatar == null || avatar.trim().isEmpty()) {
+            throw new BusinessException(400, "头像URL不能为空");
+        }
+
+        // 获取用户
+        SysUser user = this.getById(userId);
+        if (user == null) {
+            throw new BusinessException(404, "用户不存在");
+        }
+
+        user.setAvatar(avatar.trim());
+        this.updateById(user);
+        log.info("用户头像更新成功: userId={}", userId);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void banUser(Long userId, boolean ban) {
+        if (userId == null) {
+            throw new BusinessException(400, "用户ID不能为空");
+        }
+
+        SysUser user = this.getById(userId);
+        if (user == null) {
+            throw new BusinessException(404, "用户不存在");
+        }
+
+        // 不能操作自己
+        Long currentUserId = SecurityUtils.getCurrentUserIdOrNull();
+        if (currentUserId != null && currentUserId.equals(userId)) {
+            throw new BusinessException(400, "不能操作自己的账号");
+        }
+
+        // 不能操作其他管理员
+        if ("admin".equals(user.getRole())) {
+            throw new BusinessException(400, "不能操作管理员账号");
+        }
+
+        user.setStatus(ban ? 0 : 1);
+        this.updateById(user);
+        log.info("用户{}: userId={}", ban ? "已封禁" : "已解封", userId);
     }
 }

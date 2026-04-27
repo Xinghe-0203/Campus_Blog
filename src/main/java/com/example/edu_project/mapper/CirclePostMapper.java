@@ -32,4 +32,7 @@ public interface CirclePostMapper extends BaseMapper<CirclePost> {
 
     @Update("UPDATE blog_circle_post SET status = 2 WHERE id = #{id} AND status != 2")
     void markAsDeleted(@Param("id") Long id);
+
+    @Update("UPDATE blog_topic SET post_count = post_count + 1, trending_score = trending_score + 1 WHERE id = #{topicId}")
+    void incrementTopicPostCount(@Param("topicId") Long topicId);
 }

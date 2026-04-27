@@ -1,6 +1,8 @@
 package com.example.edu_project.service.impl;
 
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.example.edu_project.common.exception.BusinessException;
 import com.example.edu_project.dto.CommentCreateRequest;
@@ -8,6 +10,7 @@ import com.example.edu_project.entity.BlogComment;
 import com.example.edu_project.entity.BlogPost;
 import com.example.edu_project.entity.SysUser;
 import com.example.edu_project.mapper.BlogCommentMapper;
+import com.example.edu_project.mapper.BlogPostMapper;
 import com.example.edu_project.mapper.SysUserMapper;
 import com.example.edu_project.service.BlogCommentService;
 import com.example.edu_project.service.BlogPostService;
@@ -15,6 +18,7 @@ import com.example.edu_project.utils.HtmlSanitizer;
 import com.example.edu_project.utils.SecurityUtils;
 import com.example.edu_project.event.CommentCreatedEvent;
 import com.example.edu_project.vo.CommentVO;
+import com.example.edu_project.vo.CommentWithPostVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,6 +49,9 @@ public class BlogCommentServiceImpl extends ServiceImpl<BlogCommentMapper, BlogC
 
     @Autowired
     private ApplicationEventPublisher eventPublisher;
+
+    @Autowired
+    private BlogPostMapper blogPostMapper;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -220,5 +227,81 @@ public class BlogCommentServiceImpl extends ServiceImpl<BlogCommentMapper, BlogC
             // 递归收集子评论的子评论
             collectChildCommentIds(child.getId(), result, currentDepth + 1);
         }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public IPage<CommentWithPostVO> getMyComments(Long userId, Integer page, Integer pageSize) {
+        Page<BlogComment> commentPage = new Page<>(page, pageSize);
+
+        LambdaQueryWrapper<BlogComment> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(BlogComment::getUserId, userId)
+                .orderByDesc(BlogComment::getCreateTime);
+
+        IPage<BlogComment> commentResult = this.page(commentPage, wrapper);
+
+        if (commentResult.getRecords().isEmpty()) {
+            return new Page<>(page, pageSize, 0);
+        }
+
+        // 获取所有文章ID
+        List<Long> postIds = commentResult.getRecords().stream()
+                .map(BlogComment::getPostId)
+                .distinct()
+                .collect(Collectors.toList());
+
+        // 批量查询文章
+        List<BlogPost> posts = blogPostMapper.selectBatchIds(postIds);
+        Map<Long, BlogPost> postMap = posts.stream()
+                .collect(Collectors.toMap(BlogPost::getId, p -> p, (a, b) -> a));
+
+        // 构建返回结果
+        IPage<CommentWithPostVO> resultPage = new Page<>(
+                commentResult.getCurrent(),
+                commentResult.getSize(),
+                commentResult.getTotal()
+        );
+
+        List<CommentWithPostVO> items = commentResult.getRecords().stream()
+                .map(comment -> {
+                    CommentWithPostVO item = new CommentWithPostVO();
+                    item.setId(comment.getId());
+                    item.setPostId(comment.getPostId());
+                    item.setParentId(comment.getParentId());
+                    item.setContent(comment.getContent());
+                    item.setCreateTime(comment.getCreateTime());
+
+                    BlogPost post = postMap.get(comment.getPostId());
+                    if (post != null) {
+                        item.setPostTitle(post.getTitle());
+                    }
+                    return item;
+                })
+                .collect(Collectors.toList());
+
+        resultPage.setRecords(items);
+        return resultPage;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void adminDeleteComment(Long commentId, Long adminId) {
+        BlogComment comment = this.getById(commentId);
+        if (comment == null) {
+            throw new BusinessException(404, "评论不存在");
+        }
+
+        // 查找所有要删除的评论ID（包括当前评论及其所有子评论）
+        List<Long> commentIdsToDelete = new ArrayList<>();
+        commentIdsToDelete.add(commentId);
+        collectChildCommentIds(commentId, commentIdsToDelete, 1);
+
+        // 批量删除所有相关评论（逻辑删除）
+        this.removeByIds(commentIdsToDelete);
+
+        // 更新文章评论数（减去实际删除的数量）
+        blogPostService.decrementCommentCount(comment.getPostId(), commentIdsToDelete.size());
+
+        log.info("管理员删除评论: commentId={}, adminId={}, deletedCount={}", commentId, adminId, commentIdsToDelete.size());
     }
 }

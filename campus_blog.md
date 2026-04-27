@@ -10,7 +10,7 @@
 | **项目类型** | 全栈 Web 应用 |
 | **开发周期** | 校技能大赛周期 |
 | **开发人员** | 刘畅 |
-| **当前版本** | v1.29 |
+| **当前版本** | v1.32 |
 | **GitHub 仓库** | https://github.com/Xinghe-0203/Campus_Blog |
 
 ---
@@ -420,11 +420,13 @@ src/main/java/com/example/edu_project/
 │   ├── MybatisPlusConfig.java          # MyBatis Plus 配置
 │   ├── MyMetaObjectHandler.java         # 自动填充处理器
 │   ├── SecurityConfig.java              # Spring Security 配置
+│   ├── CaffeineCacheConfig.java         # Caffeine 本地缓存配置
+│   ├── AsyncConfig.java                 # 异步任务线程池配置
 │   ├── JwtSchedulerConfig.java          # JWT 黑名单定时清理
 │   ├── JwtAuthenticationFilter.java     # JWT 认证过滤器
-│   ├── EnvValidationConfig.java          # 环境变量校验
-│   ├── DotenvConfig.java                # .env 自动加载
-│   └── WebMvcConfig.java                # 静态资源映射
+│   ├── WebMvcConfig.java                # 静态资源映射
+│   ├── DotenvConfig.java                # .env 环境变量加载
+│   └── EnvValidationConfig.java          # 环境变量校验
 │
 ├── controller/                           # Controller 层（13个）
 │   ├── SysUserController.java            # 用户控制器
@@ -683,6 +685,15 @@ src/main/java/com/example/edu_project/
 | 批量上传 | POST | `/api/media/upload/multiple` | ✅ 已实现 |
 | 绑定媒体到文章 | POST | `/api/media/bind/{postId}` | ✅ 已实现 |
 | 获取文章媒体 | GET | `/api/media/post/{postId}` | ✅ 已实现 |
+
+### 7.15 管理员用户管理模块
+
+| 接口 | 方法 | 路径 | 说明 |
+| :--- | :--- | :--- | :--- |
+| 获取用户列表 | GET | `/api/admin/user/list` | ✅ 已实现 |
+| 修改用户状态 | PUT | `/api/admin/user/{id}/status` | ✅ 已实现 |
+| 封禁/解封用户 | PUT | `/api/admin/user/{id}/ban` | ✅ 已实现 |
+| 重置用户密码 | PUT | `/api/admin/user/{id}/reset-password` | ✅ 已实现 |
 
 ---
 
@@ -997,5 +1008,5 @@ edu_project/
 
 ---
 
-**文档版本**：v1.30
-**最后更新**：2026-04-26
+**文档版本**：v1.32
+**最后更新**：2026-04-27

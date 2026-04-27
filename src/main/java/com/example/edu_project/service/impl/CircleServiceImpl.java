@@ -10,6 +10,8 @@ import com.example.edu_project.entity.*;
 import com.example.edu_project.mapper.*;
 import com.example.edu_project.service.CircleService;
 import com.example.edu_project.service.FollowService;
+import com.example.edu_project.service.NotificationService;
+import com.example.edu_project.service.TopicService;
 import com.example.edu_project.utils.HtmlSanitizer;
 import com.example.edu_project.vo.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +26,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 /**
@@ -49,6 +53,12 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
 
     @Autowired
     private HtmlSanitizer htmlSanitizer;
+
+    @Autowired
+    private NotificationService notificationService;
+
+    @Autowired
+    private TopicService topicService;
 
     /**
      * 细粒度锁映射表：key="userId-postId"，value=锁对象
@@ -129,10 +139,36 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
             contentType = 2; // 图文
         }
 
+        // XSS 防护：使用严格策略，只保留纯文本
+        String sanitizedContent = content != null ? htmlSanitizer.sanitizePlainText(content) : null;
+
+        // 解析 @提及 用户
+        List<SysUser> mentionedUsers = new ArrayList<>();
+        if (sanitizedContent != null) {
+            mentionedUsers = parseMentions(sanitizedContent, userId);
+        }
+
+        // 解析 #话题 标签
+        List<Long> topicIds = new ArrayList<>();
+        if (sanitizedContent != null) {
+            topicIds = parseAndGetTopicIds(sanitizedContent);
+        }
+        // 如果tags参数中也有话题，一并处理
+        if (tags != null && !tags.isEmpty()) {
+            for (String tag : tags) {
+                if (tag != null && tag.startsWith("#")) {
+                    Long topicId = topicService.getOrCreateTopic(tag);
+                    if (topicId != null && !topicIds.contains(topicId)) {
+                        topicIds.add(topicId);
+                    }
+                }
+            }
+        }
+
         // 创建动态
         CirclePost post = new CirclePost();
         post.setUserId(userId);
-        post.setContent(content);
+        post.setContent(sanitizedContent);
         post.setContentType(contentType);
         post.setLocation(location);
         post.setRepostId(repostId);
@@ -157,6 +193,17 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
             post.setTags(cn.hutool.json.JSONUtil.toJsonStr(tags));
         }
 
+        // @提及用户列表
+        if (!mentionedUsers.isEmpty()) {
+            List<Long> mentionedUserIds = mentionedUsers.stream().map(SysUser::getId).collect(Collectors.toList());
+            post.setMentions(cn.hutool.json.JSONUtil.toJsonStr(mentionedUserIds));
+        }
+
+        // 关联话题列表
+        if (!topicIds.isEmpty()) {
+            post.setTopicIds(cn.hutool.json.JSONUtil.toJsonStr(topicIds));
+        }
+
         this.save(post);
 
         // 如果是转发，增加原动态的转发数
@@ -164,7 +211,86 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
             baseMapper.incrementRepostCount(repostId);
         }
 
+        // 更新话题的动态数
+        for (Long topicId : topicIds) {
+            baseMapper.incrementTopicPostCount(topicId);
+        }
+
+        // 发送 @提及 通知（此时post已保存，可以获取正确的postId）
+        for (SysUser mentionedUser : mentionedUsers) {
+            notificationService.sendNotification(
+                    "MENTION",
+                    "有人在动态中@了你",
+                    "用户 @" + mentionedUser.getUsername() + " 在动态中提及了你",
+                    userId,
+                    mentionedUser.getId(),
+                    "POST",
+                    post.getId()
+            );
+        }
+
         return post.getId();
+    }
+
+    /**
+     * 解析内容中的 @提及 用户
+     * @param content 内容
+     * @param authorId 作者ID（排除自己）
+     * @return 被提及的用户列表
+     */
+    private List<SysUser> parseMentions(String content, Long authorId) {
+        List<SysUser> mentionedUsers = new ArrayList<>();
+        // 正则匹配 @username 格式（支持中英文、数字、下划线，1-20个字符）
+        Pattern pattern = Pattern.compile("@([\\w\\u4e00-\\u9fa5]{1,20})");
+        Matcher matcher = pattern.matcher(content);
+        Set<String> mentionedUsernames = new HashSet<>();
+
+        while (matcher.find()) {
+            mentionedUsernames.add(matcher.group(1));
+        }
+
+        // 查询这些用户是否存在
+        for (String username : mentionedUsernames) {
+            LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
+            wrapper.eq(SysUser::getUsername, username);
+            SysUser user = sysUserMapper.selectOne(wrapper);
+            if (user != null && !user.getId().equals(authorId)) {
+                mentionedUsers.add(user);
+            }
+        }
+
+        return mentionedUsers;
+    }
+
+    /**
+     * 解析内容中的 #话题 并获取/创建话题
+     * @param content 内容
+     * @return 话题ID列表
+     */
+    private List<Long> parseAndGetTopicIds(String content) {
+        List<Long> topicIds = new ArrayList<>();
+        // 正则匹配 #话题名 格式（支持中英文、数字、下划线，1-30个字符）
+        Pattern pattern = Pattern.compile("#([\\w\\u4e00-\\u9fa5]{1,30})");
+        Matcher matcher = pattern.matcher(content);
+        Set<String> topicNames = new HashSet<>();
+
+        while (matcher.find()) {
+            String topicName = matcher.group(1);
+            // 排除 ## 的情况
+            if (!topicName.isEmpty()) {
+                topicNames.add(topicName);
+            }
+        }
+
+        // 获取或创建话题
+        for (String topicName : topicNames) {
+            Long topicId = topicService.getOrCreateTopic(topicName);
+            if (topicId != null) {
+                topicIds.add(topicId);
+            }
+        }
+
+        return topicIds;
     }
 
     @Override
@@ -339,6 +465,34 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
         final Set<Long> finalLikedPostIds = likedPostIds;
         final Set<Long> finalRepostedPostIds = repostedPostIds;
 
+        // 收集所有需要查询的用户ID（包括作者和转发原动态作者）
+        Set<Long> userIds = new HashSet<>();
+        posts.forEach(post -> {
+            if (post.getUserId() != null) userIds.add(post.getUserId());
+            if (post.getRepostUserId() != null) userIds.add(post.getRepostUserId());
+        });
+
+        // 批量查询用户信息
+        Map<Long, SysUser> userMap = new HashMap<>();
+        if (!userIds.isEmpty()) {
+            sysUserMapper.selectBatchIds(userIds)
+                    .forEach(user -> userMap.put(user.getId(), user));
+        }
+
+        // 收集所有被转发的原动态ID
+        List<Long> repostIds = posts.stream()
+                .map(CirclePost::getRepostId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
+
+        // 批量查询原动态信息
+        Map<Long, CirclePost> repostPostMap = new HashMap<>();
+        if (!repostIds.isEmpty()) {
+            this.listByIds(repostIds).forEach(post -> repostPostMap.put(post.getId(), post));
+        }
+
+        final Map<Long, CirclePost> finalRepostPostMap = repostPostMap;
+
         return posts.stream().map(post -> {
             CirclePostVO vo = new CirclePostVO();
             vo.setId(post.getId());
@@ -372,8 +526,8 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
                 vo.setTags(new ArrayList<>());
             }
 
-            // 获取作者信息（每次单独查询，存在 N+1 问题）
-            SysUser user = sysUserMapper.selectById(post.getUserId());
+            // 获取作者信息（使用Map批量匹配，避免N+1）
+            SysUser user = userMap.get(post.getUserId());
             if (user != null) {
                 UserVO userVO = new UserVO();
                 userVO.setId(user.getId());
@@ -383,9 +537,9 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
                 vo.setUser(userVO);
             }
 
-            // 如果是转发，获取原动态信息（需检查可见性）
+            // 如果是转发，获取原动态信息（使用Map批量匹配）
             if (post.getRepostId() != null) {
-                CirclePost repostPost = this.getById(post.getRepostId());
+                CirclePost repostPost = finalRepostPostMap.get(post.getRepostId());
                 if (repostPost != null && repostPost.getStatus() != 2) {
                     // 检查是否有权限查看原动态
                     if (canViewPost(repostPost, currentUserId)) {
@@ -397,8 +551,8 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
                         repostVO.setAllowComment(repostPost.getAllowComment());
                         repostVO.setAllowRepost(repostPost.getAllowRepost());
 
-                        // 原动态作者信息
-                        SysUser repostUser = sysUserMapper.selectById(repostPost.getUserId());
+                        // 原动态作者信息（使用Map批量匹配）
+                        SysUser repostUser = userMap.get(repostPost.getUserId());
                         if (repostUser != null) {
                             UserVO repostUserVO = new UserVO();
                             repostUserVO.setId(repostUser.getId());
@@ -850,6 +1004,39 @@ public class CircleServiceImpl extends ServiceImpl<CirclePostMapper, CirclePost>
                 .orderByDesc(CirclePost::getCreateTime); // 按时间排序
 
         // 分页查询
+        List<CirclePost> posts = this.page(
+                new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(page, pageSize),
+                wrapper
+        ).getRecords();
+
+        return convertToVOList(posts, currentUserId);
+    }
+
+    // ==================== 话题相关方法 ====================
+
+    /**
+     * 获取话题下的动态列表
+     */
+    @Override
+    @Transactional(readOnly = true)
+    public List<CirclePostVO> getPostsByTopic(Long topicId, int page, int pageSize, Long currentUserId) {
+        // 检查话题是否存在
+        Topic topic = topicService.getById(topicId);
+        if (topic == null || topic.getStatus() != 1) {
+            throw new BusinessException(404, "话题不存在");
+        }
+
+        LambdaQueryWrapper<CirclePost> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(CirclePost::getStatus, 1) // 只查询正常状态的动态
+                // 可见性过滤
+                .and(w -> w.eq(CirclePost::getVisibility, 0) // 公开
+                        .or(currentUserId != null, w2 -> w2
+                                .eq(CirclePost::getUserId, currentUserId)))
+                // 关联话题查询（通过 topicIds JSON 字段）
+                .like(CirclePost::getTopicIds, "\"" + topicId + "\"")
+                .orderByDesc(CirclePost::getIsTop)
+                .orderByDesc(CirclePost::getCreateTime);
+
         List<CirclePost> posts = this.page(
                 new com.baomidou.mybatisplus.extension.plugins.pagination.Page<>(page, pageSize),
                 wrapper

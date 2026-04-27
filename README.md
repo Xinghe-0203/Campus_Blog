@@ -16,6 +16,8 @@
 | **Hutool** | 5.8.38 | Java 工具类库 |
 | **JWT (JJWT)** | 0.12.3 | JSON Web Token 认证 |
 | **Spring Security** | 由父工程管理 | 安全认证框架 |
+| **Caffeine** | 3.1.8 | 本地缓存（替代 Redis） |
+| **Spring Boot Actuator** | 3.0.12 | 运维监控 |
 
 ## 项目结构
 
@@ -26,7 +28,14 @@ edu_project/
 │   ├── config/                                  # 配置类
 │   │   ├── MybatisPlusConfig.java              # MyBatis Plus 配置
 │   │   ├── MyMetaObjectHandler.java           # 自动填充处理器
-│   │   └── SecurityConfig.java                # Spring Security 配置
+│   │   ├── SecurityConfig.java                # Spring Security 配置
+│   │   ├── CaffeineCacheConfig.java           # Caffeine 本地缓存配置
+│   │   ├── AsyncConfig.java                   # 异步任务线程池配置
+│   │   ├── JwtSchedulerConfig.java            # JWT 黑名单定时清理
+│   │   ├── JwtAuthenticationFilter.java      # JWT 认证过滤器
+│   │   ├── WebMvcConfig.java                  # Web MVC 配置
+│   │   ├── DotenvConfig.java                  # .env 环境变量加载
+│   │   └── EnvValidationConfig.java           # 环境变量校验配置
 │   ├── controller/                              # Controller 层（13个）
 │   │   ├── SysUserController.java              # 用户控制器
 │   │   ├── BlogPostController.java             # 文章控制器
@@ -444,7 +453,37 @@ java -jar target/edu_project-0.0.1-SNAPSHOT.jar
 | 方法 | 路径 | 说明 |
 | :--- | :--- | :--- |
 | PUT | `/api/user/password` | 修改密码（需登录，body: `{"oldPassword": "", "newPassword": ""}`） |
+| PUT | `/api/user/profile` | 修改用户资料（需登录，body: `{"nickname": "", "email": ""}`） |
+| PUT | `/api/user/avatar` | 修改头像（需登录，body: `{"avatar": "url"}`） |
 | GET | `/api/user/search` | 搜索用户（需登录，参数: `keyword`, `page`, `pageSize`） |
+| GET | `/api/post/my` | 获取我的文章列表（需登录） |
+| GET | `/api/comment/my` | 获取我的评论列表（需登录） |
+| GET | `/api/like/my` | 获取我的点赞列表（需登录） |
+
+### 管理员用户模块
+
+| 方法 | 路径 | 说明 |
+| :--- | :--- | :--- |
+| GET | `/api/admin/user/list` | 用户列表（需管理员，分页、状态筛选） |
+| PUT | `/api/admin/user/{id}/status` | 封禁/解封用户（需管理员） |
+| PUT | `/api/admin/user/{id}/reset-password` | 重置用户密码（需管理员） |
+
+### 管理员内容模块
+
+| 方法 | 路径 | 说明 |
+| :--- | :--- | :--- |
+| GET | `/api/admin/post/list` | 文章列表（需管理员，分页、状态/用户/分类筛选） |
+| DELETE | `/api/admin/post/{id}` | 删除文章（需管理员，级联删除） |
+| DELETE | `/api/admin/comment/{id}` | 删除评论（需管理员，级联删除） |
+
+### 话题模块
+
+| 方法 | 路径 | 说明 |
+| :--- | :--- | :--- |
+| POST | `/api/topic` | 创建话题（需管理员） |
+| GET | `/api/topic/list` | 话题列表（公开访问） |
+| GET | `/api/topic/hot` | 热门话题（公开访问） |
+| GET | `/api/topic/{topicId}/posts` | 话题下的动态列表（公开访问） |
 
 ### 文章搜索模块
 
@@ -505,6 +544,36 @@ java -jar target/edu_project-0.0.1-SNAPSHOT.jar
 8. 对接前端页面
 
 ## 更新日志
+
+### v1.31 (2026-04-27)
+- 🔒 **Critical 修复**：CircleServiceImpl 添加 XSS 防护（htmlSanitizer.sanitizePlainText）
+- 🔒 **Critical 修复**：MediaServiceImpl 添加文件头 Magic Number 校验
+- 🔒 **Critical 修复**：修复 application.yml multipart 配置缩进错误
+- 🔒 **Critical 修复**：SysUser.toString() 添加 @ToString.Exclude 防止密码泄露
+- 🔒 **Critical 修复**：CORS 配置限制为必要的 Header 和 Method
+- 🔧 **Bug 修复**：@提及通知修复（targetId 从 null 改为正确的动态 ID）
+- ✨ **新增功能**：个人中心接口（我的文章/评论/点赞列表）
+- ✨ **新增功能**：用户资料修改（昵称、邮箱、头像）
+- ✨ **新增功能**：管理员后台（用户管理、内容管理接口）
+- ✨ **新增功能**：@提及解析功能（发布动态时自动通知被提及用户）
+- ✨ **新增功能**：话题标签功能（#话题名 解析、话题聚合）
+- ⚡ **性能优化**：NotificationServiceImpl N+1 查询修复（批量查询用户）
+- ⚡ **性能优化**：CircleServiceImpl N+1 查询修复（批量查询用户和原动态）
+- ⚡ **性能优化**：BlogTrendingMapper.xml 慢查询优化（相关子查询改为 JOIN）
+- ⚡ **性能优化**：TrendingServiceImpl.getHotTags 添加 LIMIT 限制
+- 🔧 **增强配置**：启用 @EnableMethodSecurity 和 @PreAuthorize 注解
+- 🔧 **增强配置**：添加 Caffeine 本地缓存配置（@Cacheable）
+- 🔧 **增强配置**：添加 Spring Boot Actuator 健康检查
+- 🔧 **增强配置**：创建 application-dev.yml / application-prod.yml 多环境配置
+- 🔧 **增强配置**：创建 logback-spring.xml 日志配置（滚动、保留30天）
+- 📝 **代码架构**：DTO 归位（CircleCommentRequest 移至 dto 包）
+- 📝 **代码架构**：分层修复（MediaServiceImpl 通过 Service 访问数据）
+- 📝 **代码架构**：Entity 添加 @Schema 注解完善 API 文档
+- 📝 **代码架构**：Result.java 添加 @Schema 注解
+- 📝 **代码架构**：创建 HotPostVO/HotTagVO 替代 Object 返回类型
+- 📝 **新增文档**：DEPLOY.md 部署文档
+- 📝 **新增文档**：Dockerfile、docker-compose.yml、.dockerignore、entrypoint.sh
+- 🧪 **测试增强**：新增单元测试类（SysUserServiceImplTest、JwtUtilsTest、BlogLikeServiceImplTest、GlobalExceptionHandlerTest）
 
 ### v1.30 (2026-04-26)
 - 🔧 **High 修复**：添加登录失败日志（密码错误、用户不存在、账号锁定）

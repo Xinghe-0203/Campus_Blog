@@ -115,6 +115,27 @@
             <version>0.4.20</version>
         </dependency>
 
+        <!-- ==================== Caffeine 本地缓存 ==================== -->
+        <!-- Spring Boot Cache：缓存抽象层 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
+        </dependency>
+
+        <!-- Caffeine：高性能本地缓存实现 -->
+        <dependency>
+            <groupId>com.github.ben-manes.caffeine</groupId>
+            <artifactId>caffeine</artifactId>
+            <version>3.1.8</version>
+        </dependency>
+
+        <!-- ==================== 运维监控 ==================== -->
+        <!-- Spring Boot Actuator：提供应用健康检查、指标监控端点 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
         <!-- ==================== API 文档 ==================== -->
         <!-- Knife4j：基于 Swagger 的增强版 API 文档，提供美观的 UI 界面 -->
         <dependency>
@@ -123,11 +144,26 @@
             <version>${knife4j.version}</version>
         </dependency>
 
-        <!-- ==================== 测试模块 ==================== -->
+                <!-- ==================== 测试模块 ==================== -->
         <!-- Spring Boot Test：提供单元测试和集成测试支持 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- Spring Security Test：安全测试支持 -->
+        <dependency>
+            <groupId>org.springframework.security</groupId>
+            <artifactId>spring-security-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- ==================== 测试数据库 ==================== -->
+        <!-- H2 Database：内存数据库，用于单元测试 -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
             <scope>test</scope>
         </dependency>
     </dependencies>

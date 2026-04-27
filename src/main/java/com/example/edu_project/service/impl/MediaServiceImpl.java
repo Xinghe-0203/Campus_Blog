@@ -10,6 +10,7 @@ import com.example.edu_project.entity.SysUser;
 import com.example.edu_project.mapper.MediaMapper;
 import com.example.edu_project.mapper.BlogPostMediaMapper;
 import com.example.edu_project.mapper.SysUserMapper;
+import com.example.edu_project.service.BlogPostService;
 import com.example.edu_project.service.MediaService;
 import com.example.edu_project.utils.SecurityUtils;
 import com.example.edu_project.vo.MediaVO;
@@ -49,7 +50,7 @@ public class MediaServiceImpl extends ServiceImpl<MediaMapper, Media> implements
     private BlogPostMediaMapper blogPostMediaMapper;
 
     @Autowired
-    private com.example.edu_project.mapper.BlogPostMapper blogPostMapper;
+    private BlogPostService blogPostService;
 
     @Value("${upload.base-path:./uploads}")
     private String uploadPath;
@@ -78,6 +79,88 @@ public class MediaServiceImpl extends ServiceImpl<MediaMapper, Media> implements
 
     // 视频大小限制 500MB
     private static final long VIDEO_MAX_SIZE = 500 * 1024 * 1024;
+
+    // Magic Number 定义（文件头字节）
+    // 图片
+    private static final byte[] MAGIC_JPEG = new byte[]{(byte) 0xFF, (byte) 0xD8, (byte) 0xFF};
+    private static final byte[] MAGIC_PNG = new byte[]{(byte) 0x89, 0x50, 0x4E, 0x47};
+    private static final byte[] MAGIC_GIF = new byte[]{0x47, 0x49, 0x46, 0x38};
+    private static final byte[] MAGIC_WEBP_RIFF = new byte[]{0x52, 0x49, 0x46, 0x46}; // WebP starts with RIFF
+
+    // 视频
+    private static final byte[] MAGIC_MP4_FTYP = new byte[]{0x66, 0x74, 0x79, 0x70}; // ftyp box for MP4
+    private static final byte[] MAGIC_WEBM = new byte[]{0x1A, 0x45, (byte) 0xDF, (byte) 0xA3}; // WebM EBML header
+
+    /**
+     * 校验文件 Magic Number（文件头字节）
+     * 用于防止通过伪造 Content-Type 绕过文件类型检查
+     *
+     * @param file    上传的文件
+     * @param isImage true=图片，false=视频
+     * @throws BusinessException 如果文件类型不匹配
+     */
+    private void validateMagicNumber(MultipartFile file, boolean isImage) {
+        try {
+            byte[] header = new byte[12];
+            byte[] fileBytes = file.getBytes();
+            int headerLen = Math.min(12, fileBytes.length);
+            System.arraycopy(fileBytes, 0, header, 0, headerLen);
+
+            if (isImage) {
+                // 图片校验：JPEG, PNG, GIF, WebP
+                if (matchesMagic(header, MAGIC_JPEG) || matchesMagic(header, MAGIC_PNG)
+                        || matchesMagic(header, MAGIC_GIF) || matchesWebp(header)) {
+                    return;
+                }
+                throw new BusinessException(400, "图片文件格式无效，请上传真实的 jpg、png、gif 或 webp 图片");
+            } else {
+                // 视频校验：MP4, WebM
+                if (matchesMagic(header, MAGIC_MP4_FTYP) || matchesWebm(header)) {
+                    return;
+                }
+                throw new BusinessException(400, "视频文件格式无效，请上传真实的 mp4 或 webm 视频");
+            }
+        } catch (BusinessException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new BusinessException(400, "文件读取失败，无法校验文件类型");
+        }
+    }
+
+    /**
+     * 检查字节数组是否以指定的 magic number 开头
+     */
+    private boolean matchesMagic(byte[] header, byte[] magic) {
+        if (header.length < magic.length) {
+            return false;
+        }
+        for (int i = 0; i < magic.length; i++) {
+            if (header[i] != magic[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    /**
+     * 检查是否是 WebP 文件（RIFF....WEBP）
+     */
+    private boolean matchesWebp(byte[] header) {
+        // WebP 格式：RIFF + 4字节长度 + WEBP
+        if (!matchesMagic(header, MAGIC_WEBP_RIFF)) {
+            return false;
+        }
+        // 检查第8-11字节是否为 "WEBP" (0x57 0x45 0x42 0x50)
+        return header.length >= 12
+                && header[8] == 0x57 && header[9] == 0x45 && header[10] == 0x42 && header[11] == 0x50;
+    }
+
+    /**
+     * 检查是否是 WebM 文件
+     */
+    private boolean matchesWebm(byte[] header) {
+        return matchesMagic(header, MAGIC_WEBM);
+    }
 
     /**
      * 图片压缩处理
@@ -135,6 +218,9 @@ public class MediaServiceImpl extends ServiceImpl<MediaMapper, Media> implements
         if (!isImage && !isVideo) {
             throw new BusinessException(400, "只支持上传图片或视频文件，支持的图片格式：jpg、png、gif、webp，支持的视频格式：mp4、webm");
         }
+
+        // 校验文件 Magic Number（防止伪造 Content-Type）
+        validateMagicNumber(file, isImage);
 
         // 根据类型校验文件大小
         long maxSize = isVideo ? VIDEO_MAX_SIZE : IMAGE_MAX_SIZE;
@@ -334,7 +420,7 @@ public class MediaServiceImpl extends ServiceImpl<MediaMapper, Media> implements
         }
 
         // 权限校验：只有文章作者或管理员才能绑定媒体
-        com.example.edu_project.entity.BlogPost post = blogPostMapper.selectById(postId);
+        com.example.edu_project.entity.BlogPost post = blogPostService.getById(postId);
         if (post == null) {
             throw new BusinessException(404, "文章不存在");
         }
@@ -367,7 +453,7 @@ public class MediaServiceImpl extends ServiceImpl<MediaMapper, Media> implements
         }
 
         // 检查文章是否存在且已发布
-        com.example.edu_project.entity.BlogPost post = blogPostMapper.selectById(postId);
+        com.example.edu_project.entity.BlogPost post = blogPostService.getById(postId);
         if (post == null) {
             throw new BusinessException(404, "文章不存在");
         }

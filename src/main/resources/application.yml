@@ -15,6 +15,12 @@ spring:
   application:
     name: campus-blog-forum  # 应用名称
 
+  # ==================== Caffeine 本地缓存配置 ====================
+  cache:
+    type: caffeine
+    caffeine:
+      spec: maximumSize=1000,expireAfterWrite=300s
+
   # ==================== 数据源配置 ====================
   datasource:
     # 驱动类名：MySQL 8.x 使用 com.mysql.cj.jdbc.Driver
@@ -47,6 +53,13 @@ spring:
     time-zone: GMT+8                    # 时区设置
     default-property-inclusion: non_null # 只序列化非空字段
 
+  # ==================== 文件上传配置 ====================
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 500MB
+      max-request-size: 500MB
+
 # ==================== MyBatis Plus 配置 ====================
 mybatis-plus:
   # Mapper XML 文件位置（如果使用 XML 写 SQL 的话）
@@ -67,13 +80,6 @@ mybatis-plus:
       logic-delete-field: isDeleted # 逻辑删除字段名
       logic-delete-value: 1       # 逻辑删除值
       logic-not-delete-value: 0   # 逻辑未删除值
-
-  # 文件上传配置
-  servlet:
-    multipart:
-      enabled: true
-      max-file-size: 500MB
-      max-request-size: 500MB
 
 # ==================== 服务器配置 ====================
 server:
@@ -118,3 +124,55 @@ upload:
 # 示例: http://localhost:8080,http://127.0.0.1:8080,https://campus-blog.com
 cors:
   allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:8080,http://127.0.0.1:8080}
+
+# ==================== Actuator 运维监控配置 ====================
+management:
+  # Actuator 端点基础路径
+  base-path: /actuator
+
+  # 端点配置
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,logfile
+      base-path: /actuator
+
+  endpoint:
+    # 健康检查端点配置
+    health:
+      show-details: when_authorized
+      probes:
+        enabled: true
+    # 信息端点配置
+    info:
+      enabled: true
+
+  # 健康检查详情配置
+  health:
+    db:
+      enabled: true
+    diskSpace:
+      enabled: true
+    ping:
+      enabled: true
+
+  # Info 端点基本信息（可通过环境变量覆盖）
+  info:
+    app:
+      name: ${spring.application.name}
+      version: ${project.version:0.0.1-SNAPSHOT}
+      description: 校园博客论坛系统
+    java:
+      version: ${java.version}
+    spring:
+      version: ${spring.boot.version}
+
+# ==================== 日志配置 ====================
+logging:
+  file:
+    name: logs/application.log
+  logback:
+    rollingpolicy:
+      max-file-size: 100MB
+      max-history: 30
+      total-size-cap: 10GB

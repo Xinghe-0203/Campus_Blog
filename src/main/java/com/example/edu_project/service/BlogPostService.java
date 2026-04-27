@@ -2,6 +2,7 @@ package com.example.edu_project.service;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.example.edu_project.dto.AdminPostQueryRequest;
 import com.example.edu_project.dto.PostAdvancedSearchRequest;
 import com.example.edu_project.dto.PostCreateRequest;
 import com.example.edu_project.dto.PostQueryRequest;
@@ -145,4 +146,27 @@ public interface BlogPostService extends IService<BlogPost> {
      * @return 建议标题列表
      */
     List<String> getSearchSuggestions(String keyword);
+
+    /**
+     * 获取我的文章列表
+     * @param userId 用户ID
+     * @param page 页码
+     * @param pageSize 每页数量
+     * @return 分页结果
+     */
+    IPage<PostListResponse> getMyPosts(Long userId, Integer page, Integer pageSize);
+
+    /**
+     * 获取管理员文章列表（支持状态筛选、用户筛选、分类筛选）
+     * @param request 查询请求
+     * @return 分页结果
+     */
+    IPage<PostDetailResponse> getAdminPostList(AdminPostQueryRequest request);
+
+    /**
+     * 管理员删除文章（级联删除评论、点赞、收藏、关联关系）
+     * @param postId 文章ID
+     * @param adminId 管理员ID
+     */
+    void adminDeletePost(Long postId, Long adminId);
 }

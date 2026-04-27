@@ -136,4 +136,16 @@ public interface CircleService extends IService<CirclePost> {
      * @return 动态列表
      */
     List<CirclePostVO> searchPosts(String keyword, int page, int pageSize, Long currentUserId);
+
+    // ==================== 话题相关方法 ====================
+
+    /**
+     * 获取话题下的动态列表
+     * @param topicId 话题ID
+     * @param page 页码
+     * @param pageSize 每页数量
+     * @param currentUserId 当前用户ID（可为空）
+     * @return 动态列表
+     */
+    List<CirclePostVO> getPostsByTopic(Long topicId, int page, int pageSize, Long currentUserId);
 }

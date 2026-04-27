@@ -1,5 +1,6 @@
 package com.example.edu_project.common.result;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -13,6 +14,7 @@ import java.io.Serializable;
  * @param <T> 返回数据的类型
  */
 @Data
+@Schema(description = "统一响应结果")
 public class Result<T> implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -24,23 +26,27 @@ public class Result<T> implements Serializable {
      * 401 = 未登录
      * 403 = 无权限
      */
+    @Schema(description = "响应状态码：200=成功，500=失败，401=未登录，403=无权限")
     private Integer code;
 
     /**
      * 响应信息
      * 成功时返回"操作成功"，失败时返回具体错误信息
      */
+    @Schema(description = "响应信息")
     private String message;
 
     /**
      * 响应数据
      * 可以是任意对象、List、Map 等
      */
+    @Schema(description = "响应数据")
     private T data;
 
     /**
      * 时间戳
      */
+    @Schema(description = "响应时间戳")
     private long timestamp;
 
     /**

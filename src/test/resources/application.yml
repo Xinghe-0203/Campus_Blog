@@ -1,0 +1,61 @@
+# =============================================================================
+# 测试环境配置文件
+# =============================================================================
+
+spring:
+  application:
+    name: campus-blog-forum-test
+
+  # 使用H2内存数据库进行测试
+  datasource:
+    driver-class-name: org.h2.Driver
+    url: jdbc:h2:mem:testdb;MODE=MySQL;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    username: sa
+    password:
+
+  # JPA/Hibernate配置（H2兼容模式）
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+
+  # 缓存配置（测试时禁用）
+  cache:
+    type: none
+
+# ==================== JWT 测试配置 ====================
+jwt:
+  secret: this_is_a_very_long_secret_key_for_testing_at_least_32_chars_long
+  expiration: 3600000          # 1小时（毫秒）
+  refresh-expiration: 604800000 # 7天（毫秒）
+
+# ==================== CORS 测试配置 ====================
+cors:
+  allowed-origins: http://localhost:8080,http://127.0.0.1:8080
+
+# ==================== MyBatis Plus 测试配置 ====================
+mybatis-plus:
+  configuration:
+    log-impl: off
+  global-config:
+    db-config:
+      id-type: auto
+      logic-delete-field: isDeleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0
+
+# ==================== 服务器测试配置 ====================
+server:
+  port: 0  # 随机端口
+
+# ==================== 上传测试配置 ====================
+upload:
+  base-path: /tmp/test-uploads
+
+# ==================== Actuator 测试配置 ====================
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
