@@ -58,10 +58,9 @@ public class SecurityConfig {
         for (String origin : origins) {
             String trimmed = origin.trim();
             if (!trimmed.isEmpty()) {
-                // 验证 origin 格式，拒绝过于宽泛的 pattern
+                // 验证 origin 格式，通配符用于开发环境（如 localhost:*）
                 if (trimmed.endsWith("*")) {
-                    log.warn("CORS 配置包含通配符，已被拒绝: {}", trimmed);
-                    continue; // 拒绝通配符，只允许具体来源
+                    log.warn("CORS 配置包含通配符，生产环境请使用具体来源: {}", trimmed);
                 }
                 validatedOrigins.add(trimmed);
                 configuration.addAllowedOriginPattern(trimmed);
