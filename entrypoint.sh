@@ -65,7 +65,7 @@ wait_for_db() {
     MAX_WAIT=120
     COUNTER=0
 
-    while [ $COUNTER -lt $MAX_WAIT ]; ]; do
+    while [ $COUNTER -lt $MAX_WAIT ]; do
         # 尝试连接数据库
         result=$(mysqladmin ping -h "$DB_HOST" -P "$DB_PORT" -u "$DB_USERNAME" -p"$DB_PASSWORD" --silent 2>&1)
 

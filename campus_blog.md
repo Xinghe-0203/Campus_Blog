@@ -10,7 +10,7 @@
 | **项目类型** | 全栈 Web 应用 |
 | **开发周期** | 校技能大赛周期 |
 | **开发人员** | 刘畅 |
-| **当前版本** | v1.32 |
+| **当前版本** | v1.34 |
 | **GitHub 仓库** | https://github.com/Xinghe-0203/Campus_Blog |
 
 ---
@@ -61,7 +61,7 @@
 ### 2.1 已完成的工作
 
 #### ✅ 数据库设计（100%）
-- 18 张数据表设计（含增强功能模块）
+- 19 张数据表设计（含增强功能模块）
 - 完整的 SQL 初始化脚本（数据库表.sql）
 - 包含示例数据（管理员账号、示例标签）
 - 支持逻辑删除、自动时间戳
@@ -162,7 +162,7 @@
 | **DOMPurify** | 3.x | HTML 净化（XSS 防护） |
 | **ECharts** | 5.x | 数据可视化图表库 |
 
-**后端 API 现状（v1.32 已完成）：**
+**后端 API 现状（v1.33 已完成）：**
 - Knife4j API 文档：`http://localhost:8825/api/doc.html`
 - 127 个 Java 文件，完整的后端接口实现
 - 认证方式：JWT Bearer Token
@@ -184,7 +184,7 @@
 
 ### 5.1 数据库表概览
 
-项目包含 **18 张数据表**（含增强功能模块）：
+项目包含 **19 张数据表**（含增强功能模块）：
 
 | 表名 | 中文说明 | 数据量预估 |
 | :--- | :--- | :--- |
@@ -254,7 +254,10 @@
 | like_count | INT | DEFAULT 0 | 点赞数 |
 | comment_count | INT | DEFAULT 0 | 评论数 |
 | collect_count | INT | DEFAULT 0 | 收藏数 |
-| status | TINYINT(1) | DEFAULT 1 | 状态：1=发布，0=草稿，2=下架 |
+| status | TINYINT(1) | DEFAULT 0 | 状态：0=待审核，1=已发布，2=已驳回 |
+| reviewer_id | BIGINT | NULL | 审核人ID |
+| review_time | DATETIME | NULL | 审核时间 |
+| reject_reason | VARCHAR(500) | NULL | 驳回原因 |
 | create_time | DATETIME | DEFAULT NOW | 创建时间 |
 | update_time | DATETIME | AUTO UPDATE | 更新时间 |
 | is_deleted | TINYINT(1) | DEFAULT 0 | 逻辑删除 |
@@ -433,7 +436,7 @@ src/main/java/com/example/edu_project/
 │   ├── DotenvConfig.java                # .env 环境变量加载
 │   └── EnvValidationConfig.java          # 环境变量校验
 │
-├── controller/                           # Controller 层（13个）
+├── controller/                           # Controller 层（18个）
 │   ├── SysUserController.java            # 用户控制器
 │   ├── BlogPostController.java            # 文章控制器
 │   ├── BlogCommentController.java         # 评论控制器
@@ -446,9 +449,14 @@ src/main/java/com/example/edu_project/
 │   ├── ReportController.java             # 举报控制器
 │   ├── AdminReportController.java       # 管理员举报控制器
 │   ├── CircleController.java             # 校友圈控制器
-│   └── MediaController.java             # 媒体控制器
+│   ├── MediaController.java             # 媒体控制器
+│   ├── TopicController.java              # 话题控制器
+│   ├── AdminStatisticsController.java    # 管理员统计控制器
+│   ├── AdminPostController.java          # 管理员内容控制器
+│   ├── AdminUserController.java          # 管理员用户控制器
+│   └── MessageController.java            # 私信控制器
 │
-├── service/                              # Service 层（13个）
+├── service/                              # Service 层（15个）
 │   ├── SysUserService.java
 │   ├── BlogPostService.java
 │   ├── BlogCommentService.java
@@ -461,9 +469,11 @@ src/main/java/com/example/edu_project/
 │   ├── TrendingService.java
 │   ├── ReportService.java
 │   ├── CircleService.java
-│   └── MediaService.java
+│   ├── MediaService.java
+│   ├── TopicService.java
+│   └── MessageService.java
 │
-├── service/impl/                         # Service 实现类（13个）
+├── service/impl/                         # Service 实现类（15个）
 │   ├── SysUserServiceImpl.java
 │   ├── BlogPostServiceImpl.java
 │   ├── BlogCommentServiceImpl.java
@@ -476,9 +486,11 @@ src/main/java/com/example/edu_project/
 │   ├── TrendingServiceImpl.java
 │   ├── ReportServiceImpl.java
 │   ├── CircleServiceImpl.java
-│   └── MediaServiceImpl.java
+│   ├── MediaServiceImpl.java
+│   ├── TopicServiceImpl.java
+│   └── MessageServiceImpl.java
 │
-├── mapper/                               # Mapper 层（18个）
+├── mapper/                               # Mapper 层（19个）
 │   ├── SysUserMapper.java
 │   ├── BlogPostMapper.java
 │   ├── BlogCommentMapper.java
@@ -496,9 +508,11 @@ src/main/java/com/example/edu_project/
 │   ├── CircleCommentMapper.java
 │   ├── CircleRepostMapper.java
 │   ├── MediaMapper.java
-│   └── BlogPostMediaMapper.java
+│   ├── BlogPostMediaMapper.java
+│   ├── TopicMapper.java
+│   └── MessageMapper.java
 │
-├── entity/                               # Entity 实体类（18个）
+├── entity/                               # Entity 实体类（19个）
 │   ├── SysUser.java
 │   ├── BlogPost.java
 │   ├── BlogComment.java
@@ -516,7 +530,31 @@ src/main/java/com/example/edu_project/
 │   ├── CircleComment.java
 │   ├── CircleRepost.java
 │   ├── Media.java
-│   └── BlogPostMedia.java
+│   ├── BlogPostMedia.java
+│   ├── TopicMapper.java
+│   └── MessageMapper.java
+│
+├── entity/                               # Entity 实体类（19个）
+│   ├── SysUser.java
+│   ├── BlogPost.java
+│   ├── BlogComment.java
+│   ├── BlogTag.java
+│   ├── BlogPostTag.java
+│   ├── BlogLike.java
+│   ├── BlogCollect.java
+│   ├── BlogFollow.java
+│   ├── BlogNotification.java
+│   ├── BlogTrending.java
+│   ├── BlogDraft.java
+│   ├── BlogReport.java
+│   ├── CirclePost.java
+│   ├── CircleLike.java
+│   ├── CircleComment.java
+│   ├── CircleRepost.java
+│   ├── Media.java
+│   ├── BlogPostMedia.java
+│   ├── Topic.java
+│   └── Message.java
 │
 └── common/                               # 公共类
     ├── result/
@@ -565,6 +603,8 @@ src/main/java/com/example/edu_project/
 | 根据ID查询用户 | GET | `/api/user/{id}` | ✅ 已实现 |
 | 修改密码 | PUT | `/api/user/password` | ✅ 已实现 |
 | 搜索用户 | GET | `/api/user/search` | ✅ 已实现 |
+| 发送验证码 | POST | `/api/user/send-code` | ✅ 已实现 |
+| 重置密码 | POST | `/api/user/reset-password` | ✅ 已实现 |
 
 ### 7.2 文章模块
 
@@ -699,6 +739,33 @@ src/main/java/com/example/edu_project/
 | 修改用户状态 | PUT | `/api/admin/user/{id}/status` | ✅ 已实现 |
 | 封禁/解封用户 | PUT | `/api/admin/user/{id}/ban` | ✅ 已实现 |
 | 重置用户密码 | PUT | `/api/admin/user/{id}/reset-password` | ✅ 已实现 |
+
+### 7.16 内容审核模块
+
+| 接口 | 方法 | 路径 | 说明 |
+| :--- | :--- | :--- | :--- |
+| 文章列表 | GET | `/api/admin/post/list` | ✅ 已实现 |
+| 修改文章状态 | PUT | `/api/admin/post/{id}/status` | ✅ 已实现 |
+| 删除文章 | DELETE | `/api/admin/post/{id}` | ✅ 已实现 |
+| 评论列表 | GET | `/api/admin/comment/list` | ✅ 已实现 |
+| 删除评论 | DELETE | `/api/admin/comment/{id}` | ✅ 已实现 |
+
+### 7.17 私信模块
+
+| 接口 | 方法 | 路径 | 说明 |
+| :--- | :--- | :--- | :--- |
+| 发送私信 | POST | `/api/message/send` | ✅ 已实现 |
+| 获取私信会话 | GET | `/api/message/conversation/{userId}` | ✅ 已实现 |
+| 获取未读数量 | GET | `/api/message/unread-count` | ✅ 已实现 |
+| 标记已读 | PUT | `/api/message/{id}/read` | ✅ 已实现 |
+| 标记全部已读 | PUT | `/api/message/read-all` | ✅ 已实现 |
+
+### 7.18 密码找回模块
+
+| 接口 | 方法 | 路径 | 说明 |
+| :--- | :--- | :--- | :--- |
+| 发送验证码 | POST | `/api/user/send-code` | ✅ 已实现 |
+| 重置密码 | POST | `/api/user/reset-password` | ✅ 已实现 |
 
 ---
 
@@ -978,6 +1045,7 @@ edu_project/
 
 | 日期 | 版本 | 更新内容 |
 | :--- | :--- | :--- |
+| 2026-04-27 | v1.34 | ✨ **新增密码找回功能**：通过邮件验证码重置密码<br>新增 `EmailService` 接口和 `EmailServiceImpl` 实现类（发送HTML邮件、验证码管理）<br>新增 `PasswordController`（`/user/send-code`、`/user/reset-password`）<br>新增 `SendCodeRequest`、`ResetPasswordRequest` DTO<br>新增 `SysUserService.getUserByEmail()` 和 `resetPassword()` 方法<br>添加 `spring-boot-starter-mail` 依赖<br>邮件配置支持环境变量（`MAIL_HOST`、`MAIL_PORT`、`MAIL_USERNAME`、`MAIL_PASSWORD`）<br>验证码5分钟有效期、3次验证尝试、60秒发送间隔限制 |
 | 2026-04-27 | v1.32 | **P0 安全修复**：CircleServiceImpl XSS过滤、MediaServiceImpl Magic Number校验、SysUser.toString()密码泄露、multipart配置修正<br>**P0 管理员接口**：新增用户列表/封禁接口 AdminUserController<br>**P1 功能完善**：@提及通知(targetId bug修复)、话题标签完整实现<br>**P1 单元测试**：SysUserServiceImplTest、JwtUtilsTest、GlobalExceptionHandlerTest<br>**P1 配置增强**：Spring Boot Actuator健康检查、多环境配置(application-dev/prod.yml)、logback日志配置<br>**P2 性能优化**：N+1查询优化、@PreAuthorize权限控制集中化<br>**P2 架构完善**：Caffeine本地缓存、AsyncConfig异步线程池、AdminStatisticsController数据统计<br>**部署文档**：DEPLOY.md、Dockerfile、docker-compose.yml |
 | 2026-04-24 | v1.6 | 全面安全加固<br>密码字段添加@JsonIgnore防泄露<br>getById返回UserVO替代SysUser<br>敏感信息改为环境变量<br>添加防刷机制和权限校验<br>Entity联合主键和逻辑删除修复 |
 | 2026-04-24 | v1.5 | 安全与质量问题修复<br>添加@Valid参数校验<br>修复分层架构违规<br>添加密码复杂度校验<br>修复N+1查询问题<br>优化关联数据清理<br>完善异常处理机制 |
@@ -1015,5 +1083,5 @@ edu_project/
 
 ---
 
-**文档版本**：v1.32
+**文档版本**：v1.33
 **最后更新**：2026-04-27

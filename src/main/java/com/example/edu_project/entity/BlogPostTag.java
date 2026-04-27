@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.annotation.*;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 /**
  * 文章-标签关联实体类 (blog_post_tag)
@@ -30,4 +31,16 @@ public class BlogPostTag implements Serializable {
      * 标签ID
      */
     private Long tagId;
+
+    /**
+     * 创建时间
+     */
+    @TableField(fill = FieldFill.INSERT)
+    private LocalDateTime createTime;
+
+    /**
+     * 逻辑删除：0-正常，1-删除
+     */
+    @TableLogic
+    private Integer isDeleted;
 }

@@ -85,10 +85,28 @@ public class BlogPost implements Serializable {
     private Integer collectCount;
 
     /**
-     * 文章状态：1=已发布，0=草稿，2=已下架
+     * 文章状态：0=待审核，1=已发布，2=已驳回
      */
-    @Schema(description = "文章状态：1=已发布，0=草稿，2=已下架")
+    @Schema(description = "文章状态：0=待审核，1=已发布，2=已驳回")
     private Integer status;
+
+    /**
+     * 审核人ID
+     */
+    @Schema(description = "审核人ID")
+    private Long reviewerId;
+
+    /**
+     * 审核时间
+     */
+    @Schema(description = "审核时间")
+    private LocalDateTime reviewTime;
+
+    /**
+     * 驳回原因
+     */
+    @Schema(description = "驳回原因")
+    private String rejectReason;
 
     /**
      * 创建时间

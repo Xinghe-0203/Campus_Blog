@@ -91,7 +91,7 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authorize -> authorize
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers("/user/register", "/user/login", "/user/refresh").permitAll()
+                .requestMatchers("/user/register", "/user/login", "/user/refresh", "/user/send-code", "/user/reset-password").permitAll()
                 .requestMatchers("/doc.html", "/swagger-ui/**", "/v3/api-docs/**", "/swagger-resources/**", "/webjars/**").permitAll()
                 .requestMatchers("/admin/**").hasRole("admin")
                 .requestMatchers(HttpMethod.GET, "/post/**").permitAll()

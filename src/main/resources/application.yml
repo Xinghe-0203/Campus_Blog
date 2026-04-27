@@ -60,6 +60,22 @@ spring:
       max-file-size: 500MB
       max-request-size: 500MB
 
+  # ==================== 邮件配置 ====================
+  mail:
+    host: ${MAIL_HOST:smtp.example.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:}
+    password: ${MAIL_PASSWORD:}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
 # ==================== MyBatis Plus 配置 ====================
 mybatis-plus:
   # Mapper XML 文件位置（如果使用 XML 写 SQL 的话）
@@ -117,6 +133,13 @@ upload:
   image:
     max-width: 1920
     quality: 0.85
+
+# ==================== 邮件服务配置 ====================
+mail:
+  verification:
+    expire-minutes: 5        # 验证码有效期（分钟）
+    max-verify-attempts: 3   # 最大验证尝试次数
+    send-interval-seconds: 60  # 发送间隔限制（秒）
 
 # ==================== CORS 配置 ====================
 # 允许的跨域来源（通过环境变量 CORS_ALLOWED_ORIGINS 配置）

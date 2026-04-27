@@ -4,12 +4,15 @@ import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 
 /**
  * 环境变量校验器
  * 启动时检查必需的环境变量是否已配置
+ * 仅在 env.validation.enabled=true 时激活（默认开启）
  */
+@ConditionalOnProperty(name = "env.validation.enabled", havingValue = "true", matchIfMissing = true)
 @Component
 public class EnvValidationConfig {
 

@@ -3,7 +3,7 @@
 -- ============================================================================
 -- 作者: Zora / 刘畅
 -- 创建日期: 2025-07-01
--- 更新日期: 2026-04-25
+-- 更新日期: 2026-04-27
 -- 数据库版本: MySQL 8.0 及以上
 -- 字符集: utf8mb4 (支持 emoji 表情和特殊字符)
 -- 说明:
@@ -132,7 +132,13 @@ CREATE TABLE `blog_post` (
     `collect_count`     INT             DEFAULT 0                    COMMENT '文章收藏数量，用户收藏时自增',
 
     -- -------------------- 状态与时间字段 --------------------
-    `status`            TINYINT(1)     DEFAULT 1                    COMMENT '文章状态：1=已发布（公开），0=草稿（仅作者可见），2=已下架（管理员隐藏）',
+    `status`            TINYINT(1)     DEFAULT 0                    COMMENT '文章状态：0=待审核，1=已发布，2=已驳回',
+
+    `reviewer_id`      BIGINT          DEFAULT NULL                  COMMENT '审核人ID',
+
+    `review_time`       DATETIME        DEFAULT NULL                  COMMENT '审核时间',
+
+    `reject_reason`     VARCHAR(500)   DEFAULT NULL                  COMMENT '驳回原因',
 
     `create_time`       DATETIME        DEFAULT CURRENT_TIMESTAMP    COMMENT '文章发布时间，自动记录首次发布的时间',
 
@@ -863,6 +869,52 @@ CREATE TABLE `blog_topic` (
 ) ENGINE=InnoDB
   DEFAULT CHARSET=utf8mb4
   COMMENT='话题表：存储校友圈话题信息';
+
+
+-- ============================================================================
+-- 表二十：私信表 (blog_message)
+-- ============================================================================
+-- 【业务说明】
+--   存储用户之间的私信消息，支持一对一私聊功能。
+--
+-- 【设计要点】
+--   1. sender_id 和 receiver_id 实现发送者和接收者的关联。
+--   2. is_read 字段标记私信是否已读。
+--   3. 支持逻辑删除，删除私信时保留记录可追溯。
+--   4. 按时间倒序查询，方便展示最新消息。
+--
+DROP TABLE IF EXISTS `blog_message`;
+
+CREATE TABLE `blog_message` (
+    -- -------------------- 主键字段 --------------------
+    `id`                BIGINT          NOT NULL    AUTO_INCREMENT   COMMENT '主键ID，自增长',
+
+    -- -------------------- 关联字段 --------------------
+    `sender_id`         BIGINT          NOT NULL                     COMMENT '发送者用户ID',
+
+    `receiver_id`       BIGINT          NOT NULL                     COMMENT '接收者用户ID',
+
+    -- -------------------- 内容字段 --------------------
+    `content`           TEXT            NOT NULL                     COMMENT '私信内容（最多2000字符）',
+
+    -- -------------------- 状态字段 --------------------
+    `is_read`           TINYINT(1)     DEFAULT 0                     COMMENT '是否已读：0=未读，1=已读',
+
+    -- -------------------- 时间戳字段 --------------------
+    `create_time`       DATETIME        DEFAULT CURRENT_TIMESTAMP    COMMENT '发送时间',
+
+    -- -------------------- 逻辑删除字段 --------------------
+    `is_deleted`        TINYINT(1)     DEFAULT 0                     COMMENT '逻辑删除：0=正常，1=删除',
+
+    -- -------------------- 索引约束 --------------------
+    PRIMARY KEY (`id`),                                               -- 主键索引
+    INDEX `idx_receiver_id` (`receiver_id`),                          -- 按接收者查询收到的私信
+    INDEX `idx_sender_id` (`sender_id`),                              -- 按发送者查询发送的私信
+    INDEX `idx_create_time` (`create_time`)                           -- 按时间排序
+
+) ENGINE=InnoDB
+  DEFAULT CHARSET=utf8mb4
+  COMMENT='私信表：存储用户之间的私信消息';
 
 
 -- ============================================================================

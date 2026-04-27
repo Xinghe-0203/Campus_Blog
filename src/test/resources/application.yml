@@ -37,7 +37,7 @@ cors:
 # ==================== MyBatis Plus 测试配置 ====================
 mybatis-plus:
   configuration:
-    log-impl: off
+    log-impl: org.apache.ibatis.logging.nologging.NoLoggingImpl
   global-config:
     db-config:
       id-type: auto
@@ -48,6 +48,11 @@ mybatis-plus:
 # ==================== 服务器测试配置 ====================
 server:
   port: 0  # 随机端口
+
+# ==================== 环境变量验证配置（测试时禁用）====================
+env:
+  validation:
+    enabled: false
 
 # ==================== 上传测试配置 ====================
 upload:

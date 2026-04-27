@@ -396,4 +396,68 @@ public class SysUserServiceImpl extends ServiceImpl<SysUserMapper, SysUser> impl
         this.updateById(user);
         log.info("用户{}: userId={}", ban ? "已封禁" : "已解封", userId);
     }
+
+    @Override
+    @Transactional(readOnly = true)
+    public SysUser getUserByEmail(String email) {
+        if (email == null || email.trim().isEmpty()) {
+            throw new BusinessException(400, "邮箱不能为空");
+        }
+        LambdaQueryWrapper<SysUser> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(SysUser::getEmail, email.trim());
+        return this.getOne(wrapper);
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void resetPassword(String email, String newPassword) {
+        // 参数校验
+        if (email == null || email.trim().isEmpty()) {
+            throw new BusinessException(400, "邮箱不能为空");
+        }
+        if (newPassword == null || newPassword.trim().isEmpty()) {
+            throw new BusinessException(400, "新密码不能为空");
+        }
+
+        // 密码复杂度校验：至少8位，包含大小写字母、数字或特殊字符中的3种
+        if (newPassword.length() < 8) {
+            throw new BusinessException(400, "密码长度至少为8位");
+        }
+        int categories = 0;
+        if (newPassword.matches(".*[A-Z].*")) categories++;
+        if (newPassword.matches(".*[a-z].*")) categories++;
+        if (newPassword.matches(".*\\d.*")) categories++;
+        if (newPassword.matches(".*[!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?].*")) categories++;
+        if (categories < 3) {
+            throw new BusinessException(400, "密码必须包含大小写字母、数字或特殊字符中的至少3种");
+        }
+
+        // 查找用户
+        SysUser user = getUserByEmail(email);
+        if (user == null) {
+            throw new BusinessException(404, "用户不存在");
+        }
+
+        // 更新密码
+        user.setPassword(passwordEncoder.encode(newPassword));
+        this.updateById(user);
+        log.info("用户密码重置成功: userId={}, email={}", user.getId(), maskEmail(email));
+    }
+
+    /**
+     * 邮箱脱敏处理
+     */
+    private String maskEmail(String email) {
+        if (email == null || !email.contains("@")) {
+            return email;
+        }
+        String[] parts = email.split("@");
+        String local = parts[0];
+        String domain = parts[1];
+        int len = local.length();
+        if (len <= 2) {
+            return local.charAt(0) + "***@" + domain;
+        }
+        return local.charAt(0) + "***" + local.charAt(len - 1) + "@" + domain;
+    }
 }

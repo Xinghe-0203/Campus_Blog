@@ -15,7 +15,7 @@ public class AdminPostQueryRequest {
     @Schema(description = "搜索关键词（标题/内容）")
     private String keyword;
 
-    @Schema(description = "文章状态：0=草稿，1=已发布，2=已下架")
+    @Schema(description = "文章状态：0=待审核，1=已发布，2=已驳回")
     private Integer status;
 
     @Schema(description = "作者用户ID")

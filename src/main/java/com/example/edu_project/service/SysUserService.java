@@ -81,4 +81,18 @@ public interface SysUserService extends IService<SysUser> {
      * @param ban true=封禁，false=解封
      */
     void banUser(Long userId, boolean ban);
+
+    /**
+     * 根据邮箱查找用户
+     * @param email 邮箱
+     * @return 用户信息
+     */
+    SysUser getUserByEmail(String email);
+
+    /**
+     * 重置密码（通过邮箱验证码）
+     * @param email 邮箱
+     * @param newPassword 新密码
+     */
+    void resetPassword(String email, String newPassword);
 }

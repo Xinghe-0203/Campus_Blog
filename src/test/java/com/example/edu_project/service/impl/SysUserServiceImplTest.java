@@ -4,7 +4,7 @@ import com.example.edu_project.common.exception.BusinessException;
 import com.example.edu_project.dto.UserLoginRequest;
 import com.example.edu_project.dto.UserRegisterRequest;
 import com.example.edu_project.dto.UserRegisterResponse;
-import com.example.edu_project.dto.UserLoginResponse;
+import com.example.edu_project.vo.UserLoginResponse;
 import com.example.edu_project.entity.SysUser;
 import com.example.edu_project.mapper.SysUserMapper;
 import com.example.edu_project.service.SysUserService;

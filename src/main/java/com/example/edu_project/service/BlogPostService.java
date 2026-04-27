@@ -169,4 +169,28 @@ public interface BlogPostService extends IService<BlogPost> {
      * @param adminId 管理员ID
      */
     void adminDeletePost(Long postId, Long adminId);
+
+    /**
+     * 获取待审核文章列表
+     * @param keyword 关键词（可选）
+     * @param page 页码
+     * @param pageSize 每页数量
+     * @return 分页结果
+     */
+    IPage<PostDetailResponse> getReviewList(String keyword, Integer page, Integer pageSize);
+
+    /**
+     * 审核通过文章
+     * @param postId 文章ID
+     * @param reviewerId 审核人ID
+     */
+    void approvePost(Long postId, Long reviewerId);
+
+    /**
+     * 驳回文章
+     * @param postId 文章ID
+     * @param reviewerId 审核人ID
+     * @param reason 驳回原因
+     */
+    void rejectPost(Long postId, Long reviewerId, String reason);
 }

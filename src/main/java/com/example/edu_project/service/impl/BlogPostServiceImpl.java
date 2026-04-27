@@ -36,6 +36,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -111,7 +112,8 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         post.setLikeCount(0);
         post.setCommentCount(0);
         post.setCollectCount(0);
-        post.setStatus(1); // 已发布
+        // 普通用户发布设置status=0（待审核），管理员发布设置status=1（直接发布）
+        post.setStatus(SecurityUtils.isCurrentUserAdmin() ? 1 : 0);
 
         this.save(post);
 
@@ -862,6 +864,9 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         response.setCommentCount(post.getCommentCount());
         response.setCollectCount(post.getCollectCount());
         response.setStatus(post.getStatus());
+        response.setReviewerId(post.getReviewerId());
+        response.setReviewTime(post.getReviewTime());
+        response.setRejectReason(post.getRejectReason());
         response.setCreateTime(post.getCreateTime());
         response.setUpdateTime(post.getUpdateTime());
 
@@ -911,5 +916,111 @@ public class BlogPostServiceImpl extends ServiceImpl<BlogPostMapper, BlogPost> i
         blogCollectMapper.delete(collectWrapper);
 
         log.info("管理员删除文章: postId={}, adminId={}, title={}", postId, adminId, post.getTitle());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public IPage<PostDetailResponse> getReviewList(String keyword, Integer page, Integer pageSize) {
+        Page<BlogPost> pageObj = new Page<>(page, pageSize);
+
+        LambdaQueryWrapper<BlogPost> wrapper = new LambdaQueryWrapper<>();
+        wrapper.eq(BlogPost::getStatus, 0) // 待审核
+                .ne(BlogPost::getIsDeleted, 1); // 排除已删除
+
+        // 关键词搜索
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            wrapper.and(w -> w.like(BlogPost::getTitle, keyword.trim())
+                    .or()
+                    .like(BlogPost::getContent, keyword.trim()));
+        }
+
+        // 按创建时间倒序
+        wrapper.orderByDesc(BlogPost::getCreateTime);
+
+        IPage<BlogPost> postPage = this.page(pageObj, wrapper);
+
+        List<BlogPost> posts = postPage.getRecords();
+        if (posts.isEmpty()) {
+            return new Page<>(page, pageSize, 0);
+        }
+
+        // 收集所有需要的用户ID
+        List<Long> userIds = posts.stream()
+                .map(BlogPost::getUserId)
+                .distinct()
+                .collect(Collectors.toList());
+
+        // 收集所有文章ID
+        List<Long> postIds = posts.stream()
+                .map(BlogPost::getId)
+                .collect(Collectors.toList());
+
+        // 批量查询用户信息
+        Map<Long, SysUser> userMap = sysUserMapper.selectBatchIds(userIds).stream()
+                .collect(Collectors.toMap(SysUser::getId, u -> u, (a, b) -> a));
+
+        // 批量查询标签信息
+        Map<Long, List<PostDetailResponse.TagVO>> postTagsMap = getTagsMapByPostIds(postIds);
+
+        // 转换为详情响应
+        IPage<PostDetailResponse> result = new Page<>(postPage.getCurrent(), postPage.getSize(), postPage.getTotal());
+        result.setRecords(posts.stream()
+                .map(post -> convertToDetailResponse(post, userMap.get(post.getUserId()), postTagsMap.get(post.getId())))
+                .collect(Collectors.toList()));
+
+        return result;
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void approvePost(Long postId, Long reviewerId) {
+        BlogPost post = this.getById(postId);
+        if (post == null) {
+            throw new BusinessException(404, "文章不存在");
+        }
+        if (post.getIsDeleted() != null && post.getIsDeleted() == 1) {
+            throw new BusinessException(404, "文章不存在");
+        }
+        if (post.getStatus() != 0) {
+            throw new BusinessException(400, "该文章不在待审核状态");
+        }
+
+        post.setStatus(1); // 已发布
+        post.setReviewerId(reviewerId);
+        post.setReviewTime(LocalDateTime.now());
+        post.setRejectReason(null); // 清除驳回原因
+        this.updateById(post);
+
+        log.info("文章审核通过: postId={}, reviewerId={}, title={}", postId, reviewerId, post.getTitle());
+    }
+
+    @Override
+    @Transactional(rollbackFor = Exception.class)
+    public void rejectPost(Long postId, Long reviewerId, String reason) {
+        if (reason == null || reason.trim().isEmpty()) {
+            throw new BusinessException(400, "驳回原因不能为空");
+        }
+        if (reason.length() > 500) {
+            throw new BusinessException(400, "驳回原因不能超过500字符");
+        }
+
+        BlogPost post = this.getById(postId);
+        if (post == null) {
+            throw new BusinessException(404, "文章不存在");
+        }
+        if (post.getIsDeleted() != null && post.getIsDeleted() == 1) {
+            throw new BusinessException(404, "文章不存在");
+        }
+        if (post.getStatus() != 0) {
+            throw new BusinessException(400, "该文章不在待审核状态");
+        }
+
+        post.setStatus(2); // 已驳回
+        post.setReviewerId(reviewerId);
+        post.setReviewTime(LocalDateTime.now());
+        post.setRejectReason(htmlSanitizer.sanitizePlainText(reason));
+        this.updateById(post);
+
+        log.info("文章审核驳回: postId={}, reviewerId={}, reason={}, title={}", postId, reviewerId, reason, post.getTitle());
     }
 }

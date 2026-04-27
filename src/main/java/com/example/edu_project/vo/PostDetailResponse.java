@@ -52,8 +52,17 @@ public class PostDetailResponse {
     @Schema(description = "收藏数")
     private Integer collectCount;
 
-    @Schema(description = "状态：1=已发布，0=草稿，2=已下架")
+    @Schema(description = "状态：0=待审核，1=已发布，2=已驳回")
     private Integer status;
+
+    @Schema(description = "审核人ID")
+    private Long reviewerId;
+
+    @Schema(description = "审核时间")
+    private LocalDateTime reviewTime;
+
+    @Schema(description = "驳回原因")
+    private String rejectReason;
 
     @Schema(description = "创建时间")
     private LocalDateTime createTime;

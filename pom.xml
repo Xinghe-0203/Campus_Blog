@@ -115,6 +115,13 @@
             <version>0.4.20</version>
         </dependency>
 
+        <!-- ==================== 邮件服务 ==================== -->
+        <!-- Spring Boot Mail：发送邮件服务 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
         <!-- ==================== Caffeine 本地缓存 ==================== -->
         <!-- Spring Boot Cache：缓存抽象层 -->
         <dependency>

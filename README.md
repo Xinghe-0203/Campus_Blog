@@ -36,7 +36,7 @@ edu_project/
 │   │   ├── WebMvcConfig.java                  # Web MVC 配置
 │   │   ├── DotenvConfig.java                  # .env 环境变量加载
 │   │   └── EnvValidationConfig.java           # 环境变量校验配置
-│   ├── controller/                              # Controller 层（13个）
+│   ├── controller/                              # Controller 层（18个）
 │   │   ├── SysUserController.java              # 用户控制器
 │   │   ├── BlogPostController.java             # 文章控制器
 │   │   ├── BlogCommentController.java          # 评论控制器
@@ -49,8 +49,13 @@ edu_project/
 │   │   ├── ReportController.java               # 举报控制器
 │   │   ├── AdminReportController.java          # 管理员举报控制器
 │   │   ├── CircleController.java               # 校友圈控制器
-│   │   └── MediaController.java               # 媒体控制器
-│   ├── service/                                 # Service 层（14个）
+│   │   ├── MediaController.java               # 媒体控制器
+│   │   ├── TopicController.java                # 话题控制器
+│   │   ├── AdminStatisticsController.java      # 管理员统计控制器
+│   │   ├── AdminPostController.java            # 管理员内容控制器
+│   │   ├── AdminUserController.java            # 管理员用户控制器
+│   │   └── MessageController.java              # 私信控制器
+│   ├── service/                                 # Service 层（15个）
 │   │   ├── SysUserService.java
 │   │   ├── BlogPostService.java
 │   │   ├── BlogCommentService.java
@@ -64,7 +69,8 @@ edu_project/
 │   │   ├── ReportService.java
 │   │   ├── CircleService.java
 │   │   ├── MediaService.java
-│   │   └── impl/                                # Service 实现类（13个）
+│   │   ├── TopicService.java
+│   │   └── MessageService.java
 │   │       ├── SysUserServiceImpl.java
 │   │       ├── BlogPostServiceImpl.java
 │   │       ├── BlogCommentServiceImpl.java
@@ -78,7 +84,7 @@ edu_project/
 │   │       ├── ReportServiceImpl.java
 │   │       ├── CircleServiceImpl.java
 │   │       └── MediaServiceImpl.java
-│   ├── mapper/                                  # Mapper 层（18个）
+│   ├── mapper/                                  # Mapper 层（19个）
 │   │   ├── SysUserMapper.java
 │   │   ├── BlogPostMapper.java
 │   │   ├── BlogCommentMapper.java
@@ -96,7 +102,9 @@ edu_project/
 │   │   ├── CircleCommentMapper.java
 │   │   ├── CircleRepostMapper.java
 │   │   ├── MediaMapper.java
-│   │   └── BlogPostMediaMapper.java
+│   │   ├── BlogPostMediaMapper.java
+│   │   ├── TopicMapper.java
+│   │   └── MessageMapper.java
 │   ├── dto/                                     # 数据传输对象
 │   │   ├── UserRegisterRequest.java
 │   │   ├── UserLoginRequest.java
@@ -110,7 +118,7 @@ edu_project/
 │   │   ├── JwtUtils.java                       # JWT 工具类
 │   │   ├── SecurityUtils.java                  # 安全工具类
 │   │   └── UserContext.java                    # 用户上下文对象
-│   └── entity/                                  # Entity 实体类（18个）
+│   └── entity/                                  # Entity 实体类（19个）
 │       ├── SysUser.java
 │       ├── BlogPost.java
 │       ├── BlogComment.java
@@ -128,7 +136,9 @@ edu_project/
 │       ├── CircleComment.java
 │       ├── CircleRepost.java
 │       ├── Media.java
-│       └── BlogPostMedia.java
+│       ├── BlogPostMedia.java
+│       ├── Topic.java
+│       └── Message.java
 │   └── common/                                  # 公共类
 │       ├── result/
 │       │   └── Result.java                     # 统一响应结果类
@@ -504,6 +514,33 @@ java -jar target/edu_project-0.0.1-SNAPSHOT.jar
 | POST | `/api/media/bind/{postId}` | 绑定媒体到文章（需登录） |
 | GET | `/api/media/post/{postId}` | 获取文章的媒体列表（需登录） |
 
+### 内容审核模块
+
+| 方法 | 路径 | 说明 |
+| :--- | :--- | :--- |
+| GET | `/api/admin/post/list` | 文章列表（需管理员，分页筛选） |
+| GET | `/api/admin/post/review-list` | 待审核文章列表（需管理员） |
+| PUT | `/api/admin/post/{id}/approve` | 审核通过文章（需管理员） |
+| PUT | `/api/admin/post/{id}/reject` | 驳回文章（需管理员） |
+| DELETE | `/api/admin/post/{id}` | 删除文章（需管理员） |
+
+### 私信模块
+
+| 方法 | 路径 | 说明 |
+| :--- | :--- | :--- |
+| POST | `/api/message/send` | 发送私信（需登录） |
+| GET | `/api/message/conversation/{userId}` | 获取与某用户的私信会话（需登录） |
+| GET | `/api/message/unread-count` | 获取未读私信数量（需登录） |
+| PUT | `/api/message/{messageId}/read` | 标记私信已读（需登录） |
+| PUT | `/api/message/read-all` | 标记全部已读（需登录） |
+
+### 密码找回模块
+
+| 方法 | 路径 | 说明 |
+| :--- | :--- | :--- |
+| POST | `/api/user/send-code` | 发送验证码邮件（需登录） |
+| POST | `/api/user/reset-password` | 重置密码（需登录，body: `code`, `email`, `newPassword`） |
+
 ## 开发规范
 
 ### 1. 统一返回格式
@@ -545,6 +582,15 @@ java -jar target/edu_project-0.0.1-SNAPSHOT.jar
 
 ## 更新日志
 
+### v1.33 (2026-04-27)
+- ✨ **新增内容审核流程**：待审核/通过/驳回状态管理
+- ✨ **新增私信功能**：发送/接收/标记已读/未读消息
+- ✨ **新增密码找回功能**：邮件验证码重置密码
+- 🔧 **修复 entrypoint.sh 语法错误**
+- 🔧 **修复 Entity 与数据库表不一致问题**
+- 🔧 **修复测试配置问题**
+- 📝 **更新文档**：组件数量和接口列表
+
 ### v1.32 (2026-04-27)
 - 🔒 **安全修复**：XSS过滤、文件上传校验、toString密码泄露、multipart配置
 - ✨ **管理员接口**：AdminUserController 用户列表/封禁接口
@@ -555,6 +601,13 @@ java -jar target/edu_project-0.0.1-SNAPSHOT.jar
 - ⚙️ **异步优化**：AsyncConfig自定义线程池配置
 - ⚙️ **权限集中**：@PreAuthorize注解替代手动权限检查
 - 📦 **部署文档**：DEPLOY.md、Dockerfile、docker-compose.yml
+
+### v1.32 (2026-04-27)
+- ✨ **新增功能**：内容审核流程（待审核/通过/驳回状态管理）
+- 🔧 **优化**：普通用户发布文章 status=0（待审核），管理员发布 status=1（直接发布）
+- ✨ **新增接口**：GET `/api/admin/post/review-list` 待审核列表
+- ✨ **新增接口**：PUT `/api/admin/post/{id}/approve` 审核通过
+- ✨ **新增接口**：PUT `/api/admin/post/{id}/reject` 审核驳回
 
 ### v1.31 (2026-04-27)
 - 🔒 **Critical 修复**：CircleServiceImpl 添加 XSS 防护（htmlSanitizer.sanitizePlainText）
