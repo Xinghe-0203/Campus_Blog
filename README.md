@@ -545,6 +545,17 @@ java -jar target/edu_project-0.0.1-SNAPSHOT.jar
 
 ## 更新日志
 
+### v1.32 (2026-04-27)
+- 🔒 **安全修复**：XSS过滤、文件上传校验、toString密码泄露、multipart配置
+- ✨ **管理员接口**：AdminUserController 用户列表/封禁接口
+- ✨ **话题标签**：TopicController 话题列表/详情/热门接口
+- ✨ **数据统计**：AdminStatisticsController 平台统计数据接口
+- 📝 **单元测试**：SysUserServiceImplTest、JwtUtilsTest、GlobalExceptionHandlerTest
+- ⚙️ **配置完善**：Actuator健康检查、多环境配置、logback日志配置
+- ⚙️ **异步优化**：AsyncConfig自定义线程池配置
+- ⚙️ **权限集中**：@PreAuthorize注解替代手动权限检查
+- 📦 **部署文档**：DEPLOY.md、Dockerfile、docker-compose.yml
+
 ### v1.31 (2026-04-27)
 - 🔒 **Critical 修复**：CircleServiceImpl 添加 XSS 防护（htmlSanitizer.sanitizePlainText）
 - 🔒 **Critical 修复**：MediaServiceImpl 添加文件头 Magic Number 校验

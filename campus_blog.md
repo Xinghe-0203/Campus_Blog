@@ -152,16 +152,21 @@
 
 | 技术名称 | 版本 | 用途说明 |
 | :--- | :--- | :--- |
+| **Vue.js** | 3.x | 渐进式 JavaScript 框架（推荐），或使用原生 HTML5/CSS3/JavaScript |
 | **HTML5** | - | 页面结构标记语言 |
 | **CSS3** | - | 页面样式设计 |
 | **JavaScript (ES6+)** | ES Modules | 前端交互逻辑（模块化） |
-| **Bootstrap** | 5.x | UI 组件框架，提供响应式布局和现成组件 |
 | **Axios** | 1.x | HTTP 请求库，用于前后端数据交互 |
 | **Marked.js** | 9.x | Markdown 解析 |
 | **Highlight.js** | 11.x | 代码高亮 |
 | **DOMPurify** | 3.x | HTML 净化（XSS 防护） |
-| **Font Awesome** | - | 图标库 |
-| **ECharts** | - | 数据可视化图表库（可选） |
+| **ECharts** | 5.x | 数据可视化图表库 |
+
+**后端 API 现状（v1.32 已完成）：**
+- Knife4j API 文档：`http://localhost:8825/api/doc.html`
+- 127 个 Java 文件，完整的后端接口实现
+- 认证方式：JWT Bearer Token
+- 所有接口返回统一 `Result<T>` 响应格式
 
 ### 4.4 开发工具
 
@@ -708,10 +713,11 @@ src/main/java/com/example/edu_project/
 | **✅ 第五阶段** | 互动功能模块 | 实现评论、点赞、收藏功能 | ✅ 已完成 |
 | **✅ 第六阶段** | 安全认证加固 | 启用 Spring Security + JWT | ✅ 已完成 |
 | **🚧 第七阶段** | 增强功能开发 | 社交/关注、通知、热门/趋势、草稿、举报、校友圈、媒体上传 | ✅ 已完成 |
-| **⏳ 第八阶段** | 前端页面开发 | 编写 HTML/CSS，实现响应式布局和 Markdown 集成 | ⏳ 待开始 |
-| **⏳ 第九阶段** | 前后端联调 | 使用 Axios 将前端页面与后端接口连通 | ⏳ 待开始 |
-| **⏳ 第十阶段** | 优化与美化 | 加入 ECharts 统计图表，进行 UI 细节打磨 | ⏳ 待开始 |
-| **⏳ 第十一阶段** | 测试与修复 | 功能测试、Bug 修复、性能优化 | ⏳ 待开始 |
+| **✅ 第八阶段** | 后端增强完善 | @提及、话题标签、单元测试、Actuator、Caffeine缓存、异步线程池 | ✅ 已完成 |
+| **⏳ 第九阶段** | 前端页面开发 | 编写 HTML/CSS/Vue，实现响应式布局和 Markdown 集成 | ⏳ 待开始 |
+| **⏳ 第十阶段** | 前后端联调 | 使用 Axios 将前端页面与后端接口连通 | ⏳ 待开始 |
+| **⏳ 第十一阶段** | 优化与美化 | 加入 ECharts 统计图表，进行 UI 细节打磨 | ⏳ 待开始 |
+| **⏳ 第十二阶段** | 测试与修复 | 功能测试、Bug 修复、性能优化 | ⏳ 待开始 |
 
 ---
 
@@ -972,6 +978,7 @@ edu_project/
 
 | 日期 | 版本 | 更新内容 |
 | :--- | :--- | :--- |
+| 2026-04-27 | v1.32 | **P0 安全修复**：CircleServiceImpl XSS过滤、MediaServiceImpl Magic Number校验、SysUser.toString()密码泄露、multipart配置修正<br>**P0 管理员接口**：新增用户列表/封禁接口 AdminUserController<br>**P1 功能完善**：@提及通知(targetId bug修复)、话题标签完整实现<br>**P1 单元测试**：SysUserServiceImplTest、JwtUtilsTest、GlobalExceptionHandlerTest<br>**P1 配置增强**：Spring Boot Actuator健康检查、多环境配置(application-dev/prod.yml)、logback日志配置<br>**P2 性能优化**：N+1查询优化、@PreAuthorize权限控制集中化<br>**P2 架构完善**：Caffeine本地缓存、AsyncConfig异步线程池、AdminStatisticsController数据统计<br>**部署文档**：DEPLOY.md、Dockerfile、docker-compose.yml |
 | 2026-04-24 | v1.6 | 全面安全加固<br>密码字段添加@JsonIgnore防泄露<br>getById返回UserVO替代SysUser<br>敏感信息改为环境变量<br>添加防刷机制和权限校验<br>Entity联合主键和逻辑删除修复 |
 | 2026-04-24 | v1.5 | 安全与质量问题修复<br>添加@Valid参数校验<br>修复分层架构违规<br>添加密码复杂度校验<br>修复N+1查询问题<br>优化关联数据清理<br>完善异常处理机制 |
 | 2026-04-24 | v1.4 | 实现用户注册、登录功能<br>启用 Spring Security + JWT 认证<br>新增 JwtUtils 工具类<br>新增 DTO/VO 层<br>BCrypt 密码加密存储<br>JWT Token 身份认证 |
