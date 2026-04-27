@@ -37,7 +37,7 @@ edu_project/
 │   │   ├── DotenvConfig.java                  # .env 环境变量加载
 │   │   ├── EnvValidationConfig.java           # 环境变量校验配置
 │   │   └── RateLimitInterceptor.java          # 接口频率限制拦截器
-│   ├── controller/                              # Controller 层（19个）
+│   ├── controller/                              # Controller 层（20个）
 │   │   ├── SysUserController.java              # 用户控制器
 │   │   ├── BlogPostController.java             # 文章控制器
 │   │   ├── BlogCommentController.java          # 评论控制器
@@ -54,6 +54,7 @@ edu_project/
 │   │   ├── TopicController.java                # 话题控制器
 │   │   ├── AdminStatisticsController.java      # 管理员统计控制器
 │   │   ├── AdminPostController.java            # 管理员内容控制器
+│   │   ├── AdminCommentController.java         # 管理员评论控制器
 │   │   ├── AdminUserController.java            # 管理员用户控制器
 │   │   ├── MessageController.java              # 私信控制器
 │   │   └── PasswordController.java              # 密码找回控制器
@@ -601,10 +602,26 @@ java -jar target/edu_project-0.0.1-SNAPSHOT.jar
 
 ## 更新日志
 
-### v1.34 (2026-04-27)
-- ✨ **新增 PasswordController**：密码找回接口（发送验证码/重置密码）
-- ✨ **新增 EmailService**：邮件服务（验证码发送）
-- 📝 **文档更新**：组件数量修正、版本号统一为 v1.34
+### v1.35 (2026-04-27)
+- ✨ **新增内容审核(完善)**: 审核通过/驳回状态管理，管理员审核接口
+- ✨ **新增私信(完善)**: 发送/接收/标记已读/删除私信，XSS 过滤
+- ✨ **新增密码找回(完善)**: 邮件验证码发送与密码重置，EmailService
+- ✨ **新增 Rate Limiting**: RateLimitInterceptor 接口频率限制
+- ✨ **新增工具类**: TimeUtils 相对时间、StringMaskUtils 邮箱脱敏、UserConverter 用户转换
+- 🔧 **缓存策略修复**: CaffeineCacheConfig 改用 SimpleCacheManager + per-cache specs
+- 🔧 **CirclePost 逻辑删除统一**: is_deleted + @TableLogic 替代 status=2，JSON TypeHandler 处理4个字段
+- 🔧 **1NF 规范化**: BlogDraft 标签拆分至 blog_draft_tag 关联表
+- 🔧 **数据库优化**: view_count 列 INT→BIGINT（blog_post、blog_circle_post），索引命名统一
+- 🔧 **外键约束参考 SQL**: 新增 29 条 ALTER TABLE 外键语句
+- 🔧 **BlogPostMedia 逻辑删除**: 新增 is_deleted 列，物理删除改为逻辑删除
+- 🔧 **N+1 查询修复**: CircleServiceImpl、MediaServiceImpl（listByIds）
+- 🔧 **OOM 修复**: StatisticsServiceImpl 统计改用 COUNT DISTINCT
+- 🔧 **XSS 防护**: MessageServiceImpl 添加 HTML 过滤
+- 🔧 **配置优化**: SQL 日志改为 NoLoggingImpl，文件上传限制 50MB，AsyncConfig 线程池参数可注入
+- 🔧 **安全加固**: SecurityConfig 安全头/CORS 校验，JwtAuthenticationFilter Refresh Token 类型隔离
+- 🔧 **权限完善**: TopicController 添加 @PreAuthorize，分页参数 @Min/@Max 校验
+- 🔧 **实体层修复**: BlogNotification 枚举值统一，BlogDraft 添加 1NF 迁移说明
+- 📝 **文档更新**: 组件数量统计修正、API 文档补充、版本号统一为 v1.35
 
 ### v1.33 (2026-04-27)
 - ✨ **新增内容审核流程**：待审核/通过/驳回状态管理

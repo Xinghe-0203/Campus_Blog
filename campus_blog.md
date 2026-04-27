@@ -10,7 +10,7 @@
 | **项目类型** | 全栈 Web 应用 |
 | **开发周期** | 校技能大赛周期 |
 | **开发人员** | 刘畅 |
-| **当前版本** | v1.34 |
+| **当前版本** | v1.35 |
 | **GitHub 仓库** | https://github.com/Xinghe-0203/Campus_Blog |
 
 ---
@@ -61,7 +61,7 @@
 ### 2.1 已完成的工作
 
 #### ✅ 数据库设计（100%）
-- 20 张数据表设计（含增强功能模块）
+- 21 张数据表设计（含增强功能模块）
 - 完整的 SQL 初始化脚本（数据库表.sql）
 - 包含示例数据（管理员账号、示例标签）
 - 支持逻辑删除、自动时间戳
@@ -71,8 +71,8 @@
 - Maven 项目结构搭建
 - 核心依赖配置（MyBatis Plus、MySQL、Knife4j、Lombok、Hutool）
 - 标准的包结构（controller、service、mapper、entity、config、common）
-- 20 个实体类（Entity）编写完成
-- 20 个 Mapper 接口编写完成
+- 21 个实体类（Entity）编写完成
+- 21 个 Mapper 接口编写完成
 - 统一响应结果封装（Result）
 - MyBatis Plus 配置（分页插件已启用）
 - API 文档集成（Knife4j）
@@ -99,6 +99,18 @@
 - 项目成功启动并正常运行！
 - 数据库连接正常（云端 MySQL）
 - API 接口正常响应
+
+#### ✅ 后端增强完善 v1.35（2026-04-27）
+- 速率限制（Rate Limiting）：基于 Caffeine 的接口频率限制拦截器
+- Caffeine 缓存策略修复：SimpleCacheManager 具名缓存差异化配置
+- CirclePost 统一逻辑删除：添加 is_deleted + @TableLogic 支持
+- JSON 列 TypeHandler 配置：JacksonTypeHandler for CirclePost
+- BlogDraft 1NF 规范化：blog_draft_tag 关联表分离草稿标签多值依赖
+- BlogPostMedia 逻辑删除统一
+- 外键约束参考 SQL：新增 29 条 ALTER TABLE 外键语句
+- view_count 类型升级：INT → BIGINT
+- 线程池参数可配置化：@Value 注入 AsyncConfig 核心参数
+- 新增工具类：TimeUtils、StringMaskUtils、UserConverter
 
 ---
 
@@ -182,7 +194,7 @@
 
 ### 5.1 数据库表概览
 
-项目包含 **20 张数据表**（含增强功能模块）：
+项目包含 **21 张数据表**（含增强功能模块）：
 
 | 表名 | 中文说明 | 数据量预估 |
 | :--- | :--- | :--- |
@@ -197,6 +209,7 @@
 | **blog_notification** | 通知表 | 大 |
 | **blog_trending** | 热度统计表 | 中 |
 | **blog_draft** | 文章草稿表 | 中 |
+| **blog_draft_tag** | **草稿-标签关联表** | **小** |
 | **blog_report** | 内容举报表 | 小 |
 | **blog_circle_post** | 校友圈动态表 | 大 |
 | **blog_circle_like** | 校友圈点赞表 | 大 |
@@ -434,6 +447,7 @@ src/main/java/com/example/edu_project/
 │   ├── JwtAuthenticationFilter.java     # JWT 认证过滤器
 │   ├── WebMvcConfig.java                # 静态资源映射
 │   ├── DotenvConfig.java                # .env 环境变量加载
+│   ├── RateLimitInterceptor.java       # 频率限制拦截器
 │   └── EnvValidationConfig.java          # 环境变量校验
 │
 ├── controller/                           # Controller 层（20个）
@@ -507,6 +521,7 @@ src/main/java/com/example/edu_project/
 │   ├── BlogNotificationMapper.java
 │   ├── BlogTrendingMapper.java
 │   ├── BlogDraftMapper.java
+│   ├── BlogDraftTagMapper.java
 │   ├── BlogReportMapper.java
 │   ├── CirclePostMapper.java
 │   ├── CircleLikeMapper.java
@@ -529,6 +544,7 @@ src/main/java/com/example/edu_project/
 │   ├── BlogNotification.java
 │   ├── BlogTrending.java
 │   ├── BlogDraft.java
+│   ├── BlogDraftTag.java
 │   ├── BlogReport.java
 │   ├── CirclePost.java
 │   ├── CircleLike.java
@@ -907,7 +923,8 @@ edu_project/
     │   ├── config/
     │   │   ├── MybatisPlusConfig.java
     │   │   ├── MyMetaObjectHandler.java
-    │   │   └── SecurityConfig.java
+    │   │   ├── SecurityConfig.java
+│   │   └── RateLimitInterceptor.java
     │   ├── controller/                           # Controller 层（20个）
     │   │   ├── SysUserController.java
     │   │   ├── BlogPostController.java
@@ -922,7 +939,7 @@ edu_project/
     │   │   ├── AdminReportController.java
     │   │   ├── CircleController.java
     │   │   └── MediaController.java
-    │   ├── entity/                               # Entity 实体类（20个）
+    │   ├── entity/                               # Entity 实体类（21个）
     │   │   ├── SysUser.java
     │   │   ├── BlogPost.java
     │   │   ├── BlogComment.java
@@ -940,8 +957,11 @@ edu_project/
     │   │   ├── CircleComment.java
     │   │   ├── CircleRepost.java
     │   │   ├── Media.java
-    │   │   └── BlogPostMedia.java
-    │   ├── mapper/                               # Mapper 层（20个）
+    │   │   ├── BlogPostMedia.java
+	│   │   ├── Topic.java
+	│   │   ├── Message.java
+	│   │   └── BlogDraftTag.java
+    │   ├── mapper/                               # Mapper 层（21个）
     │   │   ├── SysUserMapper.java
     │   │   ├── BlogPostMapper.java
     │   │   ├── BlogCommentMapper.java
@@ -959,7 +979,10 @@ edu_project/
     │   │   ├── CircleCommentMapper.java
     │   │   ├── CircleRepostMapper.java
     │   │   ├── MediaMapper.java
-    │   │   └── BlogPostMediaMapper.java
+    │   │   ├── BlogPostMediaMapper.java
+	│   │   ├── TopicMapper.java
+	│   │   ├── MessageMapper.java
+	│   │   └── BlogDraftTagMapper.java
     │   ├── dto/
     │   │   ├── UserRegisterRequest.java
     │   │   └── UserLoginRequest.java
@@ -969,7 +992,10 @@ edu_project/
     │   │   ├── JwtUtils.java              # JWT 工具类
     │   │   ├── SecurityUtils.java         # 安全工具类
     │   │   ├── UserContext.java          # 用户上下文
-    │   │   └── HtmlSanitizer.java        # XSS 防护
+    │   │   ├── HtmlSanitizer.java        # XSS 防护
+	│   │   ├── TimeUtils.java            # 时间工具类
+	│   │   ├── StringMaskUtils.java      # 字符串脱敏工具
+	│   │   └── UserConverter.java        # 用户对象转换工具
     │   └── service/                              # Service 层（17个）
     │   │   ├── SysUserService.java
     │   │   ├── BlogPostService.java
@@ -1036,6 +1062,7 @@ edu_project/
 
 | 日期 | 版本 | 更新内容 |
 | :--- | :--- | :--- |
+| 2026-04-27 | v1.35 | ✨ **速率限制**：新增 `RateLimitInterceptor` 基于 Caffeine 的接口频率限制<br>✨ **缓存策略修复**：SimpleCacheManager 具名缓存差异化配置<br>✨ **CirclePost 逻辑删除统一**：添加 is_deleted + @TableLogic 支持<br>✨ **JSON 列 TypeHandler**：JacksonTypeHandler 配置处理 CirclePost JSON 字段<br>✨ **BlogDraft 1NF 规范化**：新建 `blog_draft_tag` 关联表分离草稿标签多值依赖<br>✨ **BlogPostMedia 逻辑删除统一**：统一软删除机制<br>✨ **外键约束参考 SQL**：新增 29 条 ALTER TABLE 外键语句<br>✨ **view_count 类型升级**：INT → BIGINT<br>✨ **线程池参数可配置化**：@Value 注入 AsyncConfig 核心参数<br>✨ **新增工具类**：TimeUtils、StringMaskUtils、UserConverter<br>📦 **新增表**：`blog_draft_tag`（第21张表）<br>📦 **新增 Mapper/Entity**：`BlogDraftTagMapper`、`BlogDraftTag` |
 | 2026-04-27 | v1.34 | ✨ **内容审核流程**：新增 `AdminPostController` 和 `AdminCommentController`（审核文章/评论列表、修改状态、删除）<br>✨ **私信功能**：新增 `Message` 实体、`MessageService`、`MessageController`（发送/接收/已读/删除私信、未读计数）<br>✨ **密码找回功能**：新增 `EmailService` 和 `EmailServiceImpl`（发送HTML邮件、验证码管理）<br>新增 `PasswordController`（`/user/send-code`、`/user/reset-password`）<br>新增 `SendCodeRequest`、`ResetPasswordRequest` DTO<br>添加 `spring-boot-starter-mail` 依赖，邮件配置支持环境变量<br>验证码5分钟有效期、3次验证尝试、60秒发送间隔限制<br>🔧 **Entity修复**：`TopicMapper.java` 和 `MessageMapper.java` 移除（已改为实体类 `Topic.java` 和 `Message.java`）<br>🐛 **测试配置修复**：H2数据库支持、Flyway配置修正 |
 | 2026-04-27 | v1.32 | **P0 安全修复**：CircleServiceImpl XSS过滤、MediaServiceImpl Magic Number校验、SysUser.toString()密码泄露、multipart配置修正<br>**P0 管理员接口**：新增用户列表/封禁接口 AdminUserController<br>**P1 功能完善**：@提及通知(targetId bug修复)、话题标签完整实现<br>**P1 单元测试**：SysUserServiceImplTest、JwtUtilsTest、GlobalExceptionHandlerTest<br>**P1 配置增强**：Spring Boot Actuator健康检查、多环境配置(application-dev/prod.yml)、logback日志配置<br>**P2 性能优化**：N+1查询优化、@PreAuthorize权限控制集中化<br>**P2 架构完善**：Caffeine本地缓存、AsyncConfig异步线程池、AdminStatisticsController数据统计<br>**部署文档**：DEPLOY.md、Dockerfile、docker-compose.yml |
 | 2026-04-24 | v1.6 | 全面安全加固<br>密码字段添加@JsonIgnore防泄露<br>getById返回UserVO替代SysUser<br>敏感信息改为环境变量<br>添加防刷机制和权限校验<br>Entity联合主键和逻辑删除修复 |
@@ -1074,5 +1101,5 @@ edu_project/
 
 ---
 
-**文档版本**：v1.34
+**文档版本**：v1.35
 **最后更新**：2026-04-27
