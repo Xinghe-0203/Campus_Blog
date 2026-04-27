@@ -175,7 +175,7 @@ management:
     db:
       enabled: true
     mail:
-      enabled: false  # 开发环境禁用邮件健康检查，避免无配置时报错
+      enabled: ${MAIL_HEALTH_ENABLED:false}  # 通过 .env 中 MAIL_HEALTH_ENABLED=true 开启
     diskSpace:
       enabled: true
     ping:
