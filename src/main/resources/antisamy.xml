@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<anti-samy-rules xmlns="http://www.owasp.org/wwwInfo/AntiSamy">
+    <directives>
+        <property name="omitXmlDeclaration">true</property>
+        <property name="omitDoctypeDeclaration">true</property>
+    </directives>
+    <common-regexps>
+        <regexp name="any" description="Anything" expression=".*"/>
+    </common-regexps>
+    <common-attributes>
+        <attribute name="class" description="CSS Class"/>
+        <attribute name="id" description="Unique identifier"/>
+        <attribute name="style" description="Inline style"/>
+    </common-attributes>
+    <tag-rules>
+        <tag name="*" action="validate"/>
+        <tag name="p" action="truncate" maxLength="1000"/>
+        <tag name="br" action="empty"/>
+        <tag name="img" action="validate">
+            <attribute name="src" action="require"/>
+        </tag>
+    </tag-rules>
+</anti-samy-rules>

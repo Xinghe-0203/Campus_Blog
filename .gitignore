@@ -1,0 +1,43 @@
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+*.iml
+.vscode/
+
+# Logs
+*.log
+logs/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Build
+target/
+*.class
+*.jar
+*.war
+
+# Caches
+node_modules/
+.gradle/
+.mvn/wrapper/maven-wrapper.jar
+.npm/
+.pnpm-store/
+*.cache
+
+# Docker
+.dockerignore
+
+# Sensitive
+*.pem
+*.key
+credentials.json
+
+# Claude local state
+.claude/settings.local.json
+.claude/*.local.*
